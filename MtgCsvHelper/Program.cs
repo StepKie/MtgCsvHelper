@@ -5,7 +5,6 @@ using Microsoft.Extensions.Hosting;
 using System.Globalization;
 using MtgCsvHelper;
 using Serilog;
-using CsvHelper.Configuration;
 
 using IHost host = Host.CreateDefaultBuilder(args).Build();
 
@@ -96,19 +95,18 @@ IList<PhysicalMtgCard> ParseCollectionCsv(string csvFilePath)
 /// <summary> TODO Make configurable with target format (Deckbox, DragonShield etc.) </summary>
 void WriteCollectionCsv(IList<PhysicalMtgCard> cards)
 {
-	using (var writer = new StreamWriter("deckboxoutput.csv"))
-	using (var csv = new CsvWriter(writer, CultureInfo.InvariantCulture))
-	{
-		csv.Context.RegisterClassMap<DeckboxMap>();
-		csv.WriteHeader<PhysicalMtgCard>();
-        csv.Flush();
+	using var writer = new StreamWriter("deckboxoutput.csv");
+	using var csv = new CsvWriter(writer, CultureInfo.InvariantCulture);
 
+	csv.Context.RegisterClassMap<DeckboxMap>();
+	csv.WriteHeader<PhysicalMtgCard>();
+	csv.Flush();
+
+	csv.NextRecord();
+	foreach (var card in cards)
+	{
+		csv.WriteRecord(card);
+		csv.Flush();
 		csv.NextRecord();
-		foreach (var card in cards)
-		{
-			csv.WriteRecord(card);
-            csv.Flush();
-			csv.NextRecord();
-		}
 	}
 }
