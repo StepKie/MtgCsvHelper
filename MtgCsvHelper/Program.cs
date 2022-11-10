@@ -44,7 +44,7 @@ IList<PhysicalMtgCard> ParseCollectionCsv(string csvFilePath)
     csv.Read(); // Read twice to discard "=sep" in DragonShield
     csv.Read();
 	_ = csv.ReadHeader();
-	csv.Context.RegisterClassMap<DeckboxMap>();
+	csv.Context.RegisterClassMap<CsvToCardMap>();
 	string[] headerRecord = csv.HeaderRecord!;
 
 
@@ -98,7 +98,7 @@ void WriteCollectionCsv(IList<PhysicalMtgCard> cards)
 	using var writer = new StreamWriter("deckboxoutput.csv");
 	using var csv = new CsvWriter(writer, CultureInfo.InvariantCulture);
 
-	csv.Context.RegisterClassMap<DeckboxMap>();
+	csv.Context.RegisterClassMap<CsvToCardMap>();
 	csv.WriteHeader<PhysicalMtgCard>();
 	csv.Flush();
 
