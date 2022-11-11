@@ -1,4 +1,4 @@
-﻿namespace MtgCsvHelper;
+﻿namespace MtgCsvHelper.Models;
 
 public record MtgCard
 {
