@@ -19,7 +19,7 @@ public abstract class Enumeration : IComparable
 					.Select(f => f.GetValue(null))
 					.Cast<T>();
 
-	public override bool Equals(object obj)
+	public override bool Equals(object? obj)
 	{
 		if (obj is not Enumeration otherValue)
 		{
@@ -52,11 +52,11 @@ public abstract class Enumeration : IComparable
 		return matchingItem;
 	}
 
-	private static T Parse<T, K>(K value, string description, Func<T, bool> predicate) where T : Enumeration
+	public static T Parse<T, K>(K value, string description, Func<T, bool> predicate) where T : Enumeration
 	{
 		var matchingItem = GetAll<T>().FirstOrDefault(predicate);
 		return matchingItem ?? throw new InvalidOperationException($"'{value}' is not a valid {description} in {typeof(T)}");
 	}
 
-	public int CompareTo(object? other) => Id.CompareTo((other as Enumeration)?.Id);
+	public int CompareTo(object? obj) => Id.CompareTo((obj as Enumeration)?.Id);
 }

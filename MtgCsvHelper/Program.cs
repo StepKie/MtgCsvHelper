@@ -1,112 +1,94 @@
-﻿using CsvHelper;
+﻿using CommandLine;
+using CommandLine.Text;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using System.Globalization;
-using MtgCsvHelper;
-using Serilog;
 
 using IHost host = Host.CreateDefaultBuilder(args).Build();
 
 // Ask the service provider for the configuration abstraction.
 IConfiguration config = host.Services.GetRequiredService<IConfiguration>();
 
-
 Log.Logger = new LoggerConfiguration()
-		.ReadFrom.Configuration(config)
-		.CreateLogger();
+	.ReadFrom.Configuration(config)
+	.CreateLogger();
 
-// Get values from the config given their key and their target type.
-string sampleValue = config.GetValue<string>("Editions:Media Promos");
+Parser.Default.ParseArguments<CommandLineOptions>(args)
+	.WithParsed(RunWithOptions)
+	.WithNotParsed(HandleParseError);
 
+// There is no need to run the host continuously ...
+//await host.RunAsync();
 
-// Application code
-string dsCsvFile = $"SampleCsvs/all-folders.csv";
-Log.Information("Parsing Csv ...");
-var cards = ParseCollectionCsv(dsCsvFile);
-Log.Information($"Found {cards.Count} cards");
-
-WriteCollectionCsv(cards);
-
-
-Log.Information($"Done. Press Ctrl+C to exit");
-
-await host.RunAsync();
-
-
-/// <summary> TODO Specify or auto-detect format, currently hardcoded to DragonShield </summary>
-IList<PhysicalMtgCard> ParseCollectionCsv(string csvFilePath)
+void RunWithOptions(CommandLineOptions opts)
 {
-    using StreamReader stream = new(csvFilePath);
-    _ = stream ?? throw new FileNotFoundException($"{csvFilePath} not found");
+	// Set ConfigFile through singleton (due to how ClassMaps are registered)
+	CsvToCardMap.ConfigFile = config;
+	var files = opts.InputFiles;
+	Console.WriteLine($"Files: {files}");
+	string dsCsvFile = files.Any() ? files.First() : $"SampleCsvs/dragonshield-collection_2022-11-11.csv";
 
-    using CsvReader csv = new(stream, CultureInfo.InvariantCulture);
-    csv.Read(); // Read twice to discard "=sep" in DragonShield
-    csv.Read();
+	Log.Information($"Parsing Csv with input format {opts.InputFormat}");
+	var cards = ParseCollectionCsv(dsCsvFile, opts.InputFormat);
+	Log.Information($"Found {cards.Count} cards, writing to target file ...");
+
+	WriteCollectionCsv(cards, opts.OutputFormat);
+	Log.Information($"Done. Press Ctrl+C to exit");
+}
+void HandleParseError(IEnumerable<Error> errs) => Console.WriteLine(string.Join(",", errs)); //TODO: handle errors
+
+IList<PhysicalMtgCard> ParseCollectionCsv(string csvFilePath, DeckFormat format)
+{
+	using StreamReader stream = new(csvFilePath);
+	_ = stream ?? throw new FileNotFoundException($"{csvFilePath} not found");
+
+	using CsvReader csv = new(stream, CultureInfo.InvariantCulture);
+	csv.Read(); // Read twice to discard "=sep" in DragonShield
+	csv.Read();
 	_ = csv.ReadHeader();
-	csv.Context.RegisterClassMap<DeckboxMap>();
-	string[] headerRecord = csv.HeaderRecord!;
 
+	csv.Context.RegisterClassMap(format.GetCsvMapType());
+	List<PhysicalMtgCard> autoReadCards = csv.GetRecords<PhysicalMtgCard>().ToList();
 
-    List<PhysicalMtgCard> autoReadCards = csv.GetRecords<PhysicalMtgCard>().ToList();
-
-    return autoReadCards;
-    List<PhysicalMtgCard> cards = new();
-
-	// Folder Name,Quantity,Trade Quantity,Card Name,Set Code,Set Name,Card Number,Condition,Printing,Language,Price Bought,Date Bought,LOW,MID,MARKET
-	while (csv.Read())
-    {
-        try
-        {
-            PhysicalMtgCard card = new()
-            {
-                Printing = new Printing()
-                {
-                    Card = new MtgCard { Name = csv.GetField("Card Name") },
-                    Set = new()
-                    {
-                        Id = csv.GetField("Set Code"),
-                        FullName = csv.GetField("Set Name"),
-                    },
-                    IdInSet = csv.GetField("Card Number"),
-                },
-                Condition = CardCondition.FromDisplayName<CardCondition>(csv.GetField("Condition")),
-                Foil = csv.GetField("Printing").Equals("Foil"),
-                Language = csv.GetField("Language"),
-                PriceBought = csv.GetField<double>("Price Bought"),
-                DateBought = DateTime.Parse(csv.GetField("Date Bought")),
-                // Folder Name,Quantity,Trade Quantity,Card Name,Set Code,Set Name,Card Number,Condition,Printing,Language,Price Bought,Date Bought,LOW,MID,MARKET
-
-
-            };
-            cards.Add(card);
-        }
-        catch (Exception ex)
-        {
-            Log.Error(ex, $"Error while reading row {csv.Parser.RawRecord}");
-        }
-    }
-
-    return cards;
+	return autoReadCards;
 }
 
-//Count,Tradelist Count, Name, Edition, Card Number, Condition, Language, Foil, Signed, Artist Proof, Altered Art, Misprint, Promo, Textless, My Price
-
-/// <summary> TODO Make configurable with target format (Deckbox, DragonShield etc.) </summary>
-void WriteCollectionCsv(IList<PhysicalMtgCard> cards)
+void WriteCollectionCsv(IList<PhysicalMtgCard> cards, DeckFormat format)
 {
-	using var writer = new StreamWriter("deckboxoutput.csv");
+	using var writer = new StreamWriter("moxfieldoutput.csv");
 	using var csv = new CsvWriter(writer, CultureInfo.InvariantCulture);
 
-	csv.Context.RegisterClassMap<DeckboxMap>();
-	csv.WriteHeader<PhysicalMtgCard>();
-	csv.Flush();
+	csv.Context.RegisterClassMap(format.GetCsvMapType());
 
+	csv.WriteHeader<PhysicalMtgCard>();
 	csv.NextRecord();
-	foreach (var card in cards)
-	{
-		csv.WriteRecord(card);
-		csv.Flush();
-		csv.NextRecord();
-	}
+	csv.WriteRecords(cards);
+	csv.Flush();
 }
+
+class CommandLineOptions
+{
+	[Option('f', "file", Required = true, HelpText = "Input files to be processed.")]
+	public IEnumerable<string> InputFiles { get; set; }
+
+	[Option("in", Default = DeckFormat.DRAGONSHIELD, HelpText = "Specify output file format.")]
+	public DeckFormat InputFormat { get; set; }
+
+	[Option("out", Default = DeckFormat.MOXFIELD, HelpText = "Specify output file format.")]
+	public DeckFormat OutputFormat { get; set; }
+
+	[Usage(ApplicationAlias = "MtgCsvHelper")]
+	public static IEnumerable<Example> Examples => new List<Example>()
+	{
+		new Example(
+			"Example usage: Parse a file in Dragonshield format and output Moxfield-compatible .csv",
+			new CommandLineOptions
+			{
+				InputFiles = new[] { "\\.allfolders.csv" },
+				InputFormat = DeckFormat.DRAGONSHIELD,
+				OutputFormat = DeckFormat.MOXFIELD
+			})
+	};
+}
+
