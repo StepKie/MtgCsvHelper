@@ -18,6 +18,7 @@ Parser.Default.ParseArguments<CommandLineOptions>(args)
 	.WithParsed(RunWithOptions)
 	.WithNotParsed(HandleParseError);
 
+Log.Information($"Done. Press Ctrl+C to exit");
 // There is no need to run the host continuously ...
 //await host.RunAsync();
 
@@ -27,14 +28,13 @@ void RunWithOptions(CommandLineOptions opts)
 	CsvToCardMap.ConfigFile = config;
 	var files = opts.InputFiles;
 	Console.WriteLine($"Files: {files}");
-	string dsCsvFile = files.Any() ? files.First() : $"SampleCsvs/dragonshield-collection_2022-11-11.csv";
+	string dsCsvFile = files.Any() ? files.First() : $"SampleCsvs/drasgonshield-collection_2022-11-11.csv";
 
-	Log.Information($"Parsing Csv with input format {opts.InputFormat}");
+	Log.Information($"Parsing Csv with input format {opts.InputFormat} ...");
 	var cards = ParseCollectionCsv(dsCsvFile, opts.InputFormat);
 	Log.Information($"Found {cards.Count} cards, writing to target file ...");
 
 	WriteCollectionCsv(cards, opts.OutputFormat);
-	Log.Information($"Done. Press Ctrl+C to exit");
 }
 void HandleParseError(IEnumerable<Error> errs) => Console.WriteLine(string.Join(",", errs)); //TODO: handle errors
 
@@ -56,7 +56,7 @@ IList<PhysicalMtgCard> ParseCollectionCsv(string csvFilePath, DeckFormat format)
 
 void WriteCollectionCsv(IList<PhysicalMtgCard> cards, DeckFormat format)
 {
-	using var writer = new StreamWriter("moxfieldoutput.csv");
+	using var writer = new StreamWriter($"{format.ToString().ToLower()}-output-{DateTime.Now.ToShortDateString()}.csv");
 	using var csv = new CsvWriter(writer, CultureInfo.InvariantCulture);
 
 	csv.Context.RegisterClassMap(format.GetCsvMapType());
@@ -85,7 +85,7 @@ class CommandLineOptions
 			"Example usage: Parse a file in Dragonshield format and output Moxfield-compatible .csv",
 			new CommandLineOptions
 			{
-				InputFiles = new[] { "\\.allfolders.csv" },
+				InputFiles = new[] { "\\.my-exported-dragonshield-collection.csv" },
 				InputFormat = DeckFormat.DRAGONSHIELD,
 				OutputFormat = DeckFormat.MOXFIELD
 			})
