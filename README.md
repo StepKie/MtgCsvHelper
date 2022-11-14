@@ -22,6 +22,9 @@ Currently supports DragonShield Card manager and Moxfield. More formats can be a
 ## How to use
 
 * Prerequisite: [Installed .NET Runtime, Version >= 6.0](https://dotnet.microsoft.com/download/dotnet).
+* You can download from the Releases tab on the right, or you can build from source yourself
+  * For building from source, unzip the source folde, and run *dotnet build* in the root directory of the unzipped folder
+
 * Run the provided MtgCsvHelper.
 	* Usage info can be found running it with the *--help* flag
 * Some additional configurability for end user via appsettings.json etc.
