@@ -27,10 +27,10 @@
     <None Update="appsettings.json">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
-    <None Update="SampleCsvs\dragonshield-collection_2022-11-11.csv">
+    <None Update="SampleCsvs\dragonshield-sample-collection.csv">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
-    <None Update="SampleCsvs\moxfield-collection_2022-11-11.csv">
+    <None Update="SampleCsvs\moxfield-sample-collection.csv">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
   </ItemGroup>

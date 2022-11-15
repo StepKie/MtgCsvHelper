@@ -19,6 +19,8 @@ Parser.Default.ParseArguments<CommandLineOptions>(args)
 	.WithNotParsed(HandleParseError);
 
 Log.Information($"Done. Press Ctrl+C to exit");
+Console.ReadLine();
+
 // There is no need to run the host continuously ...
 //await host.RunAsync();
 
@@ -26,41 +28,44 @@ void RunWithOptions(CommandLineOptions opts)
 {
 	// Set ConfigFile through singleton (due to how ClassMaps are registered)
 	CsvToCardMap.ConfigFile = config;
-	var files = opts.InputFiles;
-	Console.WriteLine($"Files: {files}");
-	string dsCsvFile = files.Any() ? files.First() : $"SampleCsvs/drasgonshield-collection_2022-11-11.csv";
 
-	Log.Information($"Parsing Csv with input format {opts.InputFormat} ...");
-	var cards = ParseCollectionCsv(dsCsvFile, opts.InputFormat);
-	Log.Information($"Found {cards.Count} cards, writing to target file ...");
+	var filesToParse = Directory.GetFiles(Directory.GetCurrentDirectory(), opts.InputFilePattern);
+	List<PhysicalMtgCard> cardsFound = new();
 
-	WriteCollectionCsv(cards, opts.OutputFormat);
+	foreach (var fileName in filesToParse)
+	{
+		var parsedCardsFromFile = ParseCollectionCsv(fileName, opts.InputFormat);
+		cardsFound.AddRange(parsedCardsFromFile);
+	}
+
+	WriteCollectionCsv(cardsFound, opts.OutputFormat);
 }
 void HandleParseError(IEnumerable<Error> errs) => Console.WriteLine(string.Join(",", errs)); //TODO: handle errors
 
 IList<PhysicalMtgCard> ParseCollectionCsv(string csvFilePath, DeckFormat format)
 {
+	Log.Information($"Parsing {csvFilePath} with input format {format} ...");
 	using StreamReader stream = new(csvFilePath);
 	_ = stream ?? throw new FileNotFoundException($"{csvFilePath} not found");
-
-	using CsvReader csv = new(stream, CultureInfo.InvariantCulture);
-	csv.Read(); // Read twice to discard "=sep" in DragonShield
-	csv.Read();
-	_ = csv.ReadHeader();
-
+	
+	// "Peek" into the first row, and if it is not a separator info row, reset the stream. (Found no more elegant way to do this)
+	var hasSeparatorInfoFirstLine = stream.ReadLine().Contains("sep=");
+	using CsvReader csv = new(hasSeparatorInfoFirstLine ? stream : new(csvFilePath), CultureInfo.InvariantCulture);
 	csv.Context.RegisterClassMap(format.GetCsvMapType());
 	List<PhysicalMtgCard> autoReadCards = csv.GetRecords<PhysicalMtgCard>().ToList();
-
+	Log.Information($"Parsed {autoReadCards.Count} cards from {csvFilePath}.");
 	return autoReadCards;
 }
 
 void WriteCollectionCsv(IList<PhysicalMtgCard> cards, DeckFormat format)
 {
-	using var writer = new StreamWriter($"{format.ToString().ToLower()}-output-{DateTime.Now.ToShortDateString()}.csv");
+	var outputFileName = $"{format.ToString().ToLower()}-output-{DateTime.Now.ToShortDateString()}.csv";
+	Log.Information($"Writing {cards.Count} cards to {outputFileName}");
+
+	using var writer = new StreamWriter(outputFileName);
 	using var csv = new CsvWriter(writer, CultureInfo.InvariantCulture);
 
 	csv.Context.RegisterClassMap(format.GetCsvMapType());
-
 	csv.WriteHeader<PhysicalMtgCard>();
 	csv.NextRecord();
 	csv.WriteRecords(cards);
@@ -69,10 +74,10 @@ void WriteCollectionCsv(IList<PhysicalMtgCard> cards, DeckFormat format)
 
 class CommandLineOptions
 {
-	[Option('f', "file", Required = true, HelpText = "Input files to be processed.")]
-	public IEnumerable<string> InputFiles { get; set; }
+	[Option('f', "file", Required = true, HelpText = "Input file(s) to be processed (specify file name or wild card syntax).", Default = new[] { "SampleCsvs/dragonshield-*.csv" })]
+	public string InputFilePattern { get; set; }
 
-	[Option("in", Default = DeckFormat.DRAGONSHIELD, HelpText = "Specify output file format.")]
+	[Option("in", Default = DeckFormat.DRAGONSHIELD, HelpText = "Specify input file format.")]
 	public DeckFormat InputFormat { get; set; }
 
 	[Option("out", Default = DeckFormat.MOXFIELD, HelpText = "Specify output file format.")]
@@ -85,7 +90,7 @@ class CommandLineOptions
 			"Example usage: Parse a file in Dragonshield format and output Moxfield-compatible .csv",
 			new CommandLineOptions
 			{
-				InputFiles = new[] { "\\.my-exported-dragonshield-collection.csv" },
+				InputFilePattern = "SampleCsvs/dragonshield-*.csv",
 				InputFormat = DeckFormat.DRAGONSHIELD,
 				OutputFormat = DeckFormat.MOXFIELD
 			})

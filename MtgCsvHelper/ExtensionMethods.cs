@@ -8,6 +8,7 @@ public static class ExtensionMethods
 		{
 			DeckFormat.DRAGONSHIELD => typeof(DragonShieldMap),
 			DeckFormat.MOXFIELD => typeof(MoxfieldMap),
+			DeckFormat.DECKBOX => typeof(DeckboxMap),
 			_ => throw new ArgumentException($"No csv mapping registered for format {format}"),
 		};
 	}

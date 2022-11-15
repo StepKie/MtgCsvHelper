@@ -5,16 +5,6 @@ using Microsoft.Extensions.Configuration;
 
 namespace MtgCsvHelper;
 
-public class DragonShieldMap : CsvToCardMap
-{
-	public DragonShieldMap() : base(DeckFormat.DRAGONSHIELD) { }
-}
-
-public class MoxfieldMap : CsvToCardMap
-{
-	public MoxfieldMap() : base(DeckFormat.MOXFIELD) { }
-}
-
 public class CsvToCardMap : ClassMap<PhysicalMtgCard>
 {
 	public static IConfiguration? ConfigFile { get; set; }
@@ -81,4 +71,21 @@ public record CsvConfiguration(string Quantity, string CardName, FinishConfigura
 public record FinishConfiguration(string HeaderName, string Foil, string Normal, string Etched);
 public record ConditionConfiguration(string? HeaderName, string Mint, string NearMint, string Excellent, string Good, string LightlyPlayed, string Played, string Poor);
 
-public enum DeckFormat { UNKNOWN, MOXFIELD, DRAGONSHIELD }
+public enum DeckFormat { UNKNOWN, MOXFIELD, DRAGONSHIELD, DECKBOX }
+
+// TODO This is ugly but we need to register a C# Type in CsvHelper.RegisterClassMap, thus we can not easily use constructor?
+
+public class DragonShieldMap : CsvToCardMap
+{
+	public DragonShieldMap() : base(DeckFormat.DRAGONSHIELD) { }
+}
+
+public class MoxfieldMap : CsvToCardMap
+{
+	public MoxfieldMap() : base(DeckFormat.MOXFIELD) { }
+}
+
+public class DeckboxMap : CsvToCardMap
+{
+	public DeckboxMap() : base(DeckFormat.DECKBOX) { }
+}

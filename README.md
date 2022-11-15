@@ -17,7 +17,30 @@ Currently supports DragonShield Card manager and Moxfield. More formats can be a
 * Currently out-of-the-box supports DragonShield Card manager and Moxfield.
 * Further targeted: Deckbox, others on demand (please create an issue if you have specific requests)
 
+## TODOs
 
+* Support more formats by popular demand
+* Fix mapping between certain decks/card names
+	* The main issues encountered here so far were double-faced cards and token cards
+	* these differ in the set name as well the card name across formats
+	
+Examples:
+
+```
+Token: 
+
+Moxfield:       "1","1","Clue","tmh2","Near Mint","English","","","2022-11-15 13:00:49.057000","14"
+DragonShield:   1,Clue Token,Modern Horizons 2 Tokens,TMH2,14,NearMint,German,Normal
+Deckbox:        1,0,Clue,Extras: Modern Horizons 2,14,Near Mint,German,,,,,,,,$0.00
+
+Double-sided:
+
+Moxfield:       "1","1","Ambitious Farmhand // Seasoned Cathar","mid","Near Mint","German","","","2022-11-14 16:57:33.500000","2"
+DragonShield:   Other,1,0,Ambitious Farmhand,MID,Innistrad: Midnight Hunt,2,NearMint,Normal,German,0.01,2022-01-29,0.08,0.02,0.14
+Deckbox:        1,0,Ambitious Farmhand // Seasoned Cathar,Innistrad: Midnight Hunt,2,Near Mint,German,,,,,,,,$0.00
+```
+
+Basically, we would want to default to Scryfall's syntax (which would mean using the full double-sided name, and omitting the "Token"
 
 ## How to use
 

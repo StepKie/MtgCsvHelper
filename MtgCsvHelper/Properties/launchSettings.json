@@ -1,0 +1,8 @@
+{
+  "profiles": {
+    "MtgCsvHelper": {
+      "commandName": "Project",
+      "commandLineArgs": "-f SampleCsvs/mox*.csv --in MOXFIELD --out DRAGONSHIELD"
+    }
+  }
+}
