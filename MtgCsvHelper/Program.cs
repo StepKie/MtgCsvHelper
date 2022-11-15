@@ -47,9 +47,9 @@ IList<PhysicalMtgCard> ParseCollectionCsv(string csvFilePath, DeckFormat format)
 	Log.Information($"Parsing {csvFilePath} with input format {format} ...");
 	using StreamReader stream = new(csvFilePath);
 	_ = stream ?? throw new FileNotFoundException($"{csvFilePath} not found");
-	
+
 	// "Peek" into the first row, and if it is not a separator info row, reset the stream. (Found no more elegant way to do this)
-	var hasSeparatorInfoFirstLine = stream.ReadLine().Contains("sep=");
+	var hasSeparatorInfoFirstLine = stream.ReadLine()?.Contains("sep=") ?? false;
 	using CsvReader csv = new(hasSeparatorInfoFirstLine ? stream : new(csvFilePath), CultureInfo.InvariantCulture);
 	csv.Context.RegisterClassMap(format.GetCsvMapType());
 	List<PhysicalMtgCard> autoReadCards = csv.GetRecords<PhysicalMtgCard>().ToList();
@@ -75,13 +75,13 @@ void WriteCollectionCsv(IList<PhysicalMtgCard> cards, DeckFormat format)
 class CommandLineOptions
 {
 	[Option('f', "file", Required = true, HelpText = "Input file(s) to be processed (specify file name or wild card syntax).", Default = new[] { "SampleCsvs/dragonshield-*.csv" })]
-	public string InputFilePattern { get; set; }
+	public string InputFilePattern { get; init; }
 
-	[Option("in", Default = DeckFormat.DRAGONSHIELD, HelpText = "Specify input file format.")]
-	public DeckFormat InputFormat { get; set; }
+	[Option("in", Default = DeckFormat.DRAGONSHIELD, HelpText = $"Specify input file format. Valid values: {nameof(DeckFormat.DRAGONSHIELD)}, {nameof(DeckFormat.MOXFIELD)}, {nameof(DeckFormat.DECKBOX)}, {nameof(DeckFormat.MANABOX)}.")]
+	public DeckFormat InputFormat { get; init; }
 
 	[Option("out", Default = DeckFormat.MOXFIELD, HelpText = "Specify output file format.")]
-	public DeckFormat OutputFormat { get; set; }
+	public DeckFormat OutputFormat { get; init; }
 
 	[Usage(ApplicationAlias = "MtgCsvHelper")]
 	public static IEnumerable<Example> Examples => new List<Example>()
