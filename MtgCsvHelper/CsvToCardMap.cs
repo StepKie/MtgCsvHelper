@@ -2,24 +2,25 @@
 using CsvHelper.TypeConversion;
 using DevTrends.ConfigurationExtensions;
 using Microsoft.Extensions.Configuration;
+using static MtgCsvHelper.CsvToCardMap;
 
 namespace MtgCsvHelper;
 
 public class CsvToCardMap : ClassMap<PhysicalMtgCard>
 {
 	public static IConfiguration? ConfigFile { get; set; }
-	static CsvConfiguration _columnConfig;
+	static CsvConfig _columnConfig;
 
 	public CsvToCardMap(DeckFormat format)
 	{
-		_columnConfig = ConfigFile?.Bind<CsvConfiguration>($"CsvConfigurations:{format}") ?? throw new ArgumentException($"ConfigFile not specified before attempting to use {nameof(CsvToCardMap)}");
+		_columnConfig = ConfigFile?.Bind<CsvConfig>($"CsvConfigurations:{format}") ?? throw new ArgumentException($"ConfigFile not specified before attempting to use {nameof(CsvToCardMap)}");
 
 		Map(card => card.Count).Name(_columnConfig.Quantity);
 		Map(card => card.Printing.Card.Name).Name(_columnConfig.CardName);
 		Map(card => card.Printing.Set.FullName).Name(_columnConfig.SetName);
 		Map(card => card.Printing.Set.Code).Name(_columnConfig.SetCode);
 		Map(card => card.Printing.IdInSet).Name(_columnConfig.SetNumber);
-		Map(card => card.Condition).TypeConverter<CardConditionConverter>().Name(nameof(CsvConfiguration.Condition), _columnConfig.Condition.HeaderName);
+		Map(card => card.Condition).TypeConverter<CardConditionConverter>().Name(nameof(CsvConfig.Condition), _columnConfig.Condition.HeaderName);
 		Map(card => card.Language).Name("Language");
 		Map(card => card.Foil).TypeConverter<FinishConverter>().Name(_columnConfig.Finish.HeaderName);
 		//Map(card => card.PriceBought).Name("My Price", "Price Bought");
@@ -67,7 +68,7 @@ public class CsvToCardMap : ClassMap<PhysicalMtgCard>
 	}
 }
 
-public record CsvConfiguration(string Quantity, string CardName, FinishConfiguration Finish, ConditionConfiguration Condition, string SetCode, string SetName, string SetNumber);
+public record CsvConfig(string Quantity, string CardName, FinishConfiguration Finish, ConditionConfiguration Condition, string SetCode, string SetName, string SetNumber);
 public record FinishConfiguration(string HeaderName, string Foil, string Normal, string Etched);
 public record ConditionConfiguration(string? HeaderName, string Mint, string NearMint, string Excellent, string Good, string LightlyPlayed, string Played, string Poor);
 
@@ -77,7 +78,9 @@ public enum DeckFormat
 	MOXFIELD,
 	DRAGONSHIELD,
 	DECKBOX,
-	MANABOX
+	MANABOX,
+	TCGPLAYER,
+	CARDKINGDOM,
 }
 
 // TODO This is ugly but we need to register a C# Type in CsvHelper.RegisterClassMap, thus we can not easily use constructor?
@@ -100,4 +103,23 @@ public class DeckboxMap : CsvToCardMap
 public class ManaboxMap : CsvToCardMap
 {
 	public ManaboxMap() : base(DeckFormat.MANABOX) { }
+}
+
+public class TcgPlayerMap : CsvToCardMap
+{
+	public TcgPlayerMap() : base(DeckFormat.TCGPLAYER) { }
+}
+
+public class CardKingdomMap : ClassMap<PhysicalMtgCard>
+{
+	public CardKingdomMap()
+	{
+
+		Map(card => card.Printing.Card.Name).Name("Card Name");
+		Map(card => card.Printing.Set.FullName).Name("Edition");
+		Map(card => card.Printing.Set.Code).Ignore();
+		Map(card => card.Printing.IdInSet).Ignore();
+		Map(card => card.Foil).TypeConverter<FinishConverter>().Name("FOIL");
+		Map(card => card.Count).Name("Quantity");
+	}
 }

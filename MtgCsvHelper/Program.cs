@@ -1,5 +1,6 @@
 ﻿using CommandLine;
 using CommandLine.Text;
+using CsvHelper.Configuration;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
@@ -50,7 +51,7 @@ IList<PhysicalMtgCard> ParseCollectionCsv(string csvFilePath, DeckFormat format)
 
 	// "Peek" into the first row, and if it is not a separator info row, reset the stream. (Found no more elegant way to do this)
 	var hasSeparatorInfoFirstLine = stream.ReadLine()?.Contains("sep=") ?? false;
-	using CsvReader csv = new(hasSeparatorInfoFirstLine ? stream : new(csvFilePath), CultureInfo.InvariantCulture);
+	using CsvReader csv = new(hasSeparatorInfoFirstLine ? stream : new(csvFilePath), new CsvConfiguration(CultureInfo.InvariantCulture) { HeaderValidated = null, MissingFieldFound = null });
 	csv.Context.RegisterClassMap(format.GetCsvMapType());
 	List<PhysicalMtgCard> autoReadCards = csv.GetRecords<PhysicalMtgCard>().ToList();
 	Log.Information($"Parsed {autoReadCards.Count} cards from {csvFilePath}.");

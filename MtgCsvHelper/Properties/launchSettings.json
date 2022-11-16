@@ -2,7 +2,7 @@
   "profiles": {
     "MtgCsvHelper": {
       "commandName": "Project",
-      "commandLineArgs": "-f SampleCsvs/mox*.csv --in MOXFIELD --out DRAGONSHIELD"
+      "commandLineArgs": "-f SampleCsvs/moxfield-sample.csv --in MOXFIELD --out CARDKINGDOM"
     }
   }
 }
