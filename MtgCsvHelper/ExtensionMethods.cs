@@ -1,4 +1,6 @@
-﻿namespace MtgCsvHelper;
+﻿using MtgCsvHelper.Maps;
+
+namespace MtgCsvHelper;
 
 public static class ExtensionMethods
 {

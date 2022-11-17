@@ -2,12 +2,13 @@
 using CsvHelper.TypeConversion;
 using DevTrends.ConfigurationExtensions;
 using Microsoft.Extensions.Configuration;
-using static MtgCsvHelper.CsvToCardMap;
+using static MtgCsvHelper.Maps.CsvToCardMap;
 
-namespace MtgCsvHelper;
+namespace MtgCsvHelper.Maps;
 
 public class CsvToCardMap : ClassMap<PhysicalMtgCard>
 {
+	public string ColumnNameQuantity { get; set; }
 	public static IConfiguration? ConfigFile { get; set; }
 	static CsvConfig _columnConfig;
 
@@ -17,7 +18,7 @@ public class CsvToCardMap : ClassMap<PhysicalMtgCard>
 
 		Map(card => card.Count).Name(_columnConfig.Quantity);
 		Map(card => card.Printing.Card.Name).Name(_columnConfig.CardName);
-		Map(card => card.Printing.Set.FullName).Name(_columnConfig.SetName);
+		Map(card => card.Printing.Set.FullName).Name(_columnConfig.SetName).Optional();
 		Map(card => card.Printing.Set.Code).Name(_columnConfig.SetCode);
 		Map(card => card.Printing.IdInSet).Name(_columnConfig.SetNumber);
 		Map(card => card.Condition).TypeConverter<CardConditionConverter>().Name(nameof(CsvConfig.Condition), _columnConfig.Condition.HeaderName);
@@ -64,7 +65,7 @@ public class CsvToCardMap : ClassMap<PhysicalMtgCard>
 	{
 		public object ConvertFromString(string text, IReaderRow row, MemberMapData memberMapData) => text.Equals(_columnConfig.Finish.Foil);
 
-		public string ConvertToString(object value, IWriterRow row, MemberMapData memberMapData) => (value is true) ? _columnConfig.Finish.Foil : _columnConfig.Finish.Normal;
+		public string ConvertToString(object value, IWriterRow row, MemberMapData memberMapData) => value is true ? _columnConfig.Finish.Foil : _columnConfig.Finish.Normal;
 	}
 }
 
@@ -90,10 +91,7 @@ public class DragonShieldMap : CsvToCardMap
 	public DragonShieldMap() : base(DeckFormat.DRAGONSHIELD) { }
 }
 
-public class MoxfieldMap : CsvToCardMap
-{
-	public MoxfieldMap() : base(DeckFormat.MOXFIELD) { }
-}
+
 
 public class DeckboxMap : CsvToCardMap
 {

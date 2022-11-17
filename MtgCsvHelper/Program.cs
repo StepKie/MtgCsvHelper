@@ -4,6 +4,7 @@ using CsvHelper.Configuration;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
+using MtgCsvHelper.Maps;
 using System.Globalization;
 
 using IHost host = Host.CreateDefaultBuilder(args).Build();
