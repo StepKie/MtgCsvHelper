@@ -6,30 +6,23 @@ namespace MtgCsvHelper.Converters;
 
 public class CardNameConverter : ITypeConverter
 {
-	readonly CardNameConfiguration _cardNameConfig;
+	readonly bool _useShortNames;
 
-	public CardNameConverter(CardNameConfiguration configuration) => _cardNameConfig = configuration;
+	public CardNameConverter(CardNameConfiguration configuration) => _useShortNames = configuration.ShortNames;
 
 	public object ConvertFromString(string text, IReaderRow row, MemberMapData memberMapData)
 	{
-		if (_cardNameConfig.ShortNames && DeckFormat.CardNames.ContainsKey(text))
-		{
-			text = DeckFormat.CardNames[text];
-		}
+		var match = DeckFormat.CardNames.FirstOrDefault(c => c.StartsWith(text));
 
-		return text;
+		return (_useShortNames && match is not null) ? match : text;
 	}
 
 	public string ConvertToString(object value, IWriterRow row, MemberMapData memberMapData)
 	{
-		string cardName = value as string ?? throw new ArgumentException($"Expected card name string, got {value}");
+		string cardName = value as string ?? throw new ArgumentException($"{value} should be a string");
+		bool isDoubleFaced = cardName.Contains(" // ");
 
-		if (cardName is not null && _cardNameConfig.ShortNames && DeckFormat.CardNames.ContainsValue(cardName))
-		{
-			cardName = DeckFormat.CardNames.First(x => x.Value == cardName).Key;
-		}
-
-		return cardName!;
+		return (isDoubleFaced && _useShortNames) ? cardName.Split(" // ").First() : cardName;
 	}
 }
 

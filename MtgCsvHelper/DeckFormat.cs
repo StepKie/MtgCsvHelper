@@ -6,7 +6,7 @@ namespace MtgCsvHelper;
 
 public class DeckFormat
 {
-	public static Dictionary<string, string> CardNames { get; private set; }
+	public static List<string> CardNames { get; private set; }
 
 	public DeckConfig ColumnConfig { get; }
 	public string Name { get; }
@@ -17,7 +17,7 @@ public class DeckFormat
 		Name = configKey;
 
 		// Set only once!
-		CardNames ??= config.GetSection("CardNames").Get<Dictionary<string, string>>();
+		CardNames ??= config.GetSection("DoubleFacedCards").Get<List<string>>();
 	}
 
 	public CsvToCardMap GenerateClassMap() => new(ColumnConfig);
