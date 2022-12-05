@@ -2,15 +2,15 @@
 
 public record PhysicalMtgCard
 {
-	public int Count { get; set; }
+	public int Count { get; init; }
 
-	public required Printing Printing { get; set; }
-	public double? PriceBought { get; set; }
-	public DateTime? DateBought { get; set; }
-	public required CardCondition Condition { get; set; }
+	public required Printing Printing { get; init; }
+	public double? PriceBought { get; init; }
+	public DateTime? DateBought { get; init; }
+	public required CardCondition Condition { get; init; }
 
 	// TODO Might be enum or CultureInfo ...
-	public string? Language { get; set; }
-	public bool? Foil { get; set; }
-	public bool? TradeListed { get; set; }
+	public string? Language { get; init; }
+	public bool? Foil { get; init; }
+	public bool? TradeListed { get; init; }
 }

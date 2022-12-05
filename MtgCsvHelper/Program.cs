@@ -1,5 +1,4 @@
 ﻿using CommandLine;
-using CommandLine.Text;
 using CsvHelper.Configuration;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
@@ -12,9 +11,7 @@ using IHost host = Host.CreateDefaultBuilder(args).Build();
 // Ask the service provider for the configuration abstraction.
 IConfiguration config = host.Services.GetRequiredService<IConfiguration>();
 
-Log.Logger = new LoggerConfiguration()
-	.ReadFrom.Configuration(config)
-	.CreateLogger();
+Log.Logger = new LoggerConfiguration().ReadFrom.Configuration(config).CreateLogger();
 
 Parser.Default.ParseArguments<CommandLineOptions>(args)
 	.WithParsed(RunWithOptions)
@@ -22,9 +19,6 @@ Parser.Default.ParseArguments<CommandLineOptions>(args)
 
 Log.Information($"Done. Press Ctrl+C to exit");
 Console.ReadLine();
-
-// There is no need to run the host continuously ...
-//await host.RunAsync();
 
 void RunWithOptions(CommandLineOptions opts)
 {
@@ -70,29 +64,3 @@ void WriteCollectionCsv(IList<PhysicalMtgCard> cards, DeckFormat format)
 	csv.WriteRecords(cards);
 	csv.Flush();
 }
-
-class CommandLineOptions
-{
-	[Option('f', "file", Required = true, HelpText = "Input file(s) to be processed (specify file name or wild card syntax).", Default = new[] { "SampleCsvs/dragonshield-*.csv" })]
-	public required string InputFilePattern { get; init; }
-
-	[Option("in", Default = "DRAGONSHIELD", HelpText = $"Specify input file format. Must be one of the values in appsettings.json CsvConfigurations keys")]
-	public required string InputFormat { get; init; }
-
-	[Option("out", Default = "MOXFIELD", HelpText = "Specify output file format.")]
-	public required string OutputFormat { get; init; }
-
-	[Usage(ApplicationAlias = "MtgCsvHelper")]
-	public static IEnumerable<Example> Examples => new List<Example>()
-	{
-		new Example(
-			"Example usage: Parse a file in Dragonshield format and output Moxfield-compatible .csv",
-			new CommandLineOptions
-			{
-				InputFilePattern = "SampleCsvs/dragonshield-*.csv",
-				InputFormat = "DRAGONSHIELD",
-				OutputFormat = "MOXFIELD",
-			})
-	};
-}
-
