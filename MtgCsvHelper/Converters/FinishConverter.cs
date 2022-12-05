@@ -10,7 +10,7 @@ public class FinishConverter : ITypeConverter
 
 	public FinishConverter(FinishConfiguration configuration) => _finishConfig = configuration;
 
-	public object ConvertFromString(string text, IReaderRow row, MemberMapData memberMapData) => text.Equals(_finishConfig.Foil);
+	public object? ConvertFromString(string? text, IReaderRow row, MemberMapData memberMapData) => text?.Equals(_finishConfig.Foil);
 
-	public string ConvertToString(object value, IWriterRow row, MemberMapData memberMapData) => value is true ? _finishConfig.Foil : _finishConfig.Normal;
+	public string? ConvertToString(object? value, IWriterRow row, MemberMapData memberMapData) => value is true ? _finishConfig.Foil : _finishConfig.Normal;
 }

@@ -10,14 +10,16 @@ public class CardNameConverter : ITypeConverter
 
 	public CardNameConverter(CardNameConfiguration configuration) => _useShortNames = configuration.ShortNames;
 
-	public object ConvertFromString(string text, IReaderRow row, MemberMapData memberMapData)
+	public object? ConvertFromString(string? text, IReaderRow row, MemberMapData memberMapData)
 	{
+		if (string.IsNullOrWhiteSpace(text)) { return null; }
+
 		var match = DeckFormat.CardNames.FirstOrDefault(c => c.StartsWith(text));
 
 		return (_useShortNames && match is not null) ? match : text;
 	}
 
-	public string ConvertToString(object value, IWriterRow row, MemberMapData memberMapData)
+	public string? ConvertToString(object? value, IWriterRow row, MemberMapData memberMapData)
 	{
 		string cardName = value as string ?? throw new ArgumentException($"{value} should be a string");
 		bool isDoubleFaced = cardName.Contains(" // ");

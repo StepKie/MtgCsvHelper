@@ -10,25 +10,25 @@ public class CardConditionConverter : ITypeConverter
 
 	public CardConditionConverter(ConditionConfiguration configuration) => _conditionConfig = configuration;
 
-	public object ConvertFromString(string text, IReaderRow row, MemberMapData memberMapData)
+	public object? ConvertFromString(string? text, IReaderRow row, MemberMapData memberMapData)
 	{
 #pragma warning disable format
 			return text switch
 			{
-				_ when text.Equals(_conditionConfig.Mint)          => CardCondition.MINT,
-				_ when text.Equals(_conditionConfig.NearMint)      => CardCondition.NEAR_MINT,
-				_ when text.Equals(_conditionConfig.Excellent)     => CardCondition.EXCELLENT,
-				_ when text.Equals(_conditionConfig.Good)          => CardCondition.GOOD,
-				_ when text.Equals(_conditionConfig.LightlyPlayed) => CardCondition.LIGHTLY_PLAYED,
-				_ when text.Equals(_conditionConfig.Played)        => CardCondition.PLAYED,
-				_ when text.Equals(_conditionConfig.Poor)          => CardCondition.POOR,
-				_                                                  => "",
+				_ when _conditionConfig.Mint.Equals(text)			=> CardCondition.MINT,
+				_ when _conditionConfig.NearMint.Equals (text)		=> CardCondition.NEAR_MINT,
+				_ when _conditionConfig.Excellent.Equals(text)		=> CardCondition.EXCELLENT,
+				_ when _conditionConfig.Good.Equals(text)			=> CardCondition.GOOD,
+				_ when _conditionConfig.LightlyPlayed.Equals(text)	=> CardCondition.LIGHTLY_PLAYED,
+				_ when _conditionConfig.Played.Equals(text)			=> CardCondition.PLAYED,
+				_ when _conditionConfig.Poor.Equals(text)			=> CardCondition.POOR,
+				_													=> CardCondition.UNKNOWN,
 
 			};
 
 		}
 
-		public string ConvertToString(object value, IWriterRow row, MemberMapData memberMapData)
+		public string? ConvertToString(object? value, IWriterRow row, MemberMapData memberMapData)
 		{
 			return (value as CardCondition) switch
 			{
@@ -39,7 +39,7 @@ public class CardConditionConverter : ITypeConverter
 				{ Name: "LightlyPlayed" } => _conditionConfig.LightlyPlayed,
 				{ Name: "Played" }        => _conditionConfig.Played,
 				{ Name: "Poor" }          => _conditionConfig.Poor,
-				_                         => ""
+				_						  => null
 			};
 		}
 #pragma warning restore format

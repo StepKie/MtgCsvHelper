@@ -74,13 +74,13 @@ void WriteCollectionCsv(IList<PhysicalMtgCard> cards, DeckFormat format)
 class CommandLineOptions
 {
 	[Option('f', "file", Required = true, HelpText = "Input file(s) to be processed (specify file name or wild card syntax).", Default = new[] { "SampleCsvs/dragonshield-*.csv" })]
-	public string InputFilePattern { get; init; }
+	public required string InputFilePattern { get; init; }
 
 	[Option("in", Default = "DRAGONSHIELD", HelpText = $"Specify input file format. Must be one of the values in appsettings.json CsvConfigurations keys")]
-	public string InputFormat { get; init; }
+	public required string InputFormat { get; init; }
 
 	[Option("out", Default = "MOXFIELD", HelpText = "Specify output file format.")]
-	public string OutputFormat { get; init; }
+	public required string OutputFormat { get; init; }
 
 	[Usage(ApplicationAlias = "MtgCsvHelper")]
 	public static IEnumerable<Example> Examples => new List<Example>()
