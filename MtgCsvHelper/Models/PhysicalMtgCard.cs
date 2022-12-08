@@ -7,7 +7,7 @@ public record PhysicalMtgCard
 	public required Printing Printing { get; init; }
 	public double? PriceBought { get; init; }
 	public DateTime? DateBought { get; init; }
-	public required CardCondition Condition { get; init; }
+	public CardCondition Condition { get; init; } = CardCondition.UNKNOWN;
 
 	// TODO Might be enum or CultureInfo ...
 	public string? Language { get; init; }
