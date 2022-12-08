@@ -5,7 +5,7 @@ public record PhysicalMtgCard
 	public int Count { get; init; }
 
 	public required Printing Printing { get; init; }
-	public double? PriceBought { get; init; }
+	public decimal? PriceBought { get; init; }
 	public DateTime? DateBought { get; init; }
 	public CardCondition Condition { get; init; } = CardCondition.UNKNOWN;
 

@@ -16,12 +16,22 @@ public class CsvToCardMap : ClassMap<PhysicalMtgCard>
 		if (columnConfig.Condition is not null) { Map(card => card.Condition).TypeConverter(new CardConditionConverter(columnConfig.Condition)).Name(columnConfig.Condition.HeaderName); }
 		if (columnConfig.Finish is not null) { Map(card => card.Foil).TypeConverter(new FinishConverter(columnConfig.Finish)).Name(columnConfig.Finish.HeaderName); }
 
+		if (columnConfig.Finish is not null) { Map(card => card.Foil).TypeConverter(new FinishConverter(columnConfig.Finish)).Name(columnConfig.Finish.HeaderName); }
+
 		Map(card => card.Language).Name("Language").Optional();
 		//Map(card => card.PriceBought).Name("My Price", "Price Bought");
 	}
 }
 
-public record DeckConfig(string Quantity, CardNameConfiguration CardName, FinishConfiguration Finish, ConditionConfiguration Condition, string SetCode, string? SetName, string SetNumber);
+public record DeckConfig(
+	string Quantity,
+	CardNameConfiguration CardName,
+	FinishConfiguration Finish,
+	ConditionConfiguration Condition,
+	string SetCode,
+	string? SetName,
+	string SetNumber
+	);
 
 public record CardNameConfiguration(string HeaderName, bool ShortNames);
 public record FinishConfiguration(string HeaderName, string Foil, string Normal, string Etched);
