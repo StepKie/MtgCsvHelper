@@ -4,6 +4,28 @@ namespace MtgCsvHelper.Tests;
 
 public class MtgCardCsvHandlerTests
 {
+
+	[Theory]
+	[InlineData("DRAGONSHIELD")]
+	[InlineData("MOXFIELD")]
+	[InlineData("DECKBOX")]
+	public void WriteReadCycleTest(string deckFormatName)
+	{
+		// Arrange
+		IList<PhysicalMtgCard> originalCards = GetReferenceCards();
+		MtgCardCsvHandler handler = CreateHandler(deckFormatName);
+
+		// Act
+		string fileName = $"unittest-{deckFormatName}.csv";
+		handler.WriteCollectionCsv(originalCards, fileName);
+		IList<PhysicalMtgCard> parsedCards = handler.ParseCollectionCsv(fileName);
+
+		// Assert
+		parsedCards.First().Printing.Identifier.Should().BeEquivalentTo("MID#2");
+		parsedCards.Should().HaveCount(7);
+		parsedCards.Should().BeEquivalentTo(originalCards);
+	}
+
 	[Theory]
 	[InlineData("SampleCsvs/dragonshield-sample.csv", "DRAGONSHIELD")]
 	[InlineData("SampleCsvs/moxfield-sample.csv", "MOXFIELD")]
@@ -52,7 +74,8 @@ public class MtgCardCsvHandlerTests
 				Set = new Set { Code = "MID", FullName = "Innistrad: Midnight Hunt" },
 			},
 			Language = "English",
-			DateBought = new(year: 2020, month: 1, day: 29),
+			//DateBought = new(year: 2020, month: 1, day: 29),
+			//PriceBought = 0.2m,
 		};
 
 		var card2 = card1 with { Count = 2, Condition = CardCondition.NEAR_MINT, Foil = true, Language = "German", PriceBought = 0.14m };
