@@ -14,7 +14,7 @@ public class CardNameConverter : ITypeConverter
 	{
 		if (string.IsNullOrWhiteSpace(text)) { return null; }
 
-		var match = DeckFormat.CardNames.FirstOrDefault(c => c.StartsWith(text));
+		var match = DeckFormat.CardNames.FirstOrDefault(c => c.Split(" // ").First().Equals(text));
 
 		return (_useShortNames && match is not null) ? match : text;
 	}
@@ -24,7 +24,12 @@ public class CardNameConverter : ITypeConverter
 		string cardName = value as string ?? throw new ArgumentException($"{value} should be a string");
 		bool isDoubleFaced = cardName.Contains(" // ");
 
-		return (isDoubleFaced && _useShortNames) ? cardName.Split(" // ").First() : cardName;
+		cardName = (isDoubleFaced && _useShortNames) ? cardName.Split(" // ").First() : cardName;
+		// Remove " Token" from the end of the card name to adhere to Scryfall's naming convention
+		// TODO When converting to Moxfield, we would need to add it back in. The only way to detect this is to check if SetID has 4 characters, starting with a "T" (e.g. TMH2 or similar)
+		if (cardName.EndsWith(" Token")) { cardName = cardName.Replace(" Token", ""); }
+
+		return cardName;
 	}
 }
 

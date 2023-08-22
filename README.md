@@ -24,7 +24,7 @@ Currently supports DragonShield Card manager and Moxfield. More formats can be a
   * CARDKINGDOM
   
 * You can add a new configuration for a site that is not yet supported, or even better, create a pull request for it.
-* The format should be self-documenting. This is an example configuration for MOXFIELD:
+* The format should be self-documenting. This is an example configuration for DRAGONSHIELD:
 
 ```
 "DRAGONSHIELD": {
