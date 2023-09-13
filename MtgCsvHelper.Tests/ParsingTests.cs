@@ -48,7 +48,7 @@ public class MtgCardCsvHandlerTests
 	[Fact()]
 	public void WriteCollectionCsvTest()
 	{
-		Assert.True(false, "This test needs an implementation");
+		Assert.Fail("This test needs an implementation");
 	}
 
 	MtgCardCsvHandler CreateHandler(string deckFormatName)
