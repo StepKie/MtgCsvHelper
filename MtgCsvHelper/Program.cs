@@ -24,7 +24,7 @@ void RunWithOptions(CommandLineOptions opts)
 	var reader = new MtgCardCsvHandler(new DeckFormat(config, opts.InputFormat));
 	var writer = new MtgCardCsvHandler(new DeckFormat(config, opts.OutputFormat));
 
-	List<PhysicalMtgCard> cardsFound = new();
+	List<PhysicalMtgCard> cardsFound = [];
 
 	foreach (var fileName in filesToParse)
 	{
@@ -34,4 +34,4 @@ void RunWithOptions(CommandLineOptions opts)
 
 	writer.WriteCollectionCsv(cardsFound);
 }
-void HandleParseError(IEnumerable<Error> errs) => Console.WriteLine(string.Join(",", errs)); //TODO: handle errors
+void HandleParseError(IEnumerable<Error> errs) => Console.WriteLine(string.Join(",", errs)); // TODO: handle errors

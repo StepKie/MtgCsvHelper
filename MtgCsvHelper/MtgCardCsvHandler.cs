@@ -25,16 +25,16 @@ public class MtgCardCsvHandler
 		var hasSeparatorInfoFirstLine = stream.ReadLine()?.Contains("sep=") ?? false;
 		using var csv = new CsvReader(hasSeparatorInfoFirstLine ? stream : new(csvFilePath), new CsvConfiguration(CultureInfo.InvariantCulture) { HeaderValidated = null, MissingFieldFound = null });
 		csv.Context.RegisterClassMap(_classMap);
-		List<PhysicalMtgCard> autoReadCards = csv.GetRecords<PhysicalMtgCard>().ToList();
-		Log.Information($"Parsed {autoReadCards.Count} cards from {csvFilePath}.");
+		List<PhysicalMtgCard> cards = csv.GetRecords<PhysicalMtgCard>().ToList();
+		Log.Information($"Parsed {cards.Sum(c => c.Count)} cards ({cards.Count} unique) cards from {csvFilePath}.");
 
-		return autoReadCards;
+		return cards;
 	}
 
 	public void WriteCollectionCsv(IList<PhysicalMtgCard> cards, string? outputFileName = null)
 	{
 		outputFileName ??= $"{_format.Name.ToLower()}-output-{DateTime.Now.ToShortDateString()}.csv";
-		Log.Information($"Writing {cards.Count} cards to {outputFileName}");
+		Log.Information($"Writing {cards.Sum(c => c.Count)} cards ({cards.Count} unique) cards to {outputFileName}");
 
 		using var writer = new StreamWriter(outputFileName);
 		using var csv = new CsvWriter(writer, CultureInfo.InvariantCulture);

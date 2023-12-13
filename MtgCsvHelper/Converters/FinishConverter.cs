@@ -4,11 +4,9 @@ using MtgCsvHelper.Maps;
 
 namespace MtgCsvHelper.Converters;
 
-public class FinishConverter : ITypeConverter
+public class FinishConverter	(FinishConfiguration configuration) : ITypeConverter
 {
-	readonly FinishConfiguration _finishConfig;
-
-	public FinishConverter(FinishConfiguration configuration) => _finishConfig = configuration;
+	readonly FinishConfiguration _finishConfig = configuration;
 
 	public object? ConvertFromString(string? text, IReaderRow row, MemberMapData memberMapData) => text?.Equals(_finishConfig.Foil);
 

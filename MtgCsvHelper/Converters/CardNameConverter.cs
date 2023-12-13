@@ -4,11 +4,9 @@ using MtgCsvHelper.Maps;
 
 namespace MtgCsvHelper.Converters;
 
-public class CardNameConverter : ITypeConverter
+public class CardNameConverter(CardNameConfiguration configuration) : ITypeConverter
 {
-	readonly bool _useShortNames;
-
-	public CardNameConverter(CardNameConfiguration configuration) => _useShortNames = configuration.ShortNames;
+	readonly bool _useShortNames = configuration.ShortNames;
 
 	public object? ConvertFromString(string? text, IReaderRow row, MemberMapData memberMapData)
 	{

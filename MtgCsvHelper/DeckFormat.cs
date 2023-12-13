@@ -17,7 +17,7 @@ public class DeckFormat
 		Name = configKey;
 
 		// Set only once!
-		CardNames ??= config.GetSection("DoubleFacedCards").Get<List<string>>() ?? new();
+		CardNames ??= config.GetSection("DoubleFacedCards").Get<List<string>>() ?? [];
 	}
 
 	public CsvToCardMap GenerateClassMap() => new(ColumnConfig);

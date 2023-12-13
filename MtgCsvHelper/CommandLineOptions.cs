@@ -3,7 +3,7 @@ using CommandLine.Text;
 
 class CommandLineOptions
 {
-	[Option('f', "file", Required = true, HelpText = "Input file(s) to be processed (specify file name or wild card syntax).", Default = new[] { "SampleCsvs/dragonshield-*.csv" })]
+	[Option('f', "file", HelpText = "Input file(s) to be processed (specify file name or wild card syntax).", Default = "*.csv")]
 	public required string InputFilePattern { get; init; }
 
 	[Option("in", Default = "DRAGONSHIELD", HelpText = $"Specify input file format. Must be one of the values in appsettings.json CsvConfigurations keys")]
@@ -19,7 +19,7 @@ class CommandLineOptions
 			"Example usage: Parse a file in Dragonshield format and output Moxfield-compatible .csv",
 			new CommandLineOptions
 			{
-				InputFilePattern = "SampleCsvs/dragonshield-*.csv",
+				InputFilePattern = "*.csv",
 				InputFormat = "DRAGONSHIELD",
 				OutputFormat = "MOXFIELD",
 			})

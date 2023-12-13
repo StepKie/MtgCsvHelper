@@ -51,7 +51,7 @@ public class MtgCardCsvHandlerTests
 		Assert.Fail("This test needs an implementation");
 	}
 
-	MtgCardCsvHandler CreateHandler(string deckFormatName)
+	static MtgCardCsvHandler CreateHandler(string deckFormatName)
 	{
 		// Read configuration
 		IConfigurationRoot configuration = new ConfigurationBuilder().AddJsonFile("appsettings.json", false).Build();
@@ -85,6 +85,6 @@ public class MtgCardCsvHandlerTests
 		var card6 = card1 with { Condition = CardCondition.PLAYED };
 		var card7 = card1 with { Condition = CardCondition.POOR };
 
-		return new[] { card1, card2, card3, card4, card5, card6, card7 }.ToList();
+		return [card1, card2, card3, card4, card5, card6, card7];
 	}
 }

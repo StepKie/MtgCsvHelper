@@ -4,11 +4,9 @@ using MtgCsvHelper.Maps;
 
 namespace MtgCsvHelper.Converters;
 
-public class CardConditionConverter : ITypeConverter
+public class CardConditionConverter(ConditionConfiguration configuration) : ITypeConverter
 {
-	readonly ConditionConfiguration _conditionConfig;
-
-	public CardConditionConverter(ConditionConfiguration configuration) => _conditionConfig = configuration;
+	readonly ConditionConfiguration _conditionConfig = configuration;
 
 	public object? ConvertFromString(string? text, IReaderRow row, MemberMapData memberMapData)
 	{
