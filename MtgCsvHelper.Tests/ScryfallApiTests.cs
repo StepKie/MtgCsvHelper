@@ -11,5 +11,6 @@ public class ScryfallApiTests
 	{
 		var sets = _scryfallApi.GetSets();
 		sets.Should().NotBeNullOrEmpty();
+		sets.Count().Should().BeGreaterThan(800);
 	}
 }

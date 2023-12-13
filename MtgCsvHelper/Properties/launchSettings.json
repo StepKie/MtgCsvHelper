@@ -6,7 +6,7 @@
     },
     "DsToMf": {
       "commandName": "Project",
-      "commandLineArgs": "-f SampleCsvs/Samples/dragonshield-sample.csv --in DRAGONSHIELD --out MOXFIELD"
+      "commandLineArgs": "-f Resources/SampleCsvs/Samples/dragonshield-sample.csv --in DRAGONSHIELD --out MOXFIELD"
     }
   }
 }
