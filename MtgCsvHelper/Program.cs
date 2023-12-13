@@ -3,6 +3,7 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using MtgCsvHelper;
+using MtgCsvHelper.Services;
 
 using IHost host = Host.CreateDefaultBuilder(args).Build();
 
@@ -12,8 +13,8 @@ IConfiguration config = host.Services.GetRequiredService<IConfiguration>();
 Log.Logger = new LoggerConfiguration().ReadFrom.Configuration(config).CreateLogger();
 
 Parser.Default.ParseArguments<CommandLineOptions>(args)
-	.WithParsed(RunWithOptions)
-	.WithNotParsed(HandleParseError);
+	.WithNotParsed(HandleParseError)
+	.WithParsed(RunWithOptions);
 
 Log.Information($"Done. Press Ctrl+C to exit");
 Console.ReadLine();
@@ -23,6 +24,8 @@ void RunWithOptions(CommandLineOptions opts)
 	var filesToParse = Directory.GetFiles(Directory.GetCurrentDirectory(), opts.InputFilePattern);
 	var reader = new MtgCardCsvHandler(new DeckFormat(config, opts.InputFormat));
 	var writer = new MtgCardCsvHandler(new DeckFormat(config, opts.OutputFormat));
+
+	IMtgApi api = new ScryfallApi();
 
 	List<PhysicalMtgCard> cardsFound = [];
 

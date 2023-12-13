@@ -1,6 +1,7 @@
 ﻿using System.Globalization;
 using CsvHelper.Configuration;
 using MtgCsvHelper.Maps;
+using MtgCsvHelper.Services;
 
 namespace MtgCsvHelper;
 public class MtgCardCsvHandler
@@ -14,7 +15,7 @@ public class MtgCardCsvHandler
 		_classMap = _format.GenerateClassMap();
 	}
 
-	public IList<PhysicalMtgCard> ParseCollectionCsv(string csvFilePath)
+	public List<PhysicalMtgCard> ParseCollectionCsv(string csvFilePath, bool amendMissingInfo = true)
 	{
 		Log.Information($"Parsing {csvFilePath} with input format {_format} ...");
 
@@ -26,6 +27,20 @@ public class MtgCardCsvHandler
 		using var csv = new CsvReader(hasSeparatorInfoFirstLine ? stream : new(csvFilePath), new CsvConfiguration(CultureInfo.InvariantCulture) { HeaderValidated = null, MissingFieldFound = null });
 		csv.Context.RegisterClassMap(_classMap);
 		List<PhysicalMtgCard> cards = csv.GetRecords<PhysicalMtgCard>().ToList();
+
+		if (amendMissingInfo)
+		{
+			IMtgApi api = new ScryfallApi();
+			var sets = api.GetSets();
+
+			foreach (var card in cards)
+			{
+				var set = card.Printing.Set;
+				set.FullName ??= sets.FirstOrDefault(s => s.Code.Equals(set.Code, StringComparison.OrdinalIgnoreCase))?.FullName;
+				if (string.IsNullOrEmpty(set.Code)) { set.Code = sets.FirstOrDefault(s => s.FullName!.Equals(set.FullName, StringComparison.OrdinalIgnoreCase))?.Code.ToUpper() ?? "---"; }
+			}
+		}
+
 		Log.Information($"Parsed {cards.Sum(c => c.Count)} cards ({cards.Count} unique) cards from {csvFilePath}.");
 
 		return cards;

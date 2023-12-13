@@ -14,7 +14,7 @@ public class CardConditionConverter(ConditionConfiguration configuration) : ITyp
 			return text switch
 			{
 				_ when _conditionConfig.Mint.Equals(text)			=> CardCondition.MINT,
-				_ when _conditionConfig.NearMint.Equals (text)		=> CardCondition.NEAR_MINT,
+				_ when _conditionConfig.NearMint.Equals(text)		=> CardCondition.NEAR_MINT,
 				_ when _conditionConfig.Excellent.Equals(text)		=> CardCondition.EXCELLENT,
 				_ when _conditionConfig.Good.Equals(text)			=> CardCondition.GOOD,
 				_ when _conditionConfig.LightlyPlayed.Equals(text)	=> CardCondition.LIGHTLY_PLAYED,

@@ -1,6 +1,7 @@
 ﻿using DevTrends.ConfigurationExtensions;
 using Microsoft.Extensions.Configuration;
 using MtgCsvHelper.Maps;
+using MtgCsvHelper.Services;
 
 namespace MtgCsvHelper;
 
@@ -20,5 +21,5 @@ public class DeckFormat
 		CardNames ??= config.GetSection("DoubleFacedCards").Get<List<string>>() ?? [];
 	}
 
-	public CsvToCardMap GenerateClassMap() => new(ColumnConfig);
+	public CsvToCardMap GenerateClassMap() => new(ColumnConfig, new ScryfallApi());
 }

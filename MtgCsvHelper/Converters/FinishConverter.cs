@@ -4,7 +4,7 @@ using MtgCsvHelper.Maps;
 
 namespace MtgCsvHelper.Converters;
 
-public class FinishConverter	(FinishConfiguration configuration) : ITypeConverter
+public class FinishConverter(FinishConfiguration configuration) : ITypeConverter
 {
 	readonly FinishConfiguration _finishConfig = configuration;
 
