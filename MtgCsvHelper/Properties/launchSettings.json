@@ -1,8 +1,12 @@
 {
   "profiles": {
-    "MtgCsvHelper": {
+    "MfToMb": {
       "commandName": "Project",
-      "commandLineArgs": "-f SampleCsvs/moxfield-sample.csv --in MOXFIELD --out DRAGONSHIELD"
+      "commandLineArgs": "--in MOXFIELD --out MANABOX"
+    },
+    "DsToMf": {
+      "commandName": "Project",
+      "commandLineArgs": "-f SampleCsvs/Samples/dragonshield-sample.csv --in DRAGONSHIELD --out MOXFIELD"
     }
   }
 }
