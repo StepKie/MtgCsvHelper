@@ -2,7 +2,7 @@
   "profiles": {
     "MfToMb": {
       "commandName": "Project",
-      "commandLineArgs": "--in MOXFIELD --out MANABOX"
+      "commandLineArgs": "-f Resources/SampleCsvs/Samples/moxfield*.csv --in MOXFIELD --out MANABOX"
     },
     "DsToMf": {
       "commandName": "Project",

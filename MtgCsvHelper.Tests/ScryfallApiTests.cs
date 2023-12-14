@@ -1,16 +1,20 @@
-﻿using MtgCsvHelper.Services;
+﻿namespace MtgCsvHelper.Tests;
 
-namespace MtgCsvHelper.Tests;
-
-public class ScryfallApiTests
+public class MtgApiTests(ITestOutputHelper output) : BaseTest(output)
 {
-	private readonly ScryfallApi _scryfallApi = new();
-
 	[Fact]
 	public void DownloadSetsTest()
 	{
-		var sets = _scryfallApi.GetSets();
+		var sets = _api.GetSets();
 		sets.Should().NotBeNullOrEmpty();
 		sets.Count().Should().BeGreaterThan(800);
+	}
+
+	[Fact]
+	public void DownloadDoubleFacedCardsTest()
+	{
+		var doubleFacedCards = _api.GetDoubleFacedCardNames();
+		doubleFacedCards.Should().NotBeNullOrEmpty();
+		doubleFacedCards.Count.Should().BeGreaterThan(100);
 	}
 }

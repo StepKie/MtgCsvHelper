@@ -1,16 +1,18 @@
 using Microsoft.Extensions.Configuration;
+using ScryfallApi.Client.Models;
 
 namespace MtgCsvHelper.Tests;
 
-public class MtgCardCsvHandlerTests
+public class MtgCardCsvHandlerTests(ITestOutputHelper output) : BaseTest(output)
 {
 	public const string SAMPLES_FOLDER = "Resources/SampleCsvs/Samples";
+	public const string COLLECTIONS_FOLDER = "Resources/SampleCsvs/Collection";
 
 	[Theory]
 	[InlineData("DRAGONSHIELD")]
 	[InlineData("MOXFIELD")]
 	//[InlineData("DECKBOX")]
-	public void WriteReadCycleTest(string deckFormatName)
+	public void WriteReadSampleCycleTest(string deckFormatName)
 	{
 		// Arrange
 		IList<PhysicalMtgCard> originalCards = GetReferenceCards();
@@ -31,7 +33,7 @@ public class MtgCardCsvHandlerTests
 	// There is an issue with the price ($) for deckbox which needs to be figured out first
 	// Possibly remove since we have different units (euro/usd) for different sites
 	//[InlineData($"{SAMPLES_FOLDER}/deckbox-sample.csv", "DECKBOX")]
-	public void ParseCollectionCsv_WithValidInput_ParsesCards(string csvFilePath, string deckFormatName)
+	public void ParseSampleCsv_WithValidInput_ParsesCards(string csvFilePath, string deckFormatName)
 	{
 		// Arrange
 		IList<PhysicalMtgCard> expectedCards = GetReferenceCards();
@@ -41,23 +43,30 @@ public class MtgCardCsvHandlerTests
 		IList<PhysicalMtgCard> cards = handler.ParseCollectionCsv(csvFilePath);
 
 		// Assert
-		cards.First().Printing.Identifier.Should().BeEquivalentTo("MID#2");
 		cards.Should().BeEquivalentTo(expectedCards);
 	}
 
-	[Fact(Skip = "TODO")]
-	public void WriteCollectionCsvTest()
+	[Theory]
+	[InlineData($"{COLLECTIONS_FOLDER}/dragonshield-collection.csv", "DRAGONSHIELD", "MOXFIELD")]
+	[InlineData($"{COLLECTIONS_FOLDER}/moxfield-collection.csv", "MOXFIELD", "DRAGONSHIELD")]
+	public void ParseCollectionCsvTest(string csvFilePath, string deckFormatIn, string deckFormatOut)
 	{
-		Assert.Fail("This test needs an implementation");
+		// Arrange
+		MtgCardCsvHandler handlerIn = CreateHandler(deckFormatIn);
+		MtgCardCsvHandler handlerOut = CreateHandler(deckFormatOut);
+
+		// Act
+		IList<PhysicalMtgCard> cards = handlerIn.ParseCollectionCsv(csvFilePath);
+		handlerOut.WriteCollectionCsv(cards);
+		cards.Should().HaveCountGreaterThan(1000);
 	}
 
-	static MtgCardCsvHandler CreateHandler(string deckFormatName)
+	MtgCardCsvHandler CreateHandler(string deckFormatName)
 	{
-		// Read configuration
 		IConfigurationRoot configuration = new ConfigurationBuilder().AddJsonFile("appsettings.json", false).Build();
 		DeckFormat format = new(configuration, deckFormatName);
 
-		return new MtgCardCsvHandler(format);
+		return new MtgCardCsvHandler(_api, format);
 	}
 
 	static List<PhysicalMtgCard> GetReferenceCards()
@@ -67,11 +76,12 @@ public class MtgCardCsvHandlerTests
 			Count = 1,
 			Condition = CardCondition.MINT,
 			Foil = false,
-			Printing = new Printing
+			Printing = new Card
 			{
-				Card = new MtgCard { Name = "Ambitious Farmhand // Seasoned Cathar" },
-				IdInSet = "2",
-				Set = new Set { Code = "MID", FullName = "Innistrad: Midnight Hunt" },
+				Name = "Ambitious Farmhand // Seasoned Cathar",
+				CollectorNumber = "2",
+				Set = "MID",
+				SetName = "Innistrad: Midnight Hunt",
 			},
 			Language = "English",
 		};

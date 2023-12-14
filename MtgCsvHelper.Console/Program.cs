@@ -5,11 +5,14 @@ using Microsoft.Extensions.Hosting;
 using MtgCsvHelper;
 using MtgCsvHelper.Services;
 
-using IHost host = Host.CreateDefaultBuilder(args).Build();
+IHostBuilder builder = Host
+	.CreateDefaultBuilder(args)
+	.ConfigureServices(builder => builder.ConfigureMtgCsvHelper());
+
+using IHost host = builder.Build();
 
 // Ask the service provider for the configuration abstraction.
-IConfiguration config = host.Services.GetRequiredService<IConfiguration>();
-
+var config = host.Services.GetRequiredService<IConfiguration>();
 Log.Logger = new LoggerConfiguration().ReadFrom.Configuration(config).CreateLogger();
 
 Parser.Default.ParseArguments<CommandLineOptions>(args)
@@ -22,16 +25,16 @@ Console.ReadLine();
 void RunWithOptions(CommandLineOptions opts)
 {
 	var filesToParse = Directory.GetFiles(Directory.GetCurrentDirectory(), opts.InputFilePattern);
-	var reader = new MtgCardCsvHandler(new DeckFormat(config, opts.InputFormat));
-	var writer = new MtgCardCsvHandler(new DeckFormat(config, opts.OutputFormat));
 
-	IMtgApi api = new ScryfallApi();
+	var api = host.Services.GetService<IMtgApi>()!;
+	var reader = new MtgCardCsvHandler(api, new DeckFormat(config, opts.InputFormat));
+	var writer = new MtgCardCsvHandler(api, new DeckFormat(config, opts.OutputFormat));
 
 	List<PhysicalMtgCard> cardsFound = [];
 
 	foreach (var fileName in filesToParse)
 	{
-		var parsedCardsFromFile = reader.ParseCollectionCsv(fileName);
+		var parsedCardsFromFile = reader.ParseCollectionCsv(new FileStream(fileName, FileMode.Open));
 		cardsFound.AddRange(parsedCardsFromFile);
 	}
 

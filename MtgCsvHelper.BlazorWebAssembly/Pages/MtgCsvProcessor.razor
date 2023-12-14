@@ -1,0 +1,164 @@
+﻿@page "/"
+@inject IConfiguration Config
+@inject IJSRuntime JS
+@using Serilog
+@using System.Text
+
+<h3 class="mb-4">Convert your MtG collection .csv file</h3>
+
+<div class="container">
+	<div class="form-group row mb-3">
+		<div class="col-md-3 text-end">
+			<label for="fileUpload">Upload CSV File:</label>
+		</div>
+		<div class="col-md-9">
+			<!-- TODO Add "multiple  after OnChange to support uploading multiple files -->
+			<InputFile id="fileUpload" OnChange="@HandleFileUpload" />
+		</div>
+	</div>
+
+	<div class="form-group row mb-3">
+		<div class="col-md-3 text-end">
+			<label for="inputFormat">Select Input Format:</label>
+		</div>
+		<div class="col-md-9">
+			<InputSelect id="inputFormat" @bind-Value="selectedInputFormat">
+				@foreach (var deckFormat in deckFormatOptions)
+				{
+					<option>@deckFormat</option>
+				}
+			</InputSelect>
+		</div>
+	</div>
+
+	<div class="form-group row mb-3">
+		<div class="col-md-3 text-end">
+			<label for="outputFormat">Select Output Format:</label>
+		</div>
+		<div class="col-md-9">
+			<InputSelect id="outputFormat" @bind-Value="selectedOutputFormat">
+				@foreach (var deckFormat in deckFormatOptions)
+				{
+					<option>@deckFormat</option>
+				}
+			</InputSelect>
+		</div>
+	</div>
+
+	<div class="form-group row">
+		<div class="col-md-3 text-end">
+			<button @onclick="Convert" disabled="@(csvFile is null)" class="btn btn-primary">
+				@if (isConverting)
+				{
+					<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>
+					<span class="visually-hidden">Processing...</span>
+					<text>Converting...</text>
+				}
+				else
+				{
+					<text>Convert</text>
+				}
+			</button>
+		</div>
+		<div class="col-md-9">
+			@if (!isConverting && processedRecords.Any())
+			{
+				<button class="btn btn-success" @onclick="DownloadResult">Download Converted .csv</button>
+			}
+		</div>
+	</div>
+</div>
+
+
+
+@if (processedRecords.Any())
+{
+	<h4>Processed Records</h4>
+	<p>@summary</p>
+	<!-- Display the processed records as needed -->
+	<ul>
+		@foreach (var record in processedRecords)
+		{
+			<li>@record</li>
+		}
+	</ul>
+}
+
+@code {
+	private static List<string> deckFormatOptions = DeckFormat.Supported;
+
+	private string selectedInputFormat = deckFormatOptions[0];
+	private string selectedOutputFormat = deckFormatOptions[1];
+
+	private List<string> processedRecords = [];
+	private IBrowserFile? csvFile;
+
+
+	private string? summary;
+	private bool isConverting;
+	private string resultFileName;
+
+	private void HandleFileUpload(InputFileChangeEventArgs e)
+	{
+		// Store the file for later use
+		// TODO GetMultipleFiles() support
+		csvFile = e.File;
+	}
+
+	private async Task Convert()
+	{
+		isConverting = true;
+		StateHasChanged();
+		await Task.Delay(1);
+
+		Stream csvStream = new MemoryStream();
+		// We need an async stream to read the file contents
+		await csvFile!.OpenReadStream().CopyToAsync(csvStream);
+		// Reset the stream position so we can read it
+		csvStream.Position = 0;
+
+		try
+		{
+			var deckFormats = DeckFormat.Supported.Select(s => new DeckFormat(Config, s)).ToList();
+
+			var selectedInputDeckFormat = deckFormats.First(df => df.Name == selectedInputFormat);
+			var selectedOutputDeckFormat = deckFormats.First(df => df.Name == selectedOutputFormat);
+
+			var api = ServiceConfiguration.CachedApi;
+
+			var reader = new MtgCardCsvHandler(api, selectedInputDeckFormat);
+			var writer = new MtgCardCsvHandler(api, selectedOutputDeckFormat);
+
+			var cards = reader.ParseCollectionCsv(csvStream);
+			Console.WriteLine($"Parsed {cards.Count} cards");
+			processedRecords = cards.Select(c => c.Printing.Name).ToList();
+			resultFileName ??= $"{selectedOutputFormat}-output-{DateTime.Now:yyyy-MM-dd}.csv";
+			writer.WriteCollectionCsv(cards, resultFileName);
+
+			summary = $"Converted {cards.Count} cards from {selectedInputDeckFormat.Name} to {selectedOutputDeckFormat.Name}";
+
+		}
+		finally
+		{
+			isConverting = false;
+			StateHasChanged();
+		}
+	}
+
+	private Stream GetFileStream()
+	{
+		// var binaryData = new byte[50 * 1024];
+		// var fileStream = new MemoryStream(binaryData);
+		var fileStream = File.OpenRead(resultFileName);
+		return fileStream;
+	}
+
+	private async Task DownloadResult()
+	{
+		var fileStream = GetFileStream();
+		var fileName = resultFileName;
+		using var streamRef = new DotNetStreamReference(stream: fileStream);
+
+		await JS.InvokeVoidAsync("downloadFileFromStream", fileName, streamRef);
+	}
+}

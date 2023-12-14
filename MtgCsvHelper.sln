@@ -12,6 +12,10 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution 
 		.editorconfig = .editorconfig
 	EndProjectSection
 EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "MtgCsvHelper.BlazorWebAssembly", "MtgCsvHelper.BlazorWebAssembly\MtgCsvHelper.BlazorWebAssembly.csproj", "{EC915FC5-1225-41E5-914F-BD92C5C0D992}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "MtgCsvHelper.Console", "MtgCsvHelper.Console\MtgCsvHelper.Console.csproj", "{5BEF42C1-06CF-4E56-B38F-EB096F7CD552}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -26,6 +30,14 @@ Global
 		{A7118430-CBA4-406A-9235-ED1DBABDF8FF}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{A7118430-CBA4-406A-9235-ED1DBABDF8FF}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{A7118430-CBA4-406A-9235-ED1DBABDF8FF}.Release|Any CPU.Build.0 = Release|Any CPU
+		{EC915FC5-1225-41E5-914F-BD92C5C0D992}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{EC915FC5-1225-41E5-914F-BD92C5C0D992}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{EC915FC5-1225-41E5-914F-BD92C5C0D992}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{EC915FC5-1225-41E5-914F-BD92C5C0D992}.Release|Any CPU.Build.0 = Release|Any CPU
+		{5BEF42C1-06CF-4E56-B38F-EB096F7CD552}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{5BEF42C1-06CF-4E56-B38F-EB096F7CD552}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{5BEF42C1-06CF-4E56-B38F-EB096F7CD552}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{5BEF42C1-06CF-4E56-B38F-EB096F7CD552}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

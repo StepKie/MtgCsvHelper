@@ -4,15 +4,23 @@ using MtgCsvHelper.Maps;
 
 namespace MtgCsvHelper.Converters;
 
-public class CardNameConverter(CardNameConfiguration configuration) : ITypeConverter
+public class CardNameConverter : ITypeConverter
 {
-	readonly bool _useShortNames = configuration.ShortNames;
+	readonly bool _useShortNames;
+	readonly List<string> _doubleFacedCards;
+
+	public CardNameConverter(CardNameConfiguration configuration)
+	{
+		_useShortNames = configuration.ShortNames;
+		var api = ServiceConfiguration.CachedApi;
+		_doubleFacedCards = api.GetDoubleFacedCardNames();
+	}
 
 	public object? ConvertFromString(string? text, IReaderRow row, MemberMapData memberMapData)
 	{
 		if (string.IsNullOrWhiteSpace(text)) { return null; }
 
-		var match = DeckFormat.CardNames.FirstOrDefault(c => c.Split(" // ").First().Equals(text));
+		var match = _doubleFacedCards.FirstOrDefault(c => c.Split(" // ").First().Equals(text));
 
 		return (_useShortNames && match is not null) ? match : text;
 	}
