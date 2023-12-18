@@ -70,11 +70,14 @@
 </div>
 
 
+@if (!string.IsNullOrEmpty(summary))
+{
+	<p>@summary</p>
+}
 
 @if (processedRecords.Any())
 {
 	<h4>Processed Records</h4>
-	<p>@summary</p>
 	<!-- Display the processed records as needed -->
 	<ul>
 		@foreach (var record in processedRecords)
@@ -110,15 +113,14 @@
 		isConverting = true;
 		StateHasChanged();
 		await Task.Delay(1);
-
-		Stream csvStream = new MemoryStream();
-		// We need an async stream to read the file contents
-		await csvFile!.OpenReadStream().CopyToAsync(csvStream);
-		// Reset the stream position so we can read it
-		csvStream.Position = 0;
-
 		try
 		{
+			Stream csvStream = new MemoryStream();
+			// We need an async stream to read the file contents
+			await csvFile!.OpenReadStream().CopyToAsync(csvStream);
+			// Reset the stream position so we can read it
+			csvStream.Position = 0;
+
 			var deckFormats = DeckFormat.Supported.Select(s => new DeckFormat(Config, s)).ToList();
 
 			var selectedInputDeckFormat = deckFormats.First(df => df.Name == selectedInputFormat);
@@ -137,6 +139,10 @@
 
 			summary = $"Converted {cards.Count} cards from {selectedInputDeckFormat.Name} to {selectedOutputDeckFormat.Name}";
 
+		}
+		catch (Exception ex)
+		{
+			summary = $"Unexpected error converting file: {ex.Message} \n {ex.StackTrace}";
 		}
 		finally
 		{
