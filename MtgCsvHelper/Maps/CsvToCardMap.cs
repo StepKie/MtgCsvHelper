@@ -33,5 +33,5 @@ public record DeckConfig(
 	);
 
 public record CardNameConfiguration(string HeaderName, bool ShortNames);
-public record FinishConfiguration(string HeaderName, string Foil, string Normal, string Etched);
+public record FinishConfiguration(string HeaderName, string Foil, string Normal, string? Etched);
 public record ConditionConfiguration(string HeaderName, string Mint, string NearMint, string Excellent, string Good, string LightlyPlayed, string Played, string Poor);

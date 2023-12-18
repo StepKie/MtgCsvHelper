@@ -110,11 +110,12 @@
 
 	private async Task Convert()
 	{
-		isConverting = true;
-		StateHasChanged();
-		await Task.Delay(1);
 		try
 		{
+			isConverting = true;
+			StateHasChanged();
+			await Task.Delay(1);
+		
 			Stream csvStream = new MemoryStream();
 			// We need an async stream to read the file contents
 			await csvFile!.OpenReadStream().CopyToAsync(csvStream);
