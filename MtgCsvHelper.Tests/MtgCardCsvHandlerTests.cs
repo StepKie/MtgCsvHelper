@@ -11,6 +11,7 @@ public class MtgCardCsvHandlerTests(ITestOutputHelper output) : BaseTest(output)
 	[Theory]
 	[InlineData("DRAGONSHIELD")]
 	[InlineData("MOXFIELD")]
+	[InlineData("MANABOX")]
 	//[InlineData("DECKBOX")]
 	public void WriteReadSampleCycleTest(string deckFormatName)
 	{
@@ -30,6 +31,7 @@ public class MtgCardCsvHandlerTests(ITestOutputHelper output) : BaseTest(output)
 	[Theory]
 	[InlineData($"{SAMPLES_FOLDER}/dragonshield-sample.csv", "DRAGONSHIELD")]
 	[InlineData($"{SAMPLES_FOLDER}/moxfield-sample.csv", "MOXFIELD")]
+	[InlineData($"{SAMPLES_FOLDER}/manabox-sample.csv", "MANABOX")]
 	// There is an issue with the price ($) for deckbox which needs to be figured out first
 	// Possibly remove since we have different units (euro/usd) for different sites
 	//[InlineData($"{SAMPLES_FOLDER}/deckbox-sample.csv", "DECKBOX")]
@@ -83,7 +85,7 @@ public class MtgCardCsvHandlerTests(ITestOutputHelper output) : BaseTest(output)
 				Set = "MID",
 				SetName = "Innistrad: Midnight Hunt",
 			},
-			Language = "English",
+			Language = "en",
 		};
 
 		// Card2 verifies Count, Foil, Language, PriceBought
@@ -92,7 +94,7 @@ public class MtgCardCsvHandlerTests(ITestOutputHelper output) : BaseTest(output)
 			Count = 2,
 			Condition = CardCondition.NEAR_MINT,
 			Foil = true,
-			Language = "German",
+			Language = "de",
 			PriceBought = 0.20m,
 		};
 

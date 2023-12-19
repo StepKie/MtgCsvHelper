@@ -11,7 +11,7 @@ public record PhysicalMtgCard
 	public DateTime? DateBought { get; init; }
 	public CardCondition Condition { get; init; } = CardCondition.UNKNOWN;
 
-	// TODO Might be enum or CultureInfo ...
+	// Encodes 2-letter ISO language code (queryable via CultureInfo)
 	public string? Language { get; init; }
 	public bool? Foil { get; init; }
 	public bool? TradeListed { get; init; }
