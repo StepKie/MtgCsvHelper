@@ -6,25 +6,23 @@ using MtgCsvHelper.Services;
 namespace MtgCsvHelper;
 public class MtgCardCsvHandler
 {
-	readonly DeckFormat _format;
 	readonly CsvToCardMap _classMap;
 	readonly IMtgApi _api;
 
 	public MtgCardCsvHandler(IMtgApi api, DeckFormat format)
 	{
-		_format = format;
-		_classMap = _format.GenerateClassMap();
+		Format = format;
+		_classMap = Format.GenerateClassMap();
 		_api = api;
 	}
 
-	public List<PhysicalMtgCard> ParseCollectionCsv(string csvFilePath, bool amendMissingInfo = true)
-	{
-		return ParseCollectionCsv(File.OpenRead(csvFilePath), amendMissingInfo);
-	}
+	public DeckFormat Format { get; init; }
 
-	public List<PhysicalMtgCard> ParseCollectionCsv(Stream csvFilePath, bool amendMissingInfo = true)
+	public List<PhysicalMtgCard> ParseCollectionCsv(string csvFilePath) => ParseCollectionCsv(File.OpenRead(csvFilePath));
+
+	public List<PhysicalMtgCard> ParseCollectionCsv(Stream csvFilePath)
 	{
-		Log.Information($"Parsing {csvFilePath} with input format {_format} ...");
+		Log.Information($"Parsing {csvFilePath} with input format {Format.Name} ...");
 		using var stream = new StreamReader(csvFilePath);
 		CheckIfFirstLineCanBeIgnored(stream);
 
@@ -32,19 +30,16 @@ public class MtgCardCsvHandler
 		csv.Context.RegisterClassMap(_classMap);
 		List<PhysicalMtgCard> cards = csv.GetRecords<PhysicalMtgCard>().ToList();
 
-		if (amendMissingInfo)
-		{
-			var sets = _api.GetSets();
+		var sets = _api.GetSets();
 
-			foreach (var card in cards)
-			{
-				var logicalCard = card.Printing;
-				logicalCard.SetName ??= sets.FirstOrDefault(s => s.Code.Equals(logicalCard.Set, StringComparison.OrdinalIgnoreCase))?.Name;
-				logicalCard.Set ??= sets.FirstOrDefault(s => s.Name.Equals(logicalCard.SetName, StringComparison.OrdinalIgnoreCase))?.Code;
-			}
+		foreach (var card in cards)
+		{
+			var logicalCard = card.Printing;
+			logicalCard.SetName ??= sets.FirstOrDefault(s => s.Code.Equals(logicalCard.Set, StringComparison.OrdinalIgnoreCase))?.Name;
+			logicalCard.Set ??= sets.FirstOrDefault(s => s.Name.Equals(logicalCard.SetName, StringComparison.OrdinalIgnoreCase))?.Code.ToUpper();
 		}
 
-		Log.Information($"Parsed {cards.Sum(c => c.Count)} cards ({cards.Count} unique) cards from {csvFilePath}.");
+		Log.Information($"Parsed {cards.Sum(c => c.Count)} cards ({cards.Count} unique) cards.");
 
 		return cards;
 
@@ -63,7 +58,7 @@ public class MtgCardCsvHandler
 
 	public void WriteCollectionCsv(IList<PhysicalMtgCard> cards, string? outputFileName = null)
 	{
-		outputFileName ??= $"{_format.Name.ToLower()}-output-{DateTime.Now:yyyy-MM-dd}.csv";
+		outputFileName ??= $"{Format.Name.ToLower()}-output-{DateTime.Now:yyyy-MM-dd}.csv";
 		Log.Information($"Writing {cards.Sum(c => c.Count)} cards ({cards.Count} unique) cards to {outputFileName}");
 
 		using var writer = new StreamWriter(outputFileName);

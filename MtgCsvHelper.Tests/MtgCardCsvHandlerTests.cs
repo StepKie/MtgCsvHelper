@@ -13,12 +13,12 @@ public class MtgCardCsvHandlerTests(ITestOutputHelper output) : BaseTest(output)
 	[InlineData("MOXFIELD")]
 	[InlineData("MANABOX")]
 	[InlineData("TOPDECKED")]
-	//[InlineData("DECKBOX")]
+	[InlineData("DECKBOX")]
 	public void WriteReadSampleCycleTest(string deckFormatName)
 	{
 		// Arrange
-		IList<PhysicalMtgCard> originalCards = GetReferenceCards();
 		MtgCardCsvHandler handler = CreateHandler(deckFormatName);
+		IList<PhysicalMtgCard> originalCards = GetReferenceCards(handler.Format.Currency);
 
 		// Act
 		string fileName = $"unittest-{deckFormatName}.csv";
@@ -34,14 +34,12 @@ public class MtgCardCsvHandlerTests(ITestOutputHelper output) : BaseTest(output)
 	[InlineData($"{SAMPLES_FOLDER}/moxfield-sample.csv", "MOXFIELD")]
 	[InlineData($"{SAMPLES_FOLDER}/manabox-sample.csv", "MANABOX")]
 	[InlineData($"{SAMPLES_FOLDER}/topdecked-sample.csv", "TOPDECKED")]
-	// There is an issue with the price ($) for deckbox which needs to be figured out first
-	// Possibly remove since we have different units (euro/usd) for different sites
-	//[InlineData($"{SAMPLES_FOLDER}/deckbox-sample.csv", "DECKBOX")]
+	[InlineData($"{SAMPLES_FOLDER}/deckbox-sample.csv", "DECKBOX")]
 	public void ParseSampleCsv_WithValidInput_ParsesCards(string csvFilePath, string deckFormatName)
 	{
 		// Arrange
-		IList<PhysicalMtgCard> expectedCards = GetReferenceCards();
 		MtgCardCsvHandler handler = CreateHandler(deckFormatName);
+		IList<PhysicalMtgCard> expectedCards = GetReferenceCards(handler.Format.Currency);
 
 		// Act
 		IList<PhysicalMtgCard> cards = handler.ParseCollectionCsv(csvFilePath);
@@ -54,6 +52,7 @@ public class MtgCardCsvHandlerTests(ITestOutputHelper output) : BaseTest(output)
 	[InlineData($"{COLLECTIONS_FOLDER}/dragonshield-collection.csv", "DRAGONSHIELD", "MOXFIELD")]
 	[InlineData($"{COLLECTIONS_FOLDER}/moxfield-collection.csv", "MOXFIELD", "DRAGONSHIELD")]
 	[InlineData($"{COLLECTIONS_FOLDER}/topdecked-collection.csv", "TOPDECKED", "MOXFIELD")]
+	[InlineData($"{COLLECTIONS_FOLDER}/manabox-collection.csv", "MANABOX", "MOXFIELD")]
 	public void ParseCollectionCsvTest(string csvFilePath, string deckFormatIn, string deckFormatOut)
 	{
 		// Arrange
@@ -74,7 +73,7 @@ public class MtgCardCsvHandlerTests(ITestOutputHelper output) : BaseTest(output)
 		return new MtgCardCsvHandler(_api, format);
 	}
 
-	static List<PhysicalMtgCard> GetReferenceCards()
+	static List<PhysicalMtgCard> GetReferenceCards(Currency currency)
 	{
 		var card1 = new PhysicalMtgCard
 		{
@@ -98,7 +97,7 @@ public class MtgCardCsvHandlerTests(ITestOutputHelper output) : BaseTest(output)
 			Condition = CardCondition.NEAR_MINT,
 			Foil = true,
 			Language = "de",
-			PriceBought = 0.20m,
+			PriceBought = new Money(0.20m, currency),
 		};
 
 		// There is no test for excellent, since some sites only have six conditions (e.g. Moxfield)

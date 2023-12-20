@@ -5,14 +5,9 @@ using MtgCsvHelper.Maps;
 
 namespace MtgCsvHelper.Converters;
 
-public class LanguageConverter : ITypeConverter
+public class LanguageConverter(LanguageConfiguration configuration) : ITypeConverter
 {
-	readonly bool _useShortNames;
-
-	public LanguageConverter(LanguageConfiguration configuration)
-	{
-		_useShortNames = configuration.ShortNames;
-	}
+	readonly bool _useShortNames = configuration.ShortNames;
 
 	public object? ConvertFromString(string? text, IReaderRow row, MemberMapData memberMapData)
 	{

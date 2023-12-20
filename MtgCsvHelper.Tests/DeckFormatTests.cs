@@ -7,6 +7,8 @@ public class DeckFormatTests
 	[Theory]
 	[InlineData("DRAGONSHIELD")]
 	[InlineData("MOXFIELD")]
+	[InlineData("MANABOX")]
+	[InlineData("TOPDECKED")]
 	[InlineData("DECKBOX")]
 	//[InlineData("CARDKINGDOM")]
 	public void SupportedTest(string deckFormatName)

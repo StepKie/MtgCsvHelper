@@ -14,10 +14,9 @@ public class CsvToCardMap : ClassMap<PhysicalMtgCard>
 
 		Map(card => card.Printing.SetName).Name(columnConfig.SetName).Optional();
 		if (columnConfig.Condition is ConditionConfiguration cond) { Map(card => card.Condition).TypeConverter(new CardConditionConverter(cond)).Name(cond.HeaderName); }
-		if (columnConfig.Finish is not null) { Map(card => card.Foil).TypeConverter(new FinishConverter(columnConfig.Finish)).Name(columnConfig.Finish.HeaderName); }
-
-		if (columnConfig.Language is LanguageConfiguration lang) Map(card => card.Language).TypeConverter(new LanguageConverter(lang)).Name(lang.HeaderName).Optional();
-		Map(card => card.PriceBought).Name(columnConfig.PriceBought).Optional();
+		if (columnConfig.Finish is FinishConfiguration finish) { Map(card => card.Foil).TypeConverter(new FinishConverter(finish)).Name(finish.HeaderName); }
+		if (columnConfig.Language is LanguageConfiguration lang) { Map(card => card.Language).TypeConverter(new LanguageConverter(lang)).Name(lang.HeaderName).Optional(); }
+		if (columnConfig.PriceBought is PriceConfiguration price) { Map(card => card.PriceBought).TypeConverter(new PriceConverter(price)).Name(price.HeaderName).Optional(); }
 	}
 }
 
@@ -27,10 +26,10 @@ public record DeckConfig(
 	FinishConfiguration? Finish,
 	ConditionConfiguration? Condition,
 	LanguageConfiguration? Language,
+	PriceConfiguration? PriceBought,
 	string SetCode,
 	string? SetName,
-	string SetNumber,
-	string? PriceBought
+	string SetNumber
 	);
 
 public record CardNameConfiguration(
@@ -53,3 +52,8 @@ public record ConditionConfiguration(
 public record LanguageConfiguration(
 	string HeaderName,
 	bool ShortNames);
+
+public record PriceConfiguration(
+	string HeaderName,
+	string Currency,
+	string CurrencySymbol);
