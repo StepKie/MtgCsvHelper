@@ -115,7 +115,7 @@
 			isConverting = true;
 			StateHasChanged();
 			await Task.Delay(1);
-		
+
 			Stream csvStream = new MemoryStream();
 			// We need an async stream to read the file contents
 			await csvFile!.OpenReadStream().CopyToAsync(csvStream);
@@ -132,13 +132,14 @@
 			var reader = new MtgCardCsvHandler(api, selectedInputDeckFormat);
 			var writer = new MtgCardCsvHandler(api, selectedOutputDeckFormat);
 
-			var cards = reader.ParseCollectionCsv(csvStream);
-			Console.WriteLine($"Parsed {cards.Count} cards");
+			var collection = reader.ParseCollectionCsv(csvStream);
+			summary = collection.GenerateSummary();
+			Console.WriteLine(summary);
+			
+			var cards = collection.Cards;
 			processedRecords = cards.Select(c => c.Printing.Name).ToList();
 			resultFileName ??= $"{selectedOutputFormat}-output-{DateTime.Now:yyyy-MM-dd}.csv";
 			writer.WriteCollectionCsv(cards, resultFileName);
-
-			summary = $"Converted {cards.Count} cards from {selectedInputDeckFormat.Name} to {selectedOutputDeckFormat.Name}";
 
 		}
 		catch (Exception ex)

@@ -18,9 +18,9 @@ public class MtgCardCsvHandler
 
 	public DeckFormat Format { get; init; }
 
-	public List<PhysicalMtgCard> ParseCollectionCsv(string csvFilePath) => ParseCollectionCsv(File.OpenRead(csvFilePath));
+	public Collection ParseCollectionCsv(string csvFilePath) => ParseCollectionCsv(File.OpenRead(csvFilePath));
 
-	public List<PhysicalMtgCard> ParseCollectionCsv(Stream csvFilePath)
+	public Collection ParseCollectionCsv(Stream csvFilePath)
 	{
 		Log.Information($"Parsing {csvFilePath} with input format {Format.Name} ...");
 		using var stream = new StreamReader(csvFilePath);
@@ -39,9 +39,10 @@ public class MtgCardCsvHandler
 			logicalCard.Set ??= sets.FirstOrDefault(s => s.Name.Equals(logicalCard.SetName, StringComparison.OrdinalIgnoreCase))?.Code.ToUpper();
 		}
 
-		Log.Information($"Parsed {cards.Sum(c => c.Count)} cards ({cards.Count} unique) cards.");
+		Collection collection = new() { Name = $"Import {Format.Name}, Date: {DateTime.Now}", Cards = cards };
+		Log.Debug(collection.GenerateSummary());
 
-		return cards;
+		return collection;
 
 		static void CheckIfFirstLineCanBeIgnored(StreamReader stream)
 		{

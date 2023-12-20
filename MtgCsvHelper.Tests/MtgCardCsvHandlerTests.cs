@@ -23,7 +23,7 @@ public class MtgCardCsvHandlerTests(ITestOutputHelper output) : BaseTest(output)
 		// Act
 		string fileName = $"unittest-{deckFormatName}.csv";
 		handler.WriteCollectionCsv(originalCards, fileName);
-		List<PhysicalMtgCard> parsedCards = handler.ParseCollectionCsv(fileName);
+		List<PhysicalMtgCard> parsedCards = handler.ParseCollectionCsv(fileName).Cards;
 
 		// Assert
 		parsedCards.Should().BeEquivalentTo(originalCards);
@@ -42,7 +42,7 @@ public class MtgCardCsvHandlerTests(ITestOutputHelper output) : BaseTest(output)
 		IList<PhysicalMtgCard> expectedCards = GetReferenceCards(handler.Format.Currency);
 
 		// Act
-		IList<PhysicalMtgCard> cards = handler.ParseCollectionCsv(csvFilePath);
+		IList<PhysicalMtgCard> cards = handler.ParseCollectionCsv(csvFilePath).Cards;
 
 		// Assert
 		cards.Should().BeEquivalentTo(expectedCards);
@@ -60,7 +60,7 @@ public class MtgCardCsvHandlerTests(ITestOutputHelper output) : BaseTest(output)
 		MtgCardCsvHandler handlerOut = CreateHandler(deckFormatOut);
 
 		// Act
-		IList<PhysicalMtgCard> cards = handlerIn.ParseCollectionCsv(csvFilePath);
+		IList<PhysicalMtgCard> cards = handlerIn.ParseCollectionCsv(csvFilePath).Cards;
 		handlerOut.WriteCollectionCsv(cards);
 		cards.Should().HaveCountGreaterThan(1000);
 	}
