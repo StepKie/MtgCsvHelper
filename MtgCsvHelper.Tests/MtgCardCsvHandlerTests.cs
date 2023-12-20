@@ -12,6 +12,7 @@ public class MtgCardCsvHandlerTests(ITestOutputHelper output) : BaseTest(output)
 	[InlineData("DRAGONSHIELD")]
 	[InlineData("MOXFIELD")]
 	[InlineData("MANABOX")]
+	[InlineData("TOPDECKED")]
 	//[InlineData("DECKBOX")]
 	public void WriteReadSampleCycleTest(string deckFormatName)
 	{
@@ -32,6 +33,7 @@ public class MtgCardCsvHandlerTests(ITestOutputHelper output) : BaseTest(output)
 	[InlineData($"{SAMPLES_FOLDER}/dragonshield-sample.csv", "DRAGONSHIELD")]
 	[InlineData($"{SAMPLES_FOLDER}/moxfield-sample.csv", "MOXFIELD")]
 	[InlineData($"{SAMPLES_FOLDER}/manabox-sample.csv", "MANABOX")]
+	[InlineData($"{SAMPLES_FOLDER}/topdecked-sample.csv", "TOPDECKED")]
 	// There is an issue with the price ($) for deckbox which needs to be figured out first
 	// Possibly remove since we have different units (euro/usd) for different sites
 	//[InlineData($"{SAMPLES_FOLDER}/deckbox-sample.csv", "DECKBOX")]
@@ -51,6 +53,7 @@ public class MtgCardCsvHandlerTests(ITestOutputHelper output) : BaseTest(output)
 	[Theory]
 	[InlineData($"{COLLECTIONS_FOLDER}/dragonshield-collection.csv", "DRAGONSHIELD", "MOXFIELD")]
 	[InlineData($"{COLLECTIONS_FOLDER}/moxfield-collection.csv", "MOXFIELD", "DRAGONSHIELD")]
+	[InlineData($"{COLLECTIONS_FOLDER}/topdecked-collection.csv", "TOPDECKED", "MOXFIELD")]
 	public void ParseCollectionCsvTest(string csvFilePath, string deckFormatIn, string deckFormatOut)
 	{
 		// Arrange
