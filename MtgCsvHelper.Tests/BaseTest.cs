@@ -20,8 +20,7 @@ public class BaseTest
 	{
 
 		Log.Logger = Logging.GetDefaultLoggerConfig.WriteTo.TestOutput(output, level).CreateLogger();
-
-		_api = ServiceConfiguration.CachedApi;
+		_api = IMtgApi.Default;
 		_api.LoadData().Wait();
 	}
 }

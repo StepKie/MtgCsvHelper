@@ -23,13 +23,13 @@ public class CsvToCardMap : ClassMap<PhysicalMtgCard>
 public record DeckConfig(
 	string Quantity,
 	CardNameConfiguration CardName,
-	FinishConfiguration? Finish,
-	ConditionConfiguration? Condition,
-	LanguageConfiguration? Language,
-	PriceConfiguration? PriceBought,
 	string SetCode,
-	string? SetName,
-	string SetNumber
+	string SetNumber,
+	FinishConfiguration? Finish = null,
+	ConditionConfiguration? Condition = null,
+	LanguageConfiguration? Language = null,
+	PriceConfiguration? PriceBought = null,
+	string? SetName = null
 	);
 
 public record CardNameConfiguration(
@@ -39,7 +39,7 @@ public record FinishConfiguration(
 	string HeaderName,
 	string Foil,
 	string Normal,
-	string? Etched);
+	string? Etched = null);
 public record ConditionConfiguration(
 	string HeaderName,
 	string Mint,

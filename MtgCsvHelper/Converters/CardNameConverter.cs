@@ -1,6 +1,7 @@
 ﻿using CsvHelper.Configuration;
 using CsvHelper.TypeConversion;
 using MtgCsvHelper.Maps;
+using MtgCsvHelper.Services;
 
 namespace MtgCsvHelper.Converters;
 
@@ -12,8 +13,7 @@ public class CardNameConverter : ITypeConverter
 	public CardNameConverter(CardNameConfiguration configuration)
 	{
 		_useShortNames = configuration.ShortNames;
-		var api = ServiceConfiguration.CachedApi;
-		_doubleFacedCards = api.GetDoubleFacedCardNames();
+		_doubleFacedCards = IMtgApi.Default.GetDoubleFacedCardNames();
 	}
 
 	public object? ConvertFromString(string? text, IReaderRow row, MemberMapData memberMapData)

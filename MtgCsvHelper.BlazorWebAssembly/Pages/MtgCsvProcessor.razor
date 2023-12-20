@@ -1,5 +1,6 @@
 ﻿@page "/"
 @inject IConfiguration Config
+@inject IMtgApi Api
 @inject IJSRuntime JS
 @using Serilog
 @using System.Text
@@ -72,7 +73,7 @@
 
 @if (!string.IsNullOrEmpty(summary))
 {
-	<p>@summary</p>
+	<p style="white-space: pre-line" >@summary</p>
 }
 
 @if (processedRecords.Any())
@@ -101,11 +102,12 @@
 	private bool isConverting;
 	private string resultFileName;
 
-	private void HandleFileUpload(InputFileChangeEventArgs e)
+	private async Task HandleFileUpload(InputFileChangeEventArgs e)
 	{
 		// Store the file for later use
 		// TODO GetMultipleFiles() support
 		csvFile = e.File;
+		await Api.LoadData();
 	}
 
 	private async Task Convert()
@@ -127,7 +129,7 @@
 			var selectedInputDeckFormat = deckFormats.First(df => df.Name == selectedInputFormat);
 			var selectedOutputDeckFormat = deckFormats.First(df => df.Name == selectedOutputFormat);
 
-			var api = ServiceConfiguration.CachedApi;
+			var api = IMtgApi.Default;
 
 			var reader = new MtgCardCsvHandler(api, selectedInputDeckFormat);
 			var writer = new MtgCardCsvHandler(api, selectedOutputDeckFormat);

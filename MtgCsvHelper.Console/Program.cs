@@ -15,6 +15,10 @@ using IHost host = builder.Build();
 var config = host.Services.GetRequiredService<IConfiguration>();
 Log.Logger = new LoggerConfiguration().ReadFrom.Configuration(config).CreateLogger();
 
+var api = host.Services.GetService<IMtgApi>()!;
+api.LoadData().Wait();
+IMtgApi.Default = api;
+
 Parser.Default.ParseArguments<CommandLineOptions>(args)
 	.WithNotParsed(HandleParseError)
 	.WithParsed(RunWithOptions);
@@ -26,7 +30,6 @@ void RunWithOptions(CommandLineOptions opts)
 {
 	var filesToParse = Directory.GetFiles(Directory.GetCurrentDirectory(), opts.InputFilePattern);
 
-	var api = host.Services.GetService<IMtgApi>()!;
 	var reader = new MtgCardCsvHandler(api, new DeckFormat(config, opts.InputFormat));
 	var writer = new MtgCardCsvHandler(api, new DeckFormat(config, opts.OutputFormat));
 
