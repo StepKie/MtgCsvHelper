@@ -5,8 +5,8 @@ namespace MtgCsvHelper.Services;
 
 public interface IMtgApi
 {
-	// TODO Noooooooooooooooo
-	public static IMtgApi Default { get; set; } = new CachedMtgApi(new ScryfallApiClient(new HttpClient() { BaseAddress = ScryfallApiClientConfig.GetDefault().ScryfallApiBaseAddress }));
+	// FIXME Workaround since it is currently annoying to pass IMtgApi to CardNameConverter instance through DI
+	public static IMtgApi Default { get; set; }
 
 	IEnumerable<Set> GetSets();
 	Task<IEnumerable<Set>> GetSetsAsync();

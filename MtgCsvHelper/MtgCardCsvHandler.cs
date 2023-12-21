@@ -26,7 +26,7 @@ public class MtgCardCsvHandler
 		using var stream = new StreamReader(csvFilePath);
 		CheckIfFirstLineCanBeIgnored(stream);
 
-		using var csv = new CsvReader(stream, new CsvConfiguration(CultureInfo.InvariantCulture) { HeaderValidated = null, MissingFieldFound = null });
+		using var csv = new CsvReader(stream, new CsvConfiguration(CultureInfo.InvariantCulture) {/* HeaderValidated = null,*/ MissingFieldFound = null });
 		csv.Context.RegisterClassMap(_classMap);
 		List<PhysicalMtgCard> cards = csv.GetRecords<PhysicalMtgCard>().ToList();
 

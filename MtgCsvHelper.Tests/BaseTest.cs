@@ -1,5 +1,6 @@
 using Microsoft.Extensions.Configuration;
 using MtgCsvHelper.Services;
+using ScryfallApi.Client;
 using Serilog;
 using Serilog.Events;
 
@@ -20,7 +21,9 @@ public class BaseTest
 	{
 
 		Log.Logger = Logging.GetDefaultLoggerConfig.WriteTo.TestOutput(output, level).CreateLogger();
-		_api = IMtgApi.Default;
+		_api = new CachedMtgApi(new ScryfallApiClient(new HttpClient() { BaseAddress = ScryfallApiClientConfig.GetDefault().ScryfallApiBaseAddress })); ;
 		_api.LoadData().Wait();
+
+		IMtgApi.Default = _api; // used by CardNameConverter...
 	}
 }

@@ -16,7 +16,7 @@ var config = host.Services.GetRequiredService<IConfiguration>();
 Log.Logger = new LoggerConfiguration().ReadFrom.Configuration(config).CreateLogger();
 
 var api = host.Services.GetService<IMtgApi>()!;
-api.LoadData().Wait();
+await api.LoadData();
 IMtgApi.Default = api;
 
 Parser.Default.ParseArguments<CommandLineOptions>(args)

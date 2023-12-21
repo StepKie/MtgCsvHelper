@@ -9,10 +9,12 @@ public class CsvToCardMap : ClassMap<PhysicalMtgCard>
 	{
 		Map(card => card.Count).Name(columnConfig.Quantity);
 		Map(card => card.Printing.Name).TypeConverter(new CardNameConverter(columnConfig.CardName)).Name(columnConfig.CardName.HeaderName);
-		Map(card => card.Printing.Set).TypeConverter<UpperCaseConverter>().Name(columnConfig.SetCode);
 		Map(card => card.Printing.CollectorNumber).Name(columnConfig.SetNumber);
 
+		// We implicitly assume that at least one of them is present (some sites use SetName, some use SetCode, some use both...)
+		Map(card => card.Printing.Set).TypeConverter<UpperCaseConverter>().Name(columnConfig.SetCode).Optional();
 		Map(card => card.Printing.SetName).Name(columnConfig.SetName).Optional();
+
 		if (columnConfig.Condition is ConditionConfiguration cond) { Map(card => card.Condition).TypeConverter(new CardConditionConverter(cond)).Name(cond.HeaderName); }
 		if (columnConfig.Finish is FinishConfiguration finish) { Map(card => card.Foil).TypeConverter(new FinishConverter(finish)).Name(finish.HeaderName); }
 		if (columnConfig.Language is LanguageConfiguration lang) { Map(card => card.Language).TypeConverter(new LanguageConverter(lang)).Name(lang.HeaderName).Optional(); }
@@ -23,13 +25,13 @@ public class CsvToCardMap : ClassMap<PhysicalMtgCard>
 public record DeckConfig(
 	string Quantity,
 	CardNameConfiguration CardName,
-	string SetCode,
 	string SetNumber,
+	string? SetCode = null,
+	string? SetName = null,
 	FinishConfiguration? Finish = null,
 	ConditionConfiguration? Condition = null,
 	LanguageConfiguration? Language = null,
-	PriceConfiguration? PriceBought = null,
-	string? SetName = null
+	PriceConfiguration? PriceBought = null
 	);
 
 public record CardNameConfiguration(

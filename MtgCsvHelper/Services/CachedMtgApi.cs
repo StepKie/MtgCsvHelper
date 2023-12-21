@@ -16,23 +16,23 @@ public class CachedMtgApi : IMtgApi
 	public CachedMtgApi(ScryfallApiClient api)
 	{
 		_api = api;
-		Task.Run(LoadData);
 		Console.WriteLine("CachedMtgApi created");
+		Log.Debug("CachedMtgApi created");
 	}
 
 	public async Task LoadData()
 	{
 		_sets ??= (await GetSetsAsync()).ToList();
 		_doubleFacedCardNames ??= await GetDoubleFacedCardNamesAsync();
-
-		Console.WriteLine($"Loaded {_sets.Count} sets and {_doubleFacedCardNames.Count} double-faced cards");
-		Log.Debug($"LoadData complete, {_sets.Count} sets and {_doubleFacedCardNames.Count} double-faced cards");
 	}
 
 	public async Task<List<string>> GetDoubleFacedCardNamesAsync()
 	{
 		var cards = await _api.Catalogs.ListCardNames();
 		var names = cards.Where(name => name.Contains(" // ")).ToList() ?? [];
+
+		Console.WriteLine($"Loaded {names.Count} double-faced cards from server");
+		Log.Debug($"Loaded {names.Count} double-faced cards from server");
 
 		return names;
 	}

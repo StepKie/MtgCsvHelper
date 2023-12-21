@@ -130,10 +130,8 @@
 			var selectedInputDeckFormat = deckFormats.First(df => df.Name == selectedInputFormat);
 			var selectedOutputDeckFormat = deckFormats.First(df => df.Name == selectedOutputFormat);
 
-			var api = IMtgApi.Default;
-
-			var reader = new MtgCardCsvHandler(api, selectedInputDeckFormat);
-			var writer = new MtgCardCsvHandler(api, selectedOutputDeckFormat);
+			var reader = new MtgCardCsvHandler(Api, selectedInputDeckFormat);
+			var writer = new MtgCardCsvHandler(Api, selectedOutputDeckFormat);
 
 			var collection = reader.ParseCollectionCsv(csvStream);
 			summary = collection.GenerateSummary();
