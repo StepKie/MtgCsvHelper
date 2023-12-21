@@ -1,16 +1,72 @@
 # MtG Csv Helper
 
-The purpose of this command line tool is to automate the conversion between several collection formats used by popular tools.
-Currently supports DragonShield Card manager and Moxfield. More formats can be added in appsettings.json
+The purpose of this tool is to automate the conversion between several collection formats for Magic the Gathering used by popular tools.
 
+## TL;DR
+
+You are welcome to try out the web app [here](https://hottemax.github.io/MtgCsvHelper/).
+1. Upload input csv file
+2. Select input and output format
+3. Click "Convert". In case of a larger collection, please allow for some processing time.
+4. Download converted output csv file
+
+Currently supported:
+  * Moxfield
+  * DragonShield
+  * Manabox
+  * Topdecked
+  * Deckbox
+* Potentially added by demand
+  * Cardkingdom (Low info, only 4 columns - Export only)
+  * Mtggoldfish
+  * TcgPlayer
+  * ???
+
+* More formats can be added in appsettings.json
 
 ## Project Info
 
 * Created this tool for my own use since I like to keep my MtG collection up-to-date by using a card scanner.
-* The best one I found for this purpose is [MtG DragonShield Card Manager](https://mtg.dragonshield.com/)
+* The best ones I found for this purpose are [Manabox](https://www.manabox.app/) and [MtG DragonShield Card Manager](https://mtg.dragonshield.com/)
 * You can export data from their site, but there is no easy way to import it to some of the most popular other collection managers such as [Moxfield](https://www.moxfield.com/collection) or [Deckbox](https://deckbox.org)
-* To do this, one always has to replace the corresponding Csv Headers, and replace some values that are slightly different (i.e. Condition, Printing enumerations, etc.)
-* This tool automates this process through a configurable mappings in *appsettings.json*
+* The other use case, unrelated to card scanners, is to keep your collection in sync across multiple sites
+
+
+* The manual conversion process is quite cumbersome, one always has to replace the corresponding Csv Headers, and replace some values that are slightly different. For example
+  * Card name: infuriatingly, some sites do not properly encode the full name of double-faced cards, but only front-side.
+  * Set information: set name or set code missing, non-standard set names
+  * Foil status;: encoded widely different across formats
+  *Card condition: some sites use a scale of 6, some of 7 conditions. These need to be mapped. Loss of information is inevitable when mapping to lower resolution, though.
+  * Language: (code vs full name)
+  * Price: (various formats with various currencies, with or without currency symbol, leading or trailing position)
+  * etc
+* Some columns which are not common to most tools are not supported
+
+This tool defines configurable mappings addressing the above issues in *appsettings.json*
+
+## How to use
+
+### Browser
+
+* A static webapp is available at [https://hottemax.github.io/MtgCsvHelper/](https://hottemax.github.io/MtgCsvHelper/)
+* As opposed to the console version, there is currently no way to access the configuration (appsettings) and customize the app's behavior
+* However, it is more user-friendly and should work across a wide range of default scenarios
+
+### Console
+
+* Prerequisite: [Installed .NET Runtime, Version >= 7.0](https://dotnet.microsoft.com/download/dotnet).
+* You can download from the Releases tab on the right, or you can build from source yourself
+  * For building from source, unzip the source folde, and run *dotnet build* in the root directory of the unzipped folder
+
+* Run the provided MtgCsvHelper.
+	* Usage info can be found running it with the *--help* flag
+* Some additional configurability for end user via appsettings.json etc.
+
+
+## Troubleshooting
+
+You can report bugs and issues on Github by creating a [new issue](https://github.com/Hottemax/MtgCsvHelper/issues/new/choose).
+**After the release of a new version, the browser data/cache should to be cleared** to force the new version of the site to be loaded, since static webapps are kept in the browser's cache.
 
 ## Current state
 
@@ -24,34 +80,43 @@ Currently supports DragonShield Card manager and Moxfield. More formats can be a
   * CARDKINGDOM
   
 * You can add a new configuration for a site that is not yet supported, or even better, create a pull request for it.
-* The format should be self-documenting. This is an example configuration for DRAGONSHIELD:
+* The format should be self-documenting. This is an example configuration for MOXFIELD:
 
-```
-"DRAGONSHIELD": {
-	"Quantity": "Quantity",			// 3
-	"CardName": {					// Ambitious Farmhand 
-		"HeaderName": "Card Name",
-		"ShortNames": true          // Whether double faced-cards are written in full (false) or only front-side name (true)
-	},
-	"SetCode": "Set Code",			// MID
-	"SetName": "Set Name",			// Innistrad: Midnight Hunt
-	"SetNumber": "Card Number",		// 2
-	"Finish": {						// Foil
-		"HeaderName": "Printing",
-		"Normal": "Normal",
-		"Foil": "Foil",
-		"Etched": null
-	},
-	"Condition": {				// Excellent
-	    "HeaderName": "Condition",
-	    "Mint": "Mint",
-	    "NearMint": "NearMint",
-	    "Excellent": "Excellent",
-	    "Good": "Good",
-	    "LightlyPlayed": "LightPlayed",
-	    "Played": "Played",
-	    "Poor": "Poor"
-	}
+```json
+"MOXFIELD": {
+  "Quantity": "Count",
+  "CardName": {
+    "HeaderName": "Name",
+    "ShortNames": false
+  },
+  "SetCode": "Edition",
+  "SetName": null,
+  "SetNumber": "Collector Number",
+  "Finish": {
+    "HeaderName": "Foil",
+    "Normal": "",
+    "Foil": "foil",
+    "Etched": "etched"
+  },
+  "Condition": {
+    "HeaderName": "Condition",
+    "Mint": "Mint",
+    "NearMint": "Near Mint",
+    "Excellent": "Near Mint",
+    "Good": "Good (Lightly Played)",
+    "LightlyPlayed": "Played",
+    "Played": "Heavily Played",
+    "Poor": "Damaged"
+  },
+  "Language": {
+    "HeaderName": "Language",
+    "ShortNames": false
+  },
+  "PriceBought": {
+    "HeaderName": "Purchase Price",
+    "Currency": "EUR",
+    "CurrencySymbol": "Absent"
+  }
 }
 ```
 
@@ -60,20 +125,10 @@ Currently supports DragonShield Card manager and Moxfield. More formats can be a
 * For the _Condition_ category, note that different sites use different scales (sometimes 6, sometimes 7 different values, as well as different naming schemes). Hence, there is no canonical mapping
 * Some formats (e.g. CARDKINGDOM) should not be used for imports, since they contain very few columns
 
-* Price information is still open issue, some sites use EUR, others USD, sometimes currency symbol is encoded in csv, sometimes not. Please don't rely on this to work.
-
-
-
-
-
 ## TODOs
 
-* Possibly create web frontend for easier usability
 * Support more formats by popular demand
-* Fix mapping between certain decks/card names
-	* token cards
-	* double-sided https://scryfall.com/search?as=grid&order=name&q=is%3Adoublesided
-	* these differ in the set name as well the card name across formats
+* Add support for token cards (widely different encodings)
 	
 Examples:
 
@@ -92,18 +147,3 @@ Deckbox:		1,0,Ambitious Farmhand // Seasoned Cathar,Innistrad: Midnight Hunt,2,N
 ```
 
 Basically, we would want to default to Scryfall's syntax (which would mean using the full double-sided name, and omitting the "Token"
-
-## How to use
-
-* Prerequisite: [Installed .NET Runtime, Version >= 7.0](https://dotnet.microsoft.com/download/dotnet).
-* You can download from the Releases tab on the right, or you can build from source yourself
-  * For building from source, unzip the source folde, and run *dotnet build* in the root directory of the unzipped folder
-
-* Run the provided MtgCsvHelper.
-	* Usage info can be found running it with the *--help* flag
-* Some additional configurability for end user via appsettings.json etc.
-
-
-
-----------------
-

@@ -13,6 +13,7 @@ builder.Configuration.AddJsonFile("appsettings.json", optional: false);
 
 builder.Services
 	.ConfigureMtgCsvHelper()
+	.AddScoped(sp => new HttpClient { BaseAddress = new Uri(builder.HostEnvironment.BaseAddress) })
 	.AddLogging(builder => builder.AddSerilog())
 	.BuildServiceProvider();
 

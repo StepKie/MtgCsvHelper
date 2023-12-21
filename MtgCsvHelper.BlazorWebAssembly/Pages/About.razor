@@ -1,0 +1,23 @@
+﻿@page "/about"
+
+@inject HttpClient HttpClient
+@using Markdig
+@using System.Net.Http
+
+<div>
+	@((MarkupString)HTMLContent)
+</div>
+
+
+@code {
+
+
+	private string MarkdownContent;
+	private string HTMLContent;
+
+	protected override async Task OnInitializedAsync()
+	{
+		MarkdownContent = await HttpClient.GetStringAsync("README.md");
+		HTMLContent = Markdig.Markdown.ToHtml(MarkdownContent);
+	}
+}
