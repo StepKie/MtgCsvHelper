@@ -1,13 +1,13 @@
 # MtG Csv Helper
 
-## TL;DR
-
 The purpose of this tool is to automate the conversion between several collection formats for Magic the Gathering used by popular tools.
+
+## TL;DR
 
 You are welcome to try out the web app [here](https://hottemax.github.io/MtgCsvHelper/).
 1. Upload input csv file
 2. Select input and output format
-3. Click "Convert"
+3. Click "Convert". In case of a larger collection, please allow for some processing time.
 4. Download converted output csv file
 
 Currently supported:
@@ -48,7 +48,7 @@ This tool defines configurable mappings addressing the above issues in *appsetti
 
 ### Browser
 
-* A static webapp is available at https://hottemax.github.io/MtgCsvHelper/
+* A static webapp is available at [https://hottemax.github.io/MtgCsvHelper/](https://hottemax.github.io/MtgCsvHelper/)
 * As opposed to the console version, there is currently no way to access the configuration (appsettings) and customize the app's behavior
 * However, it is more user-friendly and should work across a wide range of default scenarios
 
@@ -62,6 +62,11 @@ This tool defines configurable mappings addressing the above issues in *appsetti
 	* Usage info can be found running it with the *--help* flag
 * Some additional configurability for end user via appsettings.json etc.
 
+
+## Troubleshooting
+
+You can report bugs and issues on Github by creating a [new issue](https://github.com/Hottemax/MtgCsvHelper/issues/new/choose).
+**After the release of a new version, the browser data/cache should to be cleared** to force the new version of the site to be loaded, since static webapps are kept in the browser's cache.
 
 ## Current state
 
