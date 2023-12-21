@@ -118,9 +118,11 @@
 			isConverting = true;
 			StateHasChanged();
 			await Task.Delay(1);
+			var stream = csvFile!.OpenReadStream(maxAllowedSize: MAX_FILE_SIZE);
 
-			Stream csvStream = new MemoryStream();
+					Stream csvStream = new MemoryStream();
 			// We need an async stream to read the file contents
+
 			await csvFile!.OpenReadStream(maxAllowedSize: MAX_FILE_SIZE).CopyToAsync(csvStream);
 			// Reset the stream position so we can read it
 			csvStream.Position = 0;

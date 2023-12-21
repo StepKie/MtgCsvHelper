@@ -5,8 +5,8 @@ namespace MtgCsvHelper;
 
 public class DeckFormat
 {
-	public static List<string> Supported { get; } = ["MOXFIELD", "DRAGONSHIELD", "MANABOX", "TOPDECKED", "DECKBOX"];
-	public static List<string> NotYetFullySupported { get; } = ["CARDKINGDOM", "TCGPLAYER", "MTGGOLDFISH"];
+	public static List<string> Supported { get; } = ["MOXFIELD", "DRAGONSHIELD", "MANABOX", "TOPDECKED", "DECKBOX", "CARDKINGDOM"];
+	public static List<string> NotYetFullySupported { get; } = ["TCGPLAYER", "MTGGOLDFISH"];
 
 	public static IEnumerable<DeckFormat> From(IConfiguration config) =>
 		config.GetSection("CsvConfigurations")
@@ -31,7 +31,7 @@ public class DeckFormat
 		}
 	}
 
-	public CsvToCardMap GenerateClassMap() => new(ColumnConfig);
+	public CsvToCardMap GenerateClassMap() => new(ColumnConfig, Name.Equals("CARDKINGDOM"));
 
 	public Currency Currency => Currency.FromString(ColumnConfig.PriceBought?.Currency);
 }

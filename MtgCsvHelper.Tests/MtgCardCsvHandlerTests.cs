@@ -1,5 +1,6 @@
 using Microsoft.Extensions.Configuration;
 using ScryfallApi.Client.Models;
+using Serilog;
 
 namespace MtgCsvHelper.Tests;
 
@@ -53,15 +54,18 @@ public class MtgCardCsvHandlerTests(ITestOutputHelper output) : BaseTest(output)
 	[InlineData($"{COLLECTIONS_FOLDER}/moxfield-collection.csv", "MOXFIELD", "DRAGONSHIELD")]
 	[InlineData($"{COLLECTIONS_FOLDER}/topdecked-collection.csv", "TOPDECKED", "MOXFIELD")]
 	[InlineData($"{COLLECTIONS_FOLDER}/manabox-collection.csv", "MANABOX", "MOXFIELD")]
-	public void ParseCollectionCsvTest(string csvFilePath, string deckFormatIn, string deckFormatOut)
+	[InlineData($"{COLLECTIONS_FOLDER}/manabox-collection.csv", "MANABOX", "CARDKINGDOM")]
+	public async Task ConvertCollectionCsvTest(string csvFilePath, string deckFormatIn, string deckFormatOut)
 	{
 		// Arrange
 		MtgCardCsvHandler handlerIn = CreateHandler(deckFormatIn);
 		MtgCardCsvHandler handlerOut = CreateHandler(deckFormatOut);
 
-		// Act
-		IList<PhysicalMtgCard> cards = handlerIn.ParseCollectionCsv(csvFilePath).Cards;
+		var collection = handlerIn.ParseCollectionCsv(csvFilePath);
+		var cards = collection.Cards;
 		handlerOut.WriteCollectionCsv(cards);
+
+		Log.Information(collection.GenerateSummary());
 		cards.Should().HaveCountGreaterThan(1000);
 	}
 

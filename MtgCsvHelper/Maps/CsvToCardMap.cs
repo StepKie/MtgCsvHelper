@@ -5,10 +5,23 @@ namespace MtgCsvHelper.Maps;
 
 public class CsvToCardMap : ClassMap<PhysicalMtgCard>
 {
-	public CsvToCardMap(DeckConfig columnConfig)
+	public CsvToCardMap(DeckConfig columnConfig, bool ck)
 	{
-		Map(card => card.Count).Name(columnConfig.Quantity);
-		Map(card => card.Printing.Name).TypeConverter(new CardNameConverter(columnConfig.CardName)).Name(columnConfig.CardName.HeaderName);
+		// Yes it is ugly. No I dont care. F#!& you CardKingdom!
+		if (ck)
+		{
+			ConfigureCK(columnConfig);
+		}
+		else
+		{
+			ConfigureMaps(columnConfig);
+		}
+	}
+
+	private void ConfigureMaps(DeckConfig columnConfig)
+	{
+		Map(card => card.Count).Name(columnConfig.Quantity).Index(1);
+		Map(card => card.Printing.Name).TypeConverter(new CardNameConverter(columnConfig.CardName)).Name(columnConfig.CardName.HeaderName).Index(0);
 		Map(card => card.Printing.CollectorNumber).Name(columnConfig.SetNumber);
 
 		// We implicitly assume that at least one of them is present (some sites use SetName, some use SetCode, some use both...)
@@ -20,6 +33,15 @@ public class CsvToCardMap : ClassMap<PhysicalMtgCard>
 		if (columnConfig.Language is LanguageConfiguration lang) { Map(card => card.Language).TypeConverter(new LanguageConverter(lang)).Name(lang.HeaderName).Optional(); }
 		if (columnConfig.PriceBought is PriceConfiguration price) { Map(card => card.PriceBought).TypeConverter(new PriceConverter(price)).Name(price.HeaderName).Optional(); }
 	}
+
+	private void ConfigureCK(DeckConfig columnConfig)
+	{
+		Map(card => card.Printing.Name).TypeConverter(new CardNameConverter(columnConfig.CardName)).Name(columnConfig.CardName.HeaderName).Index(0);
+		Map(card => card.Printing.SetName).TypeConverter<UpperCaseConverter>().Name(columnConfig.SetName).Index(1);
+		Map(card => card.Foil).TypeConverter(new FinishConverter(columnConfig.Finish!)).Name(columnConfig.Finish!.HeaderName).Index(2);
+		Map(card => card.Count).Name(columnConfig.Quantity).Index(3);
+	}
+
 }
 
 public record DeckConfig(
