@@ -1,4 +1,6 @@
 ﻿@inherits LayoutComponentBase
+@using System.Reflection
+
 <div class="page">
 	<div class="sidebar">
 		<NavMenu />
@@ -6,6 +8,7 @@
 
 	<main>
 		<div class="top-row px-4">
+			<text>Version @version (@commit)</text>
 			<a href="https://github.com/Hottemax/MtgCsvHelper/issues/new/choose" target="_blank">Report a Bug</a>
 			<a href="https://github.com/Hottemax/MtgCsvHelper/" target="_blank">About</a>
 		</div>
@@ -15,3 +18,10 @@
 		</article>
 	</main>
 </div>
+
+@code {
+	private static string versionFull = Assembly.GetExecutingAssembly().GetCustomAttribute<AssemblyInformationalVersionAttribute>()!.InformationalVersion;
+	private string version = versionFull.Split("+")[0];
+	private string commit = versionFull.Split("+")[1].Remove(7);
+
+}

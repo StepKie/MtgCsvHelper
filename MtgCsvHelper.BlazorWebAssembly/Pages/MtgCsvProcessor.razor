@@ -24,7 +24,7 @@
 		</div>
 		<div class="col-md-9">
 			<InputSelect id="inputFormat" @bind-Value="selectedInputFormat">
-				@foreach (var deckFormat in deckFormatOptions)
+				@foreach (var deckFormat in SUPPORTED_FORMATS)
 				{
 					<option>@deckFormat</option>
 				}
@@ -38,7 +38,7 @@
 		</div>
 		<div class="col-md-9">
 			<InputSelect id="outputFormat" @bind-Value="selectedOutputFormat">
-				@foreach (var deckFormat in deckFormatOptions)
+				@foreach (var deckFormat in SUPPORTED_FORMATS)
 				{
 					<option>@deckFormat</option>
 				}
@@ -89,10 +89,11 @@
 }
 
 @code {
-	private static List<string> deckFormatOptions = DeckFormat.Supported;
+	private static int MAX_FILE_SIZE = 5 * 1024 * 1024; // 5MB
+	private static List<string> SUPPORTED_FORMATS = DeckFormat.Supported;
 
-	private string selectedInputFormat = deckFormatOptions[0];
-	private string selectedOutputFormat = deckFormatOptions[1];
+	private string selectedInputFormat = SUPPORTED_FORMATS[0];
+	private string selectedOutputFormat = SUPPORTED_FORMATS[1];
 
 	private List<string> processedRecords = [];
 	private IBrowserFile? csvFile;
@@ -100,7 +101,7 @@
 
 	private string? summary;
 	private bool isConverting;
-	private string resultFileName;
+	private string? resultFileName;
 
 	private async Task HandleFileUpload(InputFileChangeEventArgs e)
 	{
@@ -120,7 +121,7 @@
 
 			Stream csvStream = new MemoryStream();
 			// We need an async stream to read the file contents
-			await csvFile!.OpenReadStream().CopyToAsync(csvStream);
+			await csvFile!.OpenReadStream(maxAllowedSize: MAX_FILE_SIZE).CopyToAsync(csvStream);
 			// Reset the stream position so we can read it
 			csvStream.Position = 0;
 
@@ -155,17 +156,15 @@
 		}
 	}
 
-	private Stream GetFileStream()
-	{
-		// var binaryData = new byte[50 * 1024];
-		// var fileStream = new MemoryStream(binaryData);
-		var fileStream = File.OpenRead(resultFileName);
-		return fileStream;
-	}
-
 	private async Task DownloadResult()
 	{
-		var fileStream = GetFileStream();
+		if (string.IsNullOrEmpty(resultFileName))
+		{
+			Log.Warning("No result file name set, this should not happen");
+			return;
+		}
+
+		var fileStream = File.OpenRead(resultFileName);
 		var fileName = resultFileName;
 		using var streamRef = new DotNetStreamReference(stream: fileStream);
 
