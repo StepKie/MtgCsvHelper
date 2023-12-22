@@ -3,6 +3,4 @@
 interface IMtgCardCsvHandlerService
 {
 	MtgCardCsvHandler GetHandler(string id);
-
-	DeckFormat GetFormat(string id);
 }

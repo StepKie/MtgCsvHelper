@@ -26,7 +26,7 @@ Log.Information("Hello, Blazor, Serilog online!");
 
 // TODO Everything below is just for debugging dependency injection, remove when stable
 var csvConfigs = config.GetSection("CsvConfigurations");
-var deckConfigsBuilder = DeckFormat.From(config).ToList();
+var deckConfigsBuilder = CardMapFactory.From(config).ToList();
 
 var api = host.Services.GetService<IMtgApi>()!;
 IMtgApi.Default = api;

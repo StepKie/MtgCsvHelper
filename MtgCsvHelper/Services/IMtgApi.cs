@@ -1,5 +1,4 @@
-﻿using ScryfallApi.Client;
-using ScryfallApi.Client.Models;
+﻿using ScryfallApi.Client.Models;
 
 namespace MtgCsvHelper.Services;
 

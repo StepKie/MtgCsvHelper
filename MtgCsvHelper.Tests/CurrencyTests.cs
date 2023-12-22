@@ -1,4 +1,4 @@
-﻿namespace MtgCsvHelper.Models.Tests;
+﻿namespace MtgCsvHelper.Tests;
 
 public class CurrencyAndMoneyTests
 {

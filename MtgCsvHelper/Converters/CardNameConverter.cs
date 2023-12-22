@@ -5,16 +5,10 @@ using MtgCsvHelper.Services;
 
 namespace MtgCsvHelper.Converters;
 
-public class CardNameConverter : ITypeConverter
+public class CardNameConverter(CardNameConfiguration configuration) : ITypeConverter
 {
-	readonly bool _useShortNames;
-	readonly List<string> _doubleFacedCards;
-
-	public CardNameConverter(CardNameConfiguration configuration)
-	{
-		_useShortNames = configuration.ShortNames;
-		_doubleFacedCards = IMtgApi.Default.GetDoubleFacedCardNames();
-	}
+	readonly bool _useShortNames = configuration.ShortNames;
+	readonly List<string> _doubleFacedCards = IMtgApi.Default.GetDoubleFacedCardNames();
 
 	public object? ConvertFromString(string? text, IReaderRow row, MemberMapData memberMapData)
 	{

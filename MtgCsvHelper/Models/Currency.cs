@@ -5,7 +5,7 @@ namespace MtgCsvHelper.Models;
 public record Currency(string Symbol, string ShortName, string LongName, NumberFormatInfo NumberFormat)
 {
 	// Specific pattern to allow something like €0.20
-	private static NumberFormatInfo EUR_WITH_DOT()
+	static NumberFormatInfo EUR_WITH_DOT()
 	{
 		var nfi = CultureInfo.CreateSpecificCulture("de-DE").NumberFormat;
 		nfi.NumberDecimalSeparator = NumberFormatInfo.InvariantInfo.NumberDecimalSeparator;

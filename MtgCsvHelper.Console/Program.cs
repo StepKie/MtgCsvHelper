@@ -30,8 +30,8 @@ void RunWithOptions(CommandLineOptions opts)
 {
 	var filesToParse = Directory.GetFiles(Directory.GetCurrentDirectory(), opts.InputFilePattern);
 
-	var reader = new MtgCardCsvHandler(api, new DeckFormat(config, opts.InputFormat));
-	var writer = new MtgCardCsvHandler(api, new DeckFormat(config, opts.OutputFormat));
+	var reader = new MtgCardCsvHandler(api, config, opts.InputFormat);
+	var writer = new MtgCardCsvHandler(api, config, opts.OutputFormat);
 
 	List<PhysicalMtgCard> cardsFound = [];
 

@@ -1,28 +1,30 @@
 ﻿using System.Globalization;
 using CsvHelper.Configuration;
+using Microsoft.Extensions.Configuration;
 using MtgCsvHelper.Maps;
 using MtgCsvHelper.Services;
 
 namespace MtgCsvHelper;
 public class MtgCardCsvHandler
 {
-	readonly CsvToCardMap _classMap;
+	readonly PhysicalCardMap _classMap;
 	readonly IMtgApi _api;
+	readonly string _format;
 
-	public MtgCardCsvHandler(IMtgApi api, DeckFormat format)
+	public MtgCardCsvHandler(IMtgApi api, IConfiguration config, string format)
 	{
-		Format = format;
-		_classMap = Format.GenerateClassMap();
+		_format = format;
+		_classMap = new CardMapFactory(config).GenerateClassMap(format) ?? throw new ArgumentException($"Unsupported {format} - not found in configuration file");
 		_api = api;
 	}
 
-	public DeckFormat Format { get; init; }
+	public string Format { get; init; }
 
 	public Collection ParseCollectionCsv(string csvFilePath) => ParseCollectionCsv(File.OpenRead(csvFilePath));
 
 	public Collection ParseCollectionCsv(Stream csvFilePath)
 	{
-		Log.Information($"Parsing {csvFilePath} with input format {Format.Name} ...");
+		Log.Information($"Parsing {csvFilePath} with input format {_format} ...");
 		using var stream = new StreamReader(csvFilePath);
 		CheckIfFirstLineCanBeIgnored(stream);
 
@@ -39,7 +41,7 @@ public class MtgCardCsvHandler
 			logicalCard.Set ??= sets.FirstOrDefault(s => s.Name.Equals(logicalCard.SetName, StringComparison.OrdinalIgnoreCase))?.Code.ToUpper();
 		}
 
-		Collection collection = new() { Name = $"Import {Format.Name}, Date: {DateTime.Now}", Cards = cards };
+		Collection collection = new() { Name = $"Import {_format}, Date: {DateTime.Now}", Cards = cards };
 		Log.Debug(collection.GenerateSummary());
 
 		return collection;
@@ -59,7 +61,7 @@ public class MtgCardCsvHandler
 
 	public void WriteCollectionCsv(IList<PhysicalMtgCard> cards, string? outputFileName = null)
 	{
-		outputFileName ??= $"{Format.Name.ToLower()}-output-{DateTime.Now:yyyy-MM-dd}.csv";
+		outputFileName ??= $"{_format.ToLower()}-output-{DateTime.Now:yyyy-MM-dd}.csv";
 		Log.Information($"Writing {cards.Sum(c => c.Count)} cards ({cards.Count} unique) cards to {outputFileName}");
 
 		using var writer = new StreamWriter(outputFileName);

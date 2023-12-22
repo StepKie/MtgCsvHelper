@@ -1,8 +1,6 @@
-﻿using Microsoft.Extensions.Configuration;
+﻿namespace MtgCsvHelper.Tests;
 
-namespace MtgCsvHelper.Tests;
-
-public class DeckFormatTests
+public class DeckFormatTests(ITestOutputHelper output) : BaseTest(output)
 {
 	[Theory]
 	[InlineData("DRAGONSHIELD")]
@@ -13,14 +11,7 @@ public class DeckFormatTests
 	//[InlineData("CARDKINGDOM")]
 	public void SupportedTest(string deckFormatName)
 	{
-		var config = new ConfigurationBuilder().AddJsonFile("appsettings.json", false).Build();
-		var format = new DeckFormat(config, deckFormatName);
-		Assert.NotNull(format);
-	}
-
-	[Fact(Skip = "Implement Me!")]
-	public void GenerateClassMapTest()
-	{
-		throw new NotImplementedException();
+		var classMap = new CardMapFactory(_config).GenerateClassMap(deckFormatName);
+		classMap.Should().NotBeNull();
 	}
 }

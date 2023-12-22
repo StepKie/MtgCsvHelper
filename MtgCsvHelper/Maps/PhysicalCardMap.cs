@@ -3,9 +3,9 @@ using MtgCsvHelper.Converters;
 
 namespace MtgCsvHelper.Maps;
 
-public class CsvToCardMap : ClassMap<PhysicalMtgCard>
+public class PhysicalCardMap : ClassMap<PhysicalMtgCard>
 {
-	public CsvToCardMap(DeckConfig columnConfig, bool ck)
+	public PhysicalCardMap(DeckConfig columnConfig, bool ck)
 	{
 		// Yes it is ugly. No I dont care. F#!& you CardKingdom!
 		if (ck)
@@ -18,7 +18,7 @@ public class CsvToCardMap : ClassMap<PhysicalMtgCard>
 		}
 	}
 
-	private void ConfigureMaps(DeckConfig columnConfig)
+	void ConfigureMaps(DeckConfig columnConfig)
 	{
 		Map(card => card.Count).Name(columnConfig.Quantity).Index(1);
 		Map(card => card.Printing.Name).TypeConverter(new CardNameConverter(columnConfig.CardName)).Name(columnConfig.CardName.HeaderName).Index(0);
@@ -34,17 +34,17 @@ public class CsvToCardMap : ClassMap<PhysicalMtgCard>
 		if (columnConfig.PriceBought is PriceConfiguration price) { Map(card => card.PriceBought).TypeConverter(new PriceConverter(price)).Name(price.HeaderName).Optional(); }
 	}
 
-	private void ConfigureCK(DeckConfig columnConfig)
+	void ConfigureCK(DeckConfig columnConfig)
 	{
 		Map(card => card.Printing.Name).TypeConverter(new CardNameConverter(columnConfig.CardName)).Name(columnConfig.CardName.HeaderName).Index(0);
 		Map(card => card.Printing.SetName).TypeConverter<UpperCaseConverter>().Name(columnConfig.SetName).Index(1);
 		Map(card => card.Foil).TypeConverter(new FinishConverter(columnConfig.Finish!)).Name(columnConfig.Finish!.HeaderName).Index(2);
 		Map(card => card.Count).Name(columnConfig.Quantity).Index(3);
 	}
-
 }
 
 public record DeckConfig(
+	string Name,
 	string Quantity,
 	CardNameConfiguration CardName,
 	string SetNumber,
@@ -54,7 +54,10 @@ public record DeckConfig(
 	ConditionConfiguration? Condition = null,
 	LanguageConfiguration? Language = null,
 	PriceConfiguration? PriceBought = null
-	);
+	)
+{
+	public Currency Currency => Currency.FromString(PriceBought?.Currency);
+};
 
 public record CardNameConfiguration(
 	string HeaderName,

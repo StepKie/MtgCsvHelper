@@ -9,9 +9,7 @@ namespace MtgCsvHelper.Tests;
 public class BaseTest
 {
 	protected readonly IMtgApi _api;
-
-	/// <summary> Parsed from appsettings.test.json </summary>
-	public static IConfiguration TestConfiguration => new ConfigurationBuilder().AddJsonFile("appsettings.test.json").Build();
+	protected readonly IConfiguration _config;
 
 	/// <summary>
 	/// Initializes a new test with a default log level of Information.
@@ -25,5 +23,6 @@ public class BaseTest
 		_api.LoadData().Wait();
 
 		IMtgApi.Default = _api; // used by CardNameConverter...
+		_config = new ConfigurationBuilder().AddJsonFile("appsettings.json").Build();
 	}
 }

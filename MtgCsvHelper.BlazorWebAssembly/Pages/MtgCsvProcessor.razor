@@ -90,7 +90,7 @@
 
 @code {
 	private static int MAX_FILE_SIZE = 5 * 1024 * 1024; // 5MB
-	private static List<string> SUPPORTED_FORMATS = DeckFormat.Supported;
+	private static List<string> SUPPORTED_FORMATS = CardMapFactory.Supported;
 
 	private string selectedInputFormat = SUPPORTED_FORMATS[0];
 	private string selectedOutputFormat = SUPPORTED_FORMATS[1];
@@ -127,13 +127,8 @@
 			// Reset the stream position so we can read it
 			csvStream.Position = 0;
 
-			var deckFormats = DeckFormat.Supported.Select(s => new DeckFormat(Config, s)).ToList();
-
-			var selectedInputDeckFormat = deckFormats.First(df => df.Name == selectedInputFormat);
-			var selectedOutputDeckFormat = deckFormats.First(df => df.Name == selectedOutputFormat);
-
-			var reader = new MtgCardCsvHandler(Api, selectedInputDeckFormat);
-			var writer = new MtgCardCsvHandler(Api, selectedOutputDeckFormat);
+			var reader = new MtgCardCsvHandler(Api, Config, selectedInputFormat);
+			var writer = new MtgCardCsvHandler(Api, Config, selectedOutputFormat);
 
 			var collection = reader.ParseCollectionCsv(csvStream);
 			summary = collection.GenerateSummary();

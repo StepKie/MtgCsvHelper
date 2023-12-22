@@ -10,16 +10,16 @@ public class MtgCardCsvHandlerTests(ITestOutputHelper output) : BaseTest(output)
 	public const string COLLECTIONS_FOLDER = "Resources/SampleCsvs/Collection";
 
 	[Theory]
-	[InlineData("DRAGONSHIELD")]
-	[InlineData("MOXFIELD")]
-	[InlineData("MANABOX")]
-	[InlineData("TOPDECKED")]
-	[InlineData("DECKBOX")]
-	public void WriteReadSampleCycleTest(string deckFormatName)
+	[InlineData("DRAGONSHIELD", "USD")]
+	[InlineData("MOXFIELD", "EUR")]
+	[InlineData("MANABOX", "USD")]
+	[InlineData("TOPDECKED", "USD")]
+	[InlineData("DECKBOX", "USD")]
+	public void WriteReadSampleCycleTest(string deckFormatName, string currency)
 	{
 		// Arrange
 		MtgCardCsvHandler handler = CreateHandler(deckFormatName);
-		IList<PhysicalMtgCard> originalCards = GetReferenceCards(handler.Format.Currency);
+		IList<PhysicalMtgCard> originalCards = GetReferenceCards(Currency.FromString(currency));
 
 		// Act
 		string fileName = $"unittest-{deckFormatName}.csv";
@@ -31,16 +31,16 @@ public class MtgCardCsvHandlerTests(ITestOutputHelper output) : BaseTest(output)
 	}
 
 	[Theory]
-	[InlineData($"{SAMPLES_FOLDER}/dragonshield-sample.csv", "DRAGONSHIELD")]
-	[InlineData($"{SAMPLES_FOLDER}/moxfield-sample.csv", "MOXFIELD")]
-	[InlineData($"{SAMPLES_FOLDER}/manabox-sample.csv", "MANABOX")]
-	[InlineData($"{SAMPLES_FOLDER}/topdecked-sample.csv", "TOPDECKED")]
-	[InlineData($"{SAMPLES_FOLDER}/deckbox-sample.csv", "DECKBOX")]
-	public void ParseSampleCsv_WithValidInput_ParsesCards(string csvFilePath, string deckFormatName)
+	[InlineData($"{SAMPLES_FOLDER}/dragonshield-sample.csv", "DRAGONSHIELD", "USD")]
+	[InlineData($"{SAMPLES_FOLDER}/moxfield-sample.csv", "MOXFIELD", "EUR")]
+	[InlineData($"{SAMPLES_FOLDER}/manabox-sample.csv", "MANABOX", "USD")]
+	[InlineData($"{SAMPLES_FOLDER}/topdecked-sample.csv", "TOPDECKED", "USD")]
+	[InlineData($"{SAMPLES_FOLDER}/deckbox-sample.csv", "DECKBOX", "USD")]
+	public void ParseSampleCsv_WithValidInput_ParsesCards(string csvFilePath, string deckFormatName, string currency)
 	{
 		// Arrange
 		MtgCardCsvHandler handler = CreateHandler(deckFormatName);
-		IList<PhysicalMtgCard> expectedCards = GetReferenceCards(handler.Format.Currency);
+		IList<PhysicalMtgCard> expectedCards = GetReferenceCards(Currency.FromString(currency));
 
 		// Act
 		IList<PhysicalMtgCard> cards = handler.ParseCollectionCsv(csvFilePath).Cards;
@@ -55,7 +55,7 @@ public class MtgCardCsvHandlerTests(ITestOutputHelper output) : BaseTest(output)
 	[InlineData($"{COLLECTIONS_FOLDER}/topdecked-collection.csv", "TOPDECKED", "MOXFIELD")]
 	[InlineData($"{COLLECTIONS_FOLDER}/manabox-collection.csv", "MANABOX", "MOXFIELD")]
 	[InlineData($"{COLLECTIONS_FOLDER}/manabox-collection.csv", "MANABOX", "CARDKINGDOM")]
-	public async Task ConvertCollectionCsvTest(string csvFilePath, string deckFormatIn, string deckFormatOut)
+	public void ConvertCollectionCsvTest(string csvFilePath, string deckFormatIn, string deckFormatOut)
 	{
 		// Arrange
 		MtgCardCsvHandler handlerIn = CreateHandler(deckFormatIn);
@@ -72,9 +72,8 @@ public class MtgCardCsvHandlerTests(ITestOutputHelper output) : BaseTest(output)
 	MtgCardCsvHandler CreateHandler(string deckFormatName)
 	{
 		IConfigurationRoot configuration = new ConfigurationBuilder().AddJsonFile("appsettings.json", false).Build();
-		DeckFormat format = new(configuration, deckFormatName);
 
-		return new MtgCardCsvHandler(_api, format);
+		return new MtgCardCsvHandler(_api, configuration, deckFormatName);
 	}
 
 	static List<PhysicalMtgCard> GetReferenceCards(Currency currency)
