@@ -61,7 +61,8 @@ public record DeckConfig(
 
 public record CardNameConfiguration(
 	string HeaderName,
-	bool ShortNames);
+	bool ShortNames = false,
+	bool EncodeToken = false);
 public record FinishConfiguration(
 	string HeaderName,
 	string Foil,

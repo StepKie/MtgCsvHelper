@@ -52,6 +52,7 @@ public class MtgCardCsvHandlerTests(ITestOutputHelper output) : BaseTest(output)
 	[Theory]
 	[InlineData($"{COLLECTIONS_FOLDER}/dragonshield-collection.csv", "DRAGONSHIELD", "MOXFIELD")]
 	[InlineData($"{COLLECTIONS_FOLDER}/moxfield-collection.csv", "MOXFIELD", "DRAGONSHIELD")]
+	[InlineData($"{COLLECTIONS_FOLDER}/moxfield-collection.csv", "MOXFIELD", "TOPDECKED")]
 	[InlineData($"{COLLECTIONS_FOLDER}/topdecked-collection.csv", "TOPDECKED", "MOXFIELD")]
 	[InlineData($"{COLLECTIONS_FOLDER}/manabox-collection.csv", "MANABOX", "MOXFIELD")]
 	[InlineData($"{COLLECTIONS_FOLDER}/manabox-collection.csv", "MANABOX", "CARDKINGDOM")]
@@ -109,6 +110,38 @@ public class MtgCardCsvHandlerTests(ITestOutputHelper output) : BaseTest(output)
 		var card5 = card1 with { Condition = CardCondition.PLAYED };
 		var card6 = card1 with { Condition = CardCondition.POOR };
 
-		return [card1, card2, card3, card4, card5, card6];
+		var card7 = new PhysicalMtgCard
+		{
+			Count = 1,
+			Condition = CardCondition.NEAR_MINT,
+			Foil = false,
+			Printing = new Card
+			{
+				Name = "Clue",
+				CollectorNumber = "14",
+				Set = "TMH2",
+				SetName = "Modern Horizons 2 Tokens",
+			},
+			Language = "en",
+			PriceBought = new Money(0.15m, currency),
+		};
+
+		var card8 = new PhysicalMtgCard
+		{
+			Count = 1,
+			Condition = CardCondition.NEAR_MINT,
+			Foil = false,
+			Printing = new Card
+			{
+				Name = "Food",
+				CollectorNumber = "10",
+				Set = "TLTR",
+				SetName = "Tales of Middle-earth Tokens",
+			},
+			Language = "en",
+			PriceBought = new Money(0.11m, currency),
+		};
+
+		return [card1, card2, card3, card4, card5, card6, card7, card8];
 	}
 }

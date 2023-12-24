@@ -12,5 +12,9 @@ public interface IMtgApi
 
 	List<string> GetDoubleFacedCardNames();
 	Task<List<string>> GetDoubleFacedCardNamesAsync();
+
+	Task<IEnumerable<Card>> GetTokenCardNamesAsync();
+	List<string> GetTokenCardNames();
+
 	Task LoadData();
 }
