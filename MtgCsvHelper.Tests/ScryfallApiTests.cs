@@ -23,6 +23,6 @@ public class MtgApiTests(ITestOutputHelper output) : BaseTest(output)
 	{
 		var tokenCards = await _api.GetTokenCardNamesAsync();
 		var tokenNames = tokenCards.Select(c => c.Name).Distinct().ToList();
-		tokenNames.Count().Should().BeGreaterThan(100);
+		tokenNames.Count.Should().BeGreaterThan(100);
 	}
 }

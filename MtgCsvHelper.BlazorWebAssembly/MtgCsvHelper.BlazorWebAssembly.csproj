@@ -10,6 +10,8 @@
   </PropertyGroup>
   <PropertyGroup>
     <BlazorWebAssemblyEnableAOT>false</BlazorWebAssemblyEnableAOT>
+	<!-- Unfortunately, while this does load globalization data, the languages do not have their full English names set, only the short language codes -->
+	<BlazorWebAssemblyLoadAllGlobalizationData>true</BlazorWebAssemblyLoadAllGlobalizationData>
   </PropertyGroup>
   <ItemGroup>
     <PackageReference Include="Markdig" Version="0.34.0" />

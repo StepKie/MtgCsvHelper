@@ -118,9 +118,8 @@
 			isConverting = true;
 			StateHasChanged();
 			await Task.Delay(1);
-			var stream = csvFile!.OpenReadStream(maxAllowedSize: MAX_FILE_SIZE);
 
-					Stream csvStream = new MemoryStream();
+			Stream csvStream = new MemoryStream();
 			// We need an async stream to read the file contents
 
 			await csvFile!.OpenReadStream(maxAllowedSize: MAX_FILE_SIZE).CopyToAsync(csvStream);
@@ -136,7 +135,7 @@
 			
 			var cards = collection.Cards;
 			processedRecords = cards.Select(c => c.Printing.Name).ToList();
-			resultFileName ??= $"{selectedOutputFormat}-output-{DateTime.Now:yyyy-MM-dd}.csv";
+			resultFileName ??= $"{selectedOutputFormat}-output-{DateTime.Now:yyyy-MM-dd_HH-mm-ss}.csv";
 			writer.WriteCollectionCsv(cards, resultFileName);
 
 		}
