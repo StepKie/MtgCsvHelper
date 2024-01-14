@@ -17,7 +17,7 @@
       "url": "_framework\/icudt.dat.br"
     },
     {
-      "hash": "sha256-pI6IIoQo+iYBcNAQ6QUJmqhqYaXZpAojGiaGQBUHfjw=",
+      "hash": "sha256-hIBCnXywve7j1twSBTtD4Kxo8s4fVy\/ZMuyx\/3ByGmo=",
       "url": "_framework\/blazor.boot.json.br"
     },
     {
@@ -137,11 +137,11 @@
       "url": "_framework\/Microsoft.JSInterop.WebAssembly.wasm.br"
     },
     {
-      "hash": "sha256-vg625eZvD0Xo2J\/wECQgJKThUq+NiQ9Fl5wM23qrqOw=",
+      "hash": "sha256-vmRjRwwB2P+kbvtw6qWsRTG\/vnvsgzRNsxpcZ\/wPO2A=",
       "url": "_framework\/MtgCsvHelper.BlazorWebAssembly.wasm.br"
     },
     {
-      "hash": "sha256-oYDOwfvXw3fbeMkdEns994YKvabyDBKsPSOfAofSqow=",
+      "hash": "sha256-Jja11BDWthJWppbHfTVM84DzZ7RdySresYdcPnYnLvU=",
       "url": "_framework\/MtgCsvHelper.wasm.br"
     },
     {
@@ -393,5 +393,5 @@
       "url": "brotliloader.min.js"
     }
   ],
-  "version": "mjRMofbf"
+  "version": "TpaPKl78"
 };
