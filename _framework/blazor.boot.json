@@ -1,7 +1,7 @@
 {
   "mainAssemblyName": "MtgCsvHelper.BlazorWebAssembly",
   "resources": {
-    "hash": "sha256-6M5gf8+1cn4iaiBqmdr5SXltn1XTjeqpT+rEhdykz1U=",
+    "hash": "sha256-ucUwN4vSN9Zpgsl9rn2qc7HvmwihItBR2f9gRa9gktY=",
     "jsModuleNative": {
       "dotnet.native.8.0.1.yzwv1uzcub.js": "sha256-ZtsJpRf8+kmyCtWZPXN2jlNM54+n95pcWFZdvu3iA38="
     },
@@ -42,8 +42,8 @@
       "Microsoft.Extensions.Primitives.wasm": "sha256-CzL3gJ2kZIjDRWkZ2FjrO43D9KEbXk6r6KKpUwwT5vk=",
       "Microsoft.JSInterop.wasm": "sha256-V/dVueS60GPgWyzhzVeiLb611MIUr78I1ZIhsMzpsTg=",
       "Microsoft.JSInterop.WebAssembly.wasm": "sha256-1sWLoPsP5kpMYEif4b3SpIZa141kvugmNJmTW3TaPAk=",
-      "MtgCsvHelper.BlazorWebAssembly.wasm": "sha256-lJ27k23OLcfK/sLBg+fdokFbKBfi+aW1pOP7LLKw0z8=",
-      "MtgCsvHelper.wasm": "sha256-SWBPQ7gTuta+zZOmeC0gu9T5kBsCislHSaSSM90GCz4=",
+      "MtgCsvHelper.BlazorWebAssembly.wasm": "sha256-B922RgstfPcav6AxnbXyivI/7v/Bo9NCqgU4TA8578Y=",
+      "MtgCsvHelper.wasm": "sha256-h/j5TTbAtWsc1ADNHhMz4fXKa0qs0Wjt3LysF0iNXCo=",
       "netstandard.wasm": "sha256-rbqiZucp0s37axQbHGpJXIo76JLiQ+rUD65lClQa3YQ=",
       "ScryfallApi.Client.wasm": "sha256-nmclXK1Xpnx23mVNIppdw7OyofbeuoobudBtF49jrZs=",
       "Serilog.Extensions.Logging.wasm": "sha256-92hYjPt6HQIX8HGRPk/QYW/58wE14qiBy8Q/Uuu9wGY=",
