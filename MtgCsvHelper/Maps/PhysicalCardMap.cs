@@ -28,8 +28,8 @@ public class PhysicalCardMap : ClassMap<PhysicalMtgCard>
 		Map(card => card.Printing.Set).TypeConverter<UpperCaseConverter>().Name(columnConfig.SetCode).Optional();
 		Map(card => card.Printing.SetName).Name(columnConfig.SetName).Optional();
 
-		if (columnConfig.Condition is ConditionConfiguration cond) { Map(card => card.Condition).TypeConverter(new CardConditionConverter(cond)).Name(cond.HeaderName); }
-		if (columnConfig.Finish is FinishConfiguration finish) { Map(card => card.Foil).TypeConverter(new FinishConverter(finish)).Name(finish.HeaderName); }
+		if (columnConfig.Condition is ConditionConfiguration cond) { Map(card => card.Condition).TypeConverter(new CardConditionConverter(cond)).Name(cond.HeaderName).Optional(); }
+		if (columnConfig.Finish is FinishConfiguration finish) { Map(card => card.Foil).TypeConverter(new FinishConverter(finish)).Name(finish.HeaderName).Optional(); }
 		if (columnConfig.Language is LanguageConfiguration lang) { Map(card => card.Language).TypeConverter(new LanguageConverter(lang)).Name(lang.HeaderName).Optional(); }
 		if (columnConfig.PriceBought is PriceConfiguration price) { Map(card => card.PriceBought).TypeConverter(new PriceConverter(price)).Name(price.HeaderName).Optional(); }
 	}

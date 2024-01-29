@@ -37,7 +37,7 @@ public class CardConditionConverter(ConditionConfiguration configuration) : ITyp
 				{ Name: "LightlyPlayed" } => _conditionConfig.LightlyPlayed,
 				{ Name: "Played" }        => _conditionConfig.Played,
 				{ Name: "Poor" }          => _conditionConfig.Poor,
-				_						  => null
+				_						  => ""
 			};
 		}
 #pragma warning restore format
