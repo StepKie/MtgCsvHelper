@@ -27,7 +27,7 @@ public class LanguageConverter(LanguageConfiguration configuration) : ITypeConve
 	{
 		return text switch
 		{
-			null or "" => null,
+			null or "" => "",
 			_ when _useShortNames => text,
 			_ => _languages.GetValueOrDefault(text),
 		};
@@ -35,7 +35,7 @@ public class LanguageConverter(LanguageConfiguration configuration) : ITypeConve
 
 	public string? ConvertToString(object? value, IWriterRow row, MemberMapData memberMapData)
 	{
-		if (value is not string langCode) { return null; }
+		if (value is not string langCode) { return ""; }
 		return _useShortNames ? langCode : _languages.FirstOrDefault(x => x.Value == langCode).Key;
 	}
 }

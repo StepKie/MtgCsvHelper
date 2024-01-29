@@ -12,9 +12,8 @@ public class PriceConverter(PriceConfiguration configuration) : ITypeConverter
 	public object? ConvertFromString(string? text, IReaderRow row, MemberMapData memberMapData)
 	{
 		return string.IsNullOrEmpty(text) ? null : Money.Parse(text, _currency);
-
 	}
 
-	public string? ConvertToString(object? value, IWriterRow row, MemberMapData memberMapData) => value is Money m ? m.Print(_currencyPos) : null;
+	public string? ConvertToString(object? value, IWriterRow row, MemberMapData memberMapData) => value is Money m ? m.Print(_currencyPos) : "";
 }
 

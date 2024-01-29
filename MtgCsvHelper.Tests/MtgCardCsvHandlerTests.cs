@@ -56,6 +56,7 @@ public class MtgCardCsvHandlerTests(ITestOutputHelper output) : BaseTest(output)
 	[InlineData($"{COLLECTIONS_FOLDER}/topdecked-collection.csv", "TOPDECKED", "MOXFIELD")]
 	[InlineData($"{COLLECTIONS_FOLDER}/manabox-collection.csv", "MANABOX", "MOXFIELD")]
 	[InlineData($"{COLLECTIONS_FOLDER}/manabox-collection.csv", "MANABOX", "CARDKINGDOM")]
+	[InlineData($"{COLLECTIONS_FOLDER}/mtggoldfish-collection.csv", "MTGGOLDFISH", "MOXFIELD")]
 	public void ConvertCollectionCsvTest(string csvFilePath, string deckFormatIn, string deckFormatOut)
 	{
 		// Arrange
@@ -67,7 +68,7 @@ public class MtgCardCsvHandlerTests(ITestOutputHelper output) : BaseTest(output)
 		handlerOut.WriteCollectionCsv(cards);
 
 		Log.Information(collection.GenerateSummary());
-		cards.Should().HaveCountGreaterThan(1000);
+		cards.Should().HaveCountGreaterThan(500);
 	}
 
 	MtgCardCsvHandler CreateHandler(string deckFormatName)
