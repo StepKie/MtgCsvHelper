@@ -22,7 +22,7 @@ public class PhysicalCardMap : ClassMap<PhysicalMtgCard>
 	{
 		Map(card => card.Count).Name(columnConfig.Quantity).Index(1);
 		Map(card => card.Printing.Name).TypeConverter(new CardNameConverter(columnConfig.CardName)).Name(columnConfig.CardName.HeaderName).Index(0);
-		Map(card => card.Printing.CollectorNumber).Name(columnConfig.SetNumber);
+		Map(card => card.Printing.CollectorNumber).Name(columnConfig.SetNumber).Optional();
 
 		// We implicitly assume that at least one of them is present (some sites use SetName, some use SetCode, some use both...)
 		Map(card => card.Printing.Set).TypeConverter<UpperCaseConverter>().Name(columnConfig.SetCode).Optional();
