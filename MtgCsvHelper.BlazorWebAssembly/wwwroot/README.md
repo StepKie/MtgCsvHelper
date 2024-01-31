@@ -5,24 +5,27 @@ The purpose of this tool is to automate the conversion between several collectio
 ## TL;DR
 
 You are welcome to try out the web app [here](https://hottemax.github.io/MtgCsvHelper/).
+
+**ATTENTION:** Since this is a client-side Blazor app, the browser may cache data. and this cache needs to be cleared in order to load the latest version of the app.
+The version displayed in the upper right corner should match the last commit id displayed on the [main](https://github.com/Hottemax/MtgCsvHelper/tree/main) branch.
+
 1. Upload input csv file
 2. Select input and output format
 3. Click "Convert". In case of a larger collection, please allow for some processing time.
 4. Download converted output csv file
 
-Currently supported:
+* Currently supported:
   * Moxfield
   * DragonShield
   * Manabox
   * Topdecked
   * Deckbox
-* Potentially added by demand
-  * Cardkingdom (Low info, only 4 columns - Export only)
   * Mtggoldfish
+  * Cardkingdom (Low info, only 4 columns - Export only)
+
+* Potentially added by demand
   * TcgPlayer
   * ???
-
-* More formats can be added in appsettings.json
 
 ## Project Info
 
@@ -61,12 +64,14 @@ This tool defines configurable mappings addressing the above issues in *appsetti
 * Run the provided MtgCsvHelper.
 	* Usage info can be found running it with the *--help* flag
 * Some additional configurability for end user via appsettings.json etc.
+	*
 
 
 ## Troubleshooting
 
 You can report bugs and issues on Github by creating a [new issue](https://github.com/Hottemax/MtgCsvHelper/issues/new/choose).
 **After the release of a new version, the browser data/cache should to be cleared** to force the new version of the site to be loaded, since static webapps are kept in the browser's cache.
+The version displayed in the upper right corner should match the last commit id displayed on the [main](https://github.com/Hottemax/MtgCsvHelper/tree/main) branch.
 
 ## Current state
 
