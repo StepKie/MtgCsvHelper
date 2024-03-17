@@ -33,14 +33,14 @@ void RunWithOptions(CommandLineOptions opts)
 	var reader = new MtgCardCsvHandler(api, config, opts.InputFormat);
 	var writer = new MtgCardCsvHandler(api, config, opts.OutputFormat);
 
-	List<PhysicalMtgCard> cardsFound = [];
+	Collection collection = new();
 
 	foreach (var fileName in filesToParse)
 	{
-		var parsedCardsFromFile = reader.ParseCollectionCsv(new FileStream(fileName, FileMode.Open)).Cards;
-		cardsFound.AddRange(parsedCardsFromFile);
+		var parsedCollection = reader.ParseCollectionCsv(new FileStream(fileName, FileMode.Open));
+		collection.Entries.AddRange(parsedCollection.Entries);
 	}
 
-	writer.WriteCollectionCsv(cardsFound);
+	writer.WriteCollectionCsv(collection);
 }
 void HandleParseError(IEnumerable<Error> errs) => Console.WriteLine(string.Join(",", errs)); // TODO: handle errors

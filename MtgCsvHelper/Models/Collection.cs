@@ -2,16 +2,19 @@
 
 namespace MtgCsvHelper.Models;
 
+public record CardCollectionEntry(PhysicalMtgCard Card, int Amount);
+
 public record Collection
 {
-	public string Name { get; init; }
-	public List<PhysicalMtgCard> Cards { get; init; } = [];
+	public string? Name { get; init; }
+	public List<CardCollectionEntry> Entries { get; init; } = [];
+	public IEnumerable<PhysicalMtgCard> Cards => Entries.Select(c => c.Card);
 
 	public string GenerateSummary()
 	{
 		StringBuilder sb = new();
-		int numOfCards = Cards.Sum(c => c.Count);
-		int numOfUniqueCards = Cards.Count;
+		int numOfCards = Entries.Sum(c => c.Amount);
+		int numOfUniqueCards = Entries.Count;
 
 		var mostExpensive = Cards.OrderByDescending(c => c.PriceBought?.Value).FirstOrDefault();
 

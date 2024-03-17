@@ -30,18 +30,18 @@ public class MtgCardCsvHandler
 
 		using var csv = new CsvReader(stream, new CsvConfiguration(CultureInfo.InvariantCulture) {/* HeaderValidated = null,*/ MissingFieldFound = null });
 		csv.Context.RegisterClassMap(_classMap);
-		List<PhysicalMtgCard> cards = csv.GetRecords<PhysicalMtgCard>().ToList();
+		var parsed = csv.GetRecords<CardCollectionEntry>().ToList();
 
 		var sets = _api.GetSets();
 
-		foreach (var card in cards)
+		foreach (var line in parsed)
 		{
-			var logicalCard = card.Printing;
+			var logicalCard = line.Card.Printing;
 			logicalCard.SetName ??= sets.FirstOrDefault(s => s.Code.Equals(logicalCard.Set, StringComparison.OrdinalIgnoreCase))?.Name;
 			logicalCard.Set ??= sets.FirstOrDefault(s => s.Name.Equals(logicalCard.SetName, StringComparison.OrdinalIgnoreCase))?.Code.ToUpper();
 		}
 
-		Collection collection = new() { Name = $"Import {_format}, Date: {DateTime.Now}", Cards = cards };
+		Collection collection = new() { Name = $"Import {_format}, Date: {DateTime.Now}", Entries = parsed };
 		Log.Debug(collection.GenerateSummary());
 
 		return collection;
@@ -59,18 +59,18 @@ public class MtgCardCsvHandler
 		}
 	}
 
-	public void WriteCollectionCsv(IList<PhysicalMtgCard> cards, string? outputFileName = null)
+	public void WriteCollectionCsv(Collection collection, string? outputFileName = null)
 	{
 		outputFileName ??= $"{_format.ToLower()}-output-{DateTime.Now:yyyy-MM-dd_HH-mm-ss}.csv";
-		Log.Information($"Writing {cards.Sum(c => c.Count)} cards ({cards.Count} unique) cards to {outputFileName}");
+		Log.Information($"Writing {collection.GenerateSummary()} to {outputFileName}");
 
 		using var writer = new StreamWriter(outputFileName);
 		using var csv = new CsvWriter(writer, CultureInfo.InvariantCulture);
 
 		csv.Context.RegisterClassMap(_classMap);
-		csv.WriteHeader<PhysicalMtgCard>();
+		csv.WriteHeader<CardCollectionEntry>();
 		csv.NextRecord();
-		csv.WriteRecords(cards);
+		csv.WriteRecords(collection.Entries);
 		csv.Flush();
 	}
 }

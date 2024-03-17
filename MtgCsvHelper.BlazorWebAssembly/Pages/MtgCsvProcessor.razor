@@ -133,10 +133,9 @@
 			summary = collection.GenerateSummary();
 			Console.WriteLine(summary);
 			
-			var cards = collection.Cards;
-			processedRecords = cards.Select(c => c.Printing.Name).ToList();
+			processedRecords = collection.Cards.Select(c => c.Printing.Name).ToList();
 			resultFileName ??= $"{selectedInputFormat}-to-{selectedOutputFormat}_{DateTime.Now:yyyy-MM-dd_HH-mm-ss}.csv";
-			writer.WriteCollectionCsv(cards, resultFileName);
+			writer.WriteCollectionCsv(collection, resultFileName);
 
 		}
 		catch (Exception ex)
