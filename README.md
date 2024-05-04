@@ -4,7 +4,7 @@ The purpose of this tool is to automate the conversion between several collectio
 
 ## TL;DR
 
-You are welcome to try out the web app [here](https://hottemax.github.io/MtgCsvHelper/).
+You are welcome to try out the web app [here](https://stepkie.github.io/MtgCsvHelper/).
 
 **ATTENTION:** Since this is a client-side Blazor app, the browser may cache data. and this cache needs to be cleared in order to load the latest version of the app.
 The version displayed in the upper right corner should match the last commit id displayed on the [main](https://github.com/Hottemax/MtgCsvHelper/tree/main) branch.
@@ -51,7 +51,7 @@ This tool defines configurable mappings addressing the above issues in *appsetti
 
 ### Browser
 
-* A static webapp is available at [https://hottemax.github.io/MtgCsvHelper/](https://hottemax.github.io/MtgCsvHelper/)
+* A static webapp is available at [https://stepkie.github.io/MtgCsvHelper/](https://stepkie.github.io/MtgCsvHelper/)
 * As opposed to the console version, there is currently no way to access the configuration (appsettings) and customize the app's behavior
 * However, it is more user-friendly and should work across a wide range of default scenarios
 
