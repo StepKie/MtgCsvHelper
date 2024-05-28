@@ -1,4 +1,3 @@
-﻿
 using Microsoft.Extensions.DependencyInjection;
 using MtgCsvHelper.Services;
 using ScryfallApi.Client;

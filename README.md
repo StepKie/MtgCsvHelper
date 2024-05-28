@@ -7,7 +7,7 @@ The purpose of this tool is to automate the conversion between several collectio
 You are welcome to try out the web app [here](https://stepkie.github.io/MtgCsvHelper/).
 
 **ATTENTION:** Since this is a client-side Blazor app, the browser may cache data. and this cache needs to be cleared in order to load the latest version of the app.
-The version displayed in the upper right corner should match the last commit id displayed on the [main](https://github.com/Hottemax/MtgCsvHelper/tree/main) branch.
+The version displayed in the upper right corner should match the last commit id displayed on the [main](https://github.com/StepKie/MtgCsvHelper/tree/main) branch.
 
 1. Upload input csv file
 2. Select input and output format
@@ -69,9 +69,9 @@ This tool defines configurable mappings addressing the above issues in *appsetti
 
 ## Troubleshooting
 
-You can report bugs and issues on Github by creating a [new issue](https://github.com/Hottemax/MtgCsvHelper/issues/new/choose).
+You can report bugs and issues on Github by creating a [new issue](https://github.com/StepKie/MtgCsvHelper/issues/new/choose).
 **After the release of a new version, the browser data/cache should to be cleared** to force the new version of the site to be loaded, since static webapps are kept in the browser's cache.
-The version displayed in the upper right corner should match the last commit id displayed on the [main](https://github.com/Hottemax/MtgCsvHelper/tree/main) branch.
+The version displayed in the upper right corner should match the last commit id displayed on the [main](https://github.com/StepKie/MtgCsvHelper/tree/main) branch.
 
 ## Current state
 
