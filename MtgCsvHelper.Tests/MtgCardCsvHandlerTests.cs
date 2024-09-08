@@ -24,7 +24,7 @@ public class MtgCardCsvHandlerTests(ITestOutputHelper output) : BaseTest(output)
 		// Act
 		string fileName = $"unittest-{deckFormatName}.csv";
 		handler.WriteCollectionCsv(originalCards, fileName);
-		var parsedCards = handler.ParseCollectionCsv(fileName);
+		var parsedCards = handler.ParseCollectionCsv(fileName) with { Name = null };
 
 		// Assert
 		parsedCards.Should().BeEquivalentTo(originalCards);
@@ -43,7 +43,7 @@ public class MtgCardCsvHandlerTests(ITestOutputHelper output) : BaseTest(output)
 		Collection expectedCards = GetReferenceCards(Currency.FromString(currency));
 
 		// Act
-		Collection cards = handler.ParseCollectionCsv(csvFilePath);
+		Collection cards = handler.ParseCollectionCsv(csvFilePath) with { Name = null };
 
 		// Assert
 		cards.Should().BeEquivalentTo(expectedCards);
@@ -137,15 +137,15 @@ public class MtgCardCsvHandlerTests(ITestOutputHelper output) : BaseTest(output)
 		return new Collection
 		{
 			Entries = [
-				new(card1, 1),
-				new(card2, 2),
-				new(card1 with { Condition = CardCondition.GOOD }, 1),
-				new(card1 with { Condition = CardCondition.LIGHTLY_PLAYED }, 1),
-				new(card1 with { Condition = CardCondition.PLAYED }, 1),
-				new(card1 with { Condition = CardCondition.POOR }, 1),
+				new() { Card = card1, Amount = 1 },
+				new() { Card = card2, Amount = 2 },
+				new() { Card = card1 with { Condition = CardCondition.GOOD },  Amount = 1 },
+				new() { Card = card1 with { Condition = CardCondition.LIGHTLY_PLAYED },  Amount = 1 },
+				new() { Card = card1 with { Condition = CardCondition.PLAYED },  Amount = 1 },
+				new() { Card = card1 with { Condition = CardCondition.POOR },  Amount = 1 },
 				// There is no test for excellent, since some sites only have six conditions (e.g. Moxfield)
-				new(card7, 1),
-				new(card8, 1),
+				new() { Card = card7, Amount = 1 },
+				new() { Card = card8, Amount = 1 },
 				],
 		};
 	}

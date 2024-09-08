@@ -2,9 +2,23 @@
 
 namespace MtgCsvHelper.Models;
 
-public record CardCollectionEntry(PhysicalMtgCard Card, int Amount);
+public record CardCollectionEntry : ICardInfo
+{
+	public required PhysicalMtgCard Card { get; init; }
+	public int Amount { get; init; }
 
-public record Collection
+	public IEnumerable<CardCollectionEntry> GetEntries() => [this];
+}
+
+public record UrzaCollectionEntry : ICardInfo
+{
+	public CardCollectionEntry RegularEntry { get; init; }
+	public int FoilAmount { get; init; }
+	public Money? FoilPriceBought { get; init; }
+	public IEnumerable<CardCollectionEntry> GetEntries() => [RegularEntry, RegularEntry with { Card = RegularEntry.Card with { Foil = true }, Amount = FoilAmount, }];
+}
+
+public record Collection : ICardInfo
 {
 	public string? Name { get; init; }
 	public List<CardCollectionEntry> Entries { get; init; } = [];
@@ -35,11 +49,12 @@ public record Collection
 		//{
 		//	sb.AppendLine($"{rarity}: {amount}");
 		//}
-
 		sb.AppendLine("-------------------");
 
 		var summary = sb.ToString();
 		return summary;
 	}
+
+	public IEnumerable<CardCollectionEntry> GetEntries() => Entries;
 }
 

@@ -7,7 +7,7 @@ using MtgCsvHelper.Services;
 namespace MtgCsvHelper;
 public class MtgCardCsvHandler
 {
-	readonly PhysicalCardMap _classMap;
+	readonly DefaultCollectionEntryMap _classMap;
 	readonly IMtgApi _api;
 	readonly string _format;
 
@@ -24,13 +24,13 @@ public class MtgCardCsvHandler
 
 	public Collection ParseCollectionCsv(Stream csvFilePath)
 	{
-		Log.Information($"Parsing {csvFilePath} with input format {_format} ...");
+		Log.Debug($"Parsing {csvFilePath} with input format {_format} ...");
 		using var stream = new StreamReader(csvFilePath);
 		CheckIfFirstLineCanBeIgnored(stream);
 
 		using var csv = new CsvReader(stream, new CsvConfiguration(CultureInfo.InvariantCulture) {/* HeaderValidated = null,*/ MissingFieldFound = null });
 		csv.Context.RegisterClassMap(_classMap);
-		var parsed = csv.GetRecords<CardCollectionEntry>().ToList();
+		var parsed = csv.GetRecords(_classMap.ClassType).Cast<ICardInfo>().SelectMany(c => c.GetEntries()).ToList();
 
 		var sets = _api.GetSets();
 
@@ -68,6 +68,7 @@ public class MtgCardCsvHandler
 		using var csv = new CsvWriter(writer, CultureInfo.InvariantCulture);
 
 		csv.Context.RegisterClassMap(_classMap);
+		csv.WriteHeader(_classMap.ClassType);
 		csv.WriteHeader<CardCollectionEntry>();
 		csv.NextRecord();
 		csv.WriteRecords(collection.Entries);

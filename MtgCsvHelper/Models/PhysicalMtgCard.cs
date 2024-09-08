@@ -4,8 +4,6 @@ namespace MtgCsvHelper.Models;
 
 public record PhysicalMtgCard
 {
-	public int Count { get; init; }
-
 	public required Card Printing { get; init; }
 	public Money? PriceBought { get; init; }
 	public DateTime? DateBought { get; init; }

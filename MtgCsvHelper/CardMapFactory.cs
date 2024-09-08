@@ -15,7 +15,7 @@ public class CardMapFactory(IConfiguration config)
 		.GetChildren()
 		.Select(c => c.Get<DeckConfig>()!);
 
-	public DeckConfig? GetDeckConfig(string format) => _deckConfigs.FirstOrDefault(c => c.Name.Equals(format));
+	public DefaultCollectionEntryMap? GenerateClassMap(string format) => GetDeckConfig(format) is DeckConfig dc ? new(dc, format.Equals("CARDKINGDOM")) : null;
 
-	public PhysicalCardMap? GenerateClassMap(string format) => GetDeckConfig(format) is DeckConfig dc ? new(dc, format.Equals("CARDKINGDOM")) : null;
+	private DeckConfig? GetDeckConfig(string format) => _deckConfigs.FirstOrDefault(c => c.Name.Equals(format));
 }
