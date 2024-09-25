@@ -1,7 +1,7 @@
 {
   "mainAssemblyName": "MtgCsvHelper.BlazorWebAssembly",
   "resources": {
-    "hash": "sha256-VSv30Rd21/Yy+uP4a5WQ8sdu9g7MPyEkTDomekSHci0=",
+    "hash": "sha256-g0amYUHku+Hv3W+9zO2+x/yQxqImLZ7TCVbo/+FQTcU=",
     "fingerprinting": {
       "CommandLine.patchfha6i.wasm": "CommandLine.wasm",
       "CsvHelper.5c97h8cn3b.wasm": "CsvHelper.wasm",
@@ -30,8 +30,8 @@
       "Microsoft.Extensions.Primitives.vkc0saelad.wasm": "Microsoft.Extensions.Primitives.wasm",
       "Microsoft.JSInterop.vqca32xuxa.wasm": "Microsoft.JSInterop.wasm",
       "Microsoft.JSInterop.WebAssembly.ycvepgv0z3.wasm": "Microsoft.JSInterop.WebAssembly.wasm",
-      "MtgCsvHelper.BlazorWebAssembly.id8atdmnzc.wasm": "MtgCsvHelper.BlazorWebAssembly.wasm",
-      "MtgCsvHelper.6ass3yl4q6.wasm": "MtgCsvHelper.wasm",
+      "MtgCsvHelper.BlazorWebAssembly.k4mmk8vayy.wasm": "MtgCsvHelper.BlazorWebAssembly.wasm",
+      "MtgCsvHelper.iw5o94j0t1.wasm": "MtgCsvHelper.wasm",
       "netstandard.fywr7h45io.wasm": "netstandard.wasm",
       "ScryfallApi.Client.2fsn0ugldn.wasm": "ScryfallApi.Client.wasm",
       "Serilog.Extensions.Logging.jlvwho3ndn.wasm": "Serilog.Extensions.Logging.wasm",
@@ -130,8 +130,8 @@
       "Microsoft.Extensions.Primitives.vkc0saelad.wasm": "sha256-UZyr9v9k89SEpuaMUGVwf0E9tSJBl0T7PHjWL9ZC6QE=",
       "Microsoft.JSInterop.vqca32xuxa.wasm": "sha256-Bxr/c7kNmD5H2rdVhLo7UxMiagdgh/VqWz4i/qYVpks=",
       "Microsoft.JSInterop.WebAssembly.ycvepgv0z3.wasm": "sha256-Qn+nkd7OAgt+Wej3pFHojex7JXfMxa0jFhGlIvtI/Hw=",
-      "MtgCsvHelper.BlazorWebAssembly.id8atdmnzc.wasm": "sha256-5vne2kjrgeV+F9GBYlrvn9NMfHFcmN9J47gfR8VNRYU=",
-      "MtgCsvHelper.6ass3yl4q6.wasm": "sha256-0oZNqfygQOzE8rNe0xTNHdtPoE2T3Ked6azd9NDunMQ=",
+      "MtgCsvHelper.BlazorWebAssembly.k4mmk8vayy.wasm": "sha256-fML+lmz+/rb8QjQOJxnpSZo0Xy0HpPwuhHSk7GYl1Aw=",
+      "MtgCsvHelper.iw5o94j0t1.wasm": "sha256-4pzxa7aKLbYo3Wth3MOBkJqOSqx9jplUYQNU+/AVvDo=",
       "netstandard.fywr7h45io.wasm": "sha256-aVU+wNshPgeOY1aodby6imEWCzjkotNfFAFqcae9Pwk=",
       "ScryfallApi.Client.2fsn0ugldn.wasm": "sha256-nmclXK1Xpnx23mVNIppdw7OyofbeuoobudBtF49jrZs=",
       "Serilog.Extensions.Logging.jlvwho3ndn.wasm": "sha256-92hYjPt6HQIX8HGRPk/QYW/58wE14qiBy8Q/Uuu9wGY=",
