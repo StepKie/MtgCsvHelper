@@ -35,18 +35,22 @@ public class CachedMtgApi : IMtgApi
 
 	public async Task LoadData()
 	{
+		Log.Debug($"Scryfall - Syncing data...");
 		_sets ??= (await GetSetsAsync()).ToList();
+
 		_doubleFacedCardNames ??= await GetDoubleFacedCardNamesAsync();
+		Log.Debug($"Scryfall - Loaded {_doubleFacedCardNames.Count} double-faced cards.");
+
 		_tokenCardNames ??= (await GetTokenCardNamesAsync()).Select(c => c.Name).Distinct().ToList();
+
+		Log.Debug($"Scryfall - Loaded {_tokenCardNames.Count} tokens.");
+		Log.Debug($"Scryfall - Sync complete.");
 	}
 
 	public async Task<List<string>> GetDoubleFacedCardNamesAsync()
 	{
 		var cards = await _api.Catalogs.ListCardNames();
 		var names = cards.Where(name => name.Contains(" // ")).ToList() ?? [];
-
-		Console.WriteLine($"Loaded {names.Count} double-faced cards from server");
-		Log.Debug($"Loaded {names.Count} double-faced cards from server");
 
 		return names;
 	}
