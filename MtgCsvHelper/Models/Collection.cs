@@ -22,7 +22,7 @@ public record Collection
 
 		if (mostExpensive?.PriceBought is not null)
 		{
-			sb.AppendLine($"Most expensive card: {mostExpensive?.Printing.Name} ({mostExpensive?.PriceBought?.Print()})");
+			sb.AppendLine($"Most expensive card: {mostExpensive.Printing.Name} ({mostExpensive.PriceBought.Print()})");
 		}
 
 		// TODO Will work when we have queried data from Scryfall regarding the cards

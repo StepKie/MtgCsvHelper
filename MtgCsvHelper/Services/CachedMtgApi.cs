@@ -18,7 +18,6 @@ public class CachedMtgApi : IMtgApi
 	public CachedMtgApi(ScryfallApiClient api)
 	{
 		_api = api;
-		Console.WriteLine("CachedMtgApi created");
 		Log.Debug("CachedMtgApi created");
 	}
 
