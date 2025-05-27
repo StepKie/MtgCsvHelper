@@ -113,12 +113,12 @@
       "url": "_framework\/Microsoft.JSInterop.h674qle9ql.wasm.br"
     },
     {
-      "hash": "sha256-YexpgiuTBc62oGdJn0j8j075H7vJJGwDSDq+4VBNx10=",
-      "url": "_framework\/MtgCsvHelper.30ssfyp445.wasm.br"
+      "hash": "sha256-W\/\/RKV0LjTdJyiStgEE7Ln0xA+umUgY6ZTzIrIkugLM=",
+      "url": "_framework\/MtgCsvHelper.637e3o13o2.wasm.br"
     },
     {
-      "hash": "sha256-WSfP\/FU7URDs6r+Zav0iAW\/Bbp3ucuNC4wmgCvM06vo=",
-      "url": "_framework\/MtgCsvHelper.BlazorWebAssembly.p8rwl9m5c9.wasm.br"
+      "hash": "sha256-dUEzWU9DxyOpDFlFVhhbGQxcmprtNhni0AXVyNnfSPI=",
+      "url": "_framework\/MtgCsvHelper.BlazorWebAssembly.49kbz8o63a.wasm.br"
     },
     {
       "hash": "sha256-G4egkejHhF1iritMb1gDvN\/YnPI7AbDYt+SNsLbc21w=",
@@ -309,7 +309,7 @@
       "url": "_framework\/System.ezrw3d5kw2.wasm.br"
     },
     {
-      "hash": "sha256-sVdxrOFERkY6ORwmWoWJNsZjLhcbQStyqwYHc7bRLUE=",
+      "hash": "sha256-Vna+2Nc07JDdNrX61Vsg5rNGaLB207t6efWDQk1B4Wc=",
       "url": "_framework\/blazor.boot.json.br"
     },
     {
@@ -389,5 +389,5 @@
       "url": "brotliloader.min.js"
     }
   ],
-  "version": "T8PpdiVC"
+  "version": "35nSozKL"
 };
