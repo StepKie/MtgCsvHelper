@@ -6,7 +6,7 @@
     <ImplicitUsings>enable</ImplicitUsings>
     <NullabilityInfoContextSupport>true</NullabilityInfoContextSupport>
     <ServiceWorkerAssetsManifest>service-worker-assets.js</ServiceWorkerAssetsManifest>
-    <Version>1.0.4</Version>
+    <Version>1.0.5</Version>
   </PropertyGroup>
   <PropertyGroup>
     <BlazorWebAssemblyEnableAOT>false</BlazorWebAssemblyEnableAOT>
