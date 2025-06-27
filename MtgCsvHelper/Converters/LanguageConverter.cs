@@ -17,7 +17,11 @@ public class LanguageConverter(LanguageConfiguration configuration) : ITypeConve
 		["German"] = "de",
 		["Italian"] = "it",
 		["Portuguese"] = "pt",
-		["Japanese"] = "jp",
+		["Japanese"] = "ja", // Attention - different than 2 letter country code (jp)
+		["Korean"] = "ko",
+		["Russian"] = "ru",
+		["Chinese"] = "zhs", // Simplified Chinese
+		["Traditional Chinese"] = "zht",
 	};
 
 	readonly bool _useShortNames = configuration.ShortNames;
