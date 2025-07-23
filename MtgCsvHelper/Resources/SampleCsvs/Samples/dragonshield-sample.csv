@@ -1,6 +1,7 @@
 "sep=,"
 Folder Name,Quantity,Trade Quantity,Card Name,Set Code,Set Name,Card Number,Condition,Printing,Language,Price Bought,Date Bought,AVG,LOW,TREND
 Test,1,1,Ambitious Farmhand,MID,Innistrad: Midnight Hunt,2,Mint,Normal,English,,,,,
+Test,1,1,Ambitious Farmhand,MID,Innistrad: Midnight Hunt,2,Mint,Normal,Traditional Chinese,,,,,
 Test,2,1,Ambitious Farmhand,MID,Innistrad: Midnight Hunt,2,NearMint,Foil,German,0.20,2022-11-16,0.20,0.03,0.25
 Test,1,1,Ambitious Farmhand,MID,Innistrad: Midnight Hunt,2,Good,Normal,English,,,,,
 Test,1,0,Ambitious Farmhand,MID,Innistrad: Midnight Hunt,2,LightPlayed,Normal,English,,,,,

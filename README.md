@@ -122,7 +122,19 @@ The version displayed in the upper right corner should match the last commit id 
   },
   "Language": {
     "HeaderName": "Language",
-    "ShortNames": false
+    "Mappings": {
+       "en": "English",
+       "es": "Spanish",
+       "fr": "French",
+       "de": "German",
+       "it": "Italian",
+       "pt": "Portuguese",
+       "ja": "Japanese",
+       "ko": "Korean",
+       "ru": "Russian",
+       "zhs": "Chinese",
+       "zht": "Traditional Chinese"
+    }
   },
   "PriceBought": {
     "HeaderName": "Purchase Price",
@@ -135,6 +147,7 @@ The version displayed in the upper right corner should match the last commit id 
 * The left hand side of the mappings should be adapted to match the desired format (csv header row)
 * For some columns, there is additional configuration needed (for example, how the _Finish_ is encoded
 * For the _Condition_ category, note that different sites use different scales (sometimes 6, sometimes 7 different values, as well as different naming schemes). Hence, there is no canonical mapping
+* The Language.Mappings only needs to be defined if it differs from the default
 * Some formats (e.g. CARDKINGDOM) should not be used for imports, since they contain very few columns
 
 ## TODOs
