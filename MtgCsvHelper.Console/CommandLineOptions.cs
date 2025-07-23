@@ -13,9 +13,9 @@ class CommandLineOptions
 	public required string OutputFormat { get; init; }
 
 	[Usage(ApplicationAlias = "MtgCsvHelper")]
-	public static IEnumerable<Example> Examples => new[]
-	{
-		new Example(
+	public static IEnumerable<Example> Examples =>
+    [
+        new Example(
 			"Example usage: Parse a file in Dragonshield format and output Moxfield-compatible .csv",
 			new CommandLineOptions
 			{
@@ -23,5 +23,5 @@ class CommandLineOptions
 				InputFormat = "DRAGONSHIELD",
 				OutputFormat = "MOXFIELD",
 			})
-	};
+	];
 }

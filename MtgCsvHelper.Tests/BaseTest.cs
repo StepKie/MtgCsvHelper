@@ -19,7 +19,7 @@ public class BaseTest
 	{
 
 		Log.Logger = Logging.GetDefaultLoggerConfig.WriteTo.TestOutput(output, level).CreateLogger();
-		_api = new CachedMtgApi(new ScryfallApiClient(CachedMtgApi.DefaultClient));
+		_api = new CachedMtgApi(new ScryfallApiClient(CachedMtgApi.DEFAULT_CLIENT));
 		_api.LoadData().Wait();
 
 		IMtgApi.Default = _api; // used by CardNameConverter...

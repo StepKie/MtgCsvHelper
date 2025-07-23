@@ -22,7 +22,7 @@ public class CachedMtgApi : IMtgApi
 	}
 
 	/// <summary> Default Client to use when accessing Scryfall API. Since 09/2024, required UserAgent and Accept headers to be set </summary>
-	public static HttpClient DefaultClient => new HttpClient()
+	public static HttpClient DEFAULT_CLIENT => new HttpClient()
 	{
 		BaseAddress = ScryfallApiClientConfig.GetDefault().ScryfallApiBaseAddress,
 		DefaultRequestHeaders =
@@ -57,7 +57,7 @@ public class CachedMtgApi : IMtgApi
 	public async Task<IEnumerable<Card>> GetTokenCardNamesAsync()
 	{
 		// Unfortunately, the IScryfallApiClient has an issue with encoding the query string, so we use our own HttpClient
-		var httpClient = CachedMtgApi.DefaultClient;
+		var httpClient = DEFAULT_CLIENT;
 		Uri query = new("https://api.scryfall.com/cards/search?q=set_type=Token&include_extras=true");
 		var hasMore = true;
 		List<Card> allCards = [];
