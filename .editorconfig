@@ -43,7 +43,7 @@ dotnet_style_parentheses_in_other_operators = never_if_unnecessary:suggestion
 dotnet_style_parentheses_in_relational_binary_operators = always_for_clarity:suggestion
 
 # Modifier preferences
-dotnet_style_require_accessibility_modifiers = for_non_interface_members:silent
+dotnet_style_require_accessibility_modifiers = omit_if_default:silent
 
 # Expression-level preferences
 dotnet_prefer_system_hash_code = true
@@ -1303,7 +1303,11 @@ dotnet_diagnostic.SA1309.severity = none
 # SA1310: Field names should not contain underscore
 dotnet_diagnostic.SA1310.severity = none
 
-dotnet_diagnostic.SA1402.severity = suggestion
+# SA1313: Parameter names should begin with lower-case letter
+dotnet_diagnostic.SA1313.severity = silent
+
+# SA1402: File may only contain a single type
+dotnet_diagnostic.SA1402.severity = silent
 dotnet_diagnostic.SA1403.severity = warning
 
 # SA1500: Braces for multi-line statements should not share line
@@ -1360,7 +1364,7 @@ dotnet_diagnostic.SA1633.severity = silent
 dotnet_diagnostic.SA1642.severity = none
 
 # SA1649: File name should match first type name
-dotnet_diagnostic.SA1649.severity =suggestion
+dotnet_diagnostic.SA1649.severity =silent
 
 # SX1101: Do not prefix local calls with 'this.'
 dotnet_diagnostic.SX1101.severity = suggestion
