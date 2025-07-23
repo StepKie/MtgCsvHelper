@@ -98,8 +98,10 @@ public class MtgCardCsvHandlerTests(ITestOutputHelper output) : BaseTest(output)
 			Language = "en",
 		};
 
-		// Card2 verifies Count, Foil, Language, PriceBought
-		var card2 = card1 with
+        var card2 = card1 with { Language = "zht" };
+
+        // Card3 verifies Count, Foil, Language, PriceBought
+        var card3 = card1 with
 		{
 			Count = 2,
 			Condition = CardCondition.NEAR_MINT,
@@ -108,13 +110,13 @@ public class MtgCardCsvHandlerTests(ITestOutputHelper output) : BaseTest(output)
 			PriceBought = new Money(0.20m, currency),
 		};
 
-		// There is no test for excellent, since some sites only have six conditions (e.g. Moxfield)
-		var card3 = card1 with { Condition = CardCondition.GOOD };
-		var card4 = card1 with { Condition = CardCondition.LIGHTLY_PLAYED };
-		var card5 = card1 with { Condition = CardCondition.PLAYED };
-		var card6 = card1 with { Condition = CardCondition.POOR };
+        // There is no test for excellent, since some sites only have six conditions (e.g. Moxfield)
+        var card4 = card1 with { Condition = CardCondition.GOOD };
+		var card5 = card1 with { Condition = CardCondition.LIGHTLY_PLAYED };
+		var card6 = card1 with { Condition = CardCondition.PLAYED };
+		var card7 = card1 with { Condition = CardCondition.POOR };
 
-		var card7 = new PhysicalMtgCard
+		var card8 = new PhysicalMtgCard
 		{
 			Count = 1,
 			Condition = CardCondition.NEAR_MINT,
@@ -130,7 +132,7 @@ public class MtgCardCsvHandlerTests(ITestOutputHelper output) : BaseTest(output)
 			PriceBought = new Money(0.15m, currency),
 		};
 
-		var card8 = new PhysicalMtgCard
+		var card9 = new PhysicalMtgCard
 		{
 			Count = 1,
 			Condition = CardCondition.NEAR_MINT,
@@ -146,6 +148,6 @@ public class MtgCardCsvHandlerTests(ITestOutputHelper output) : BaseTest(output)
 			PriceBought = new Money(0.11m, currency),
 		};
 
-		return [card1, card2, card3, card4, card5, card6, card7, card8];
+		return [card1, card2, card3, card4, card5, card6, card7, card8, card9];
 	}
 }

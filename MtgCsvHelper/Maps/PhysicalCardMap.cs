@@ -79,7 +79,20 @@ public record ConditionConfiguration(
     string Poor);
 public record LanguageConfiguration(
     string HeaderName,
-    bool ShortNames);
+    LanguageMappings Mappings);
+public record LanguageMappings(
+    string en,
+    string es,
+    string fr,
+    string de,
+    string it,
+    string pt,
+    string ja,
+    string ko,
+    string ru,
+    string zht,
+    string zhs
+    );
 
 public record PriceConfiguration(
     string HeaderName,
