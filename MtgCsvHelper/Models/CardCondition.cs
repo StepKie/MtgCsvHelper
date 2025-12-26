@@ -1,7 +1,7 @@
 ﻿namespace MtgCsvHelper.Models;
 
 /// <summary> TODO Could really be a record type to have easier value type logic (for example when using in Converters etc. </summary>
-public class CardCondition : Enumeration
+public class CardCondition : EnumClass
 {
 	public static readonly CardCondition UNKNOWN = new(0, "Unknown");
 	public static readonly CardCondition MINT = new(1, "Mint");

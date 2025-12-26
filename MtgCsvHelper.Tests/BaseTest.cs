@@ -18,7 +18,7 @@ public class BaseTest
 	public BaseTest(ITestOutputHelper output, LogEventLevel level = LogEventLevel.Debug)
 	{
 
-		Log.Logger = Logging.GetDefaultLoggerConfig.WriteTo.TestOutput(output, level).CreateLogger();
+		Log.Logger = AppLogging.GetDefaultLoggerConfig.WriteTo.TestOutput(output, level).CreateLogger();
 		_api = new CachedMtgApi(new ScryfallApiClient(CachedMtgApi.DEFAULT_CLIENT));
 		_api.LoadData().Wait();
 
