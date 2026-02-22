@@ -23,23 +23,20 @@ files and `MtgApiFixture` no longer set it.
 
 ## Medium Priority
 
-### 3. Dead code — `IMtgCardCsvHandlerService`
+### ✅ 3. Dead code — `IMtgCardCsvHandlerService`
 **Files**: `MtgCsvHelper/Services/IMtgCardCsvHandlerService.cs` and
 `MtgCsvHelper/Services/MtgCardCsvHandlerService.cs`
-Interface and implementation exist but are never registered in DI or used anywhere.
+~~Interface and implementation exist but are never registered in DI or used anywhere.~~
 
-**Fix**: Delete both files.
+**Fixed**: Both files deleted.
 
 ---
 
-### 4. Serilog not working in Blazor Program.cs
+### ✅ 4. Serilog not working in Blazor Program.cs
 **File**: `MtgCsvHelper.BlazorWebAssembly/Program.cs`
-- ✅ Dead debug variables (`csvConfigs`, `deckConfigsBuilder`) removed
-- `Log.Information("Hello, Blazor, Serilog online!")` never appears — root cause unknown
+~~`appsettings.json` configured `Console`, `File`, and `Debug` sinks — none of which work in WASM. The sink packages weren't even referenced in the csproj, so `ReadFrom.Configuration()` silently produced no output. `.BuildServiceProvider()` was also a no-op.~~
 
-**Likely cause**: Blazor WASM needs `Serilog.Sinks.BrowserConsole` (WriteTo.BrowserConsole) instead of
-the standard console sink. The appsettings.json sink config may be targeting a sink that doesn't work
-in-browser. Needs investigation.
+**Fixed**: Added `Serilog.Sinks.BrowserConsole` package. Serilog now configured in code before service registration (`WriteTo.BrowserConsole()`). Removed broken Serilog section from `appsettings.json`. Removed redundant `.BuildServiceProvider()` call.
 
 ---
 
