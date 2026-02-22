@@ -1,4 +1,4 @@
-/* Manifest version: WSmc/T4N */
+/* Manifest version: llhkUflk */
 // Caution! Be sure you understand the caveats before publishing an application with
 // offline support. See https://aka.ms/blazor-offline-considerations
 
@@ -37,6 +37,10 @@ async function onActivate(event) {
         .filter(key => key.startsWith(cacheNamePrefix) && key !== cacheName)
         .map(key => caches.delete(key)));
 }
+
+self.addEventListener('message', event => {
+    if (event.data?.type === 'SKIP_WAITING') self.skipWaiting();
+});
 
 async function onFetch(event) {
     let cachedResponse = null;

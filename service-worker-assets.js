@@ -113,12 +113,12 @@
       "url": "_framework\/Microsoft.JSInterop.nkljd7l4yf.wasm.br"
     },
     {
-      "hash": "sha256-l9wfozV+ahlCDSVlUh\/z4Idw9PrmZHyTr8wSaMDeZQ0=",
-      "url": "_framework\/MtgCsvHelper.4kdxpaliz2.wasm.br"
+      "hash": "sha256-ivKGC4twq2mkkO1i2yRlXROG9M8PQrYyQFyVFHgZ+3M=",
+      "url": "_framework\/MtgCsvHelper.11vf3v9zuo.wasm.br"
     },
     {
-      "hash": "sha256-RNvVxkY9lkvedW484uqZAJmkuVS7viOtpJpwGwn\/ccM=",
-      "url": "_framework\/MtgCsvHelper.BlazorWebAssembly.z2l5u4nmd5.wasm.br"
+      "hash": "sha256-GR2XWBuCHcEkToV0J06ytkf+4Ixaw7xEEdPJBf+PTZE=",
+      "url": "_framework\/MtgCsvHelper.BlazorWebAssembly.0rexhy4st4.wasm.br"
     },
     {
       "hash": "sha256-G4egkejHhF1iritMb1gDvN\/YnPI7AbDYt+SNsLbc21w=",
@@ -313,7 +313,7 @@
       "url": "_framework\/blazor.webassembly.js"
     },
     {
-      "hash": "sha256-6qoyslveY9s5ZgXhuHLc3jYR+IbE2nDKuOJTIVWlVX0=",
+      "hash": "sha256-aofUIVPW8uQdztVWcXLd1vJ+i6lz8SdRsR7jHbAlXK4=",
       "url": "_framework\/dotnet.js"
     },
     {
@@ -329,8 +329,16 @@
       "url": "_framework\/dotnet.runtime.q5rqv3xrhm.js"
     },
     {
-      "hash": "sha256-5awfAGKwhkd0ptERWsPKoLRSMskV79GnIeAd3viufys=",
-      "url": "_framework\/icudt.oh1zvcfom8.dat.br"
+      "hash": "sha256-qPzRJ7vpZXzgfn\/zRN4sE1DCkIMOhv0uhpIe\/6UMYj4=",
+      "url": "_framework\/icudt_CJK.tjcz0u77k5.dat.br"
+    },
+    {
+      "hash": "sha256-8C0k+ite5nej4L1bjieJp6Wsf9DY82n6f85vCedJK\/Y=",
+      "url": "_framework\/icudt_EFIGS.tptq2av103.dat.br"
+    },
+    {
+      "hash": "sha256-fv9mQqIBur\/JQyexfKrVYjdpw7zdaW4zV4qxIkzgxlI=",
+      "url": "_framework\/icudt_no_CJK.lfu7j35m59.dat.br"
     },
     {
       "hash": "sha256-XV3Z5yh7QPz\/OByUoHck03XaXOj8uXZpADnBtDIFyVw=",
@@ -365,7 +373,7 @@
       "url": "icon-512.png"
     },
     {
-      "hash": "sha256-huz411mA5ogy8iuvAmCGe4qn\/zdqHO6Gl6Gg\/A6WLG0=",
+      "hash": "sha256-TenXUEs1Nwq+0NGsc\/ZEgyP6wJ1+POXweoPvs2+\/jVs=",
       "url": "index.html"
     },
     {
@@ -385,5 +393,5 @@
       "url": "brotliloader.min.js"
     }
   ],
-  "version": "WSmc\/T4N"
+  "version": "llhkUflk"
 };
