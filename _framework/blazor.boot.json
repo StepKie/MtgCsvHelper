@@ -1,7 +1,7 @@
 {
   "mainAssemblyName": "MtgCsvHelper.BlazorWebAssembly",
   "resources": {
-    "hash": "sha256-bl7cRS/SnlAipDJOZYIjkls/vlKwN7vPGlMBSPrH6ls=",
+    "hash": "sha256-RBToDA03LMNIpnD/p+nP70q2b8Z/ff5vsHfkXZq8oLs=",
     "fingerprinting": {
       "CommandLine.patchfha6i.wasm": "CommandLine.wasm",
       "CsvHelper.4zhysgmj1f.wasm": "CsvHelper.wasm",
@@ -30,8 +30,8 @@
       "Microsoft.Extensions.Primitives.cu7wxzg51n.wasm": "Microsoft.Extensions.Primitives.wasm",
       "Microsoft.JSInterop.WebAssembly.j5m7jjhb9v.wasm": "Microsoft.JSInterop.WebAssembly.wasm",
       "Microsoft.JSInterop.kxhgfet8bu.wasm": "Microsoft.JSInterop.wasm",
-      "MtgCsvHelper.BlazorWebAssembly.s8fbmaux9v.wasm": "MtgCsvHelper.BlazorWebAssembly.wasm",
-      "MtgCsvHelper.g9iod74ak2.wasm": "MtgCsvHelper.wasm",
+      "MtgCsvHelper.BlazorWebAssembly.h7hxwy3ps4.wasm": "MtgCsvHelper.BlazorWebAssembly.wasm",
+      "MtgCsvHelper.jczmouwdxc.wasm": "MtgCsvHelper.wasm",
       "ScryfallApi.Client.2fsn0ugldn.wasm": "ScryfallApi.Client.wasm",
       "Serilog.4s67d7c21i.wasm": "Serilog.wasm",
       "Serilog.Extensions.Logging.3ys5876a4v.wasm": "Serilog.Extensions.Logging.wasm",
@@ -130,8 +130,8 @@
       "Microsoft.Extensions.Primitives.cu7wxzg51n.wasm": "sha256-TKORY8CCoM+5MPgQyw9N1LGPA1oB5ItogkxMhUcNRlw=",
       "Microsoft.JSInterop.WebAssembly.j5m7jjhb9v.wasm": "sha256-GaWH3/h+jMiywp+g7vt6i3wRVl+RkH+TV4HWg12yYXM=",
       "Microsoft.JSInterop.kxhgfet8bu.wasm": "sha256-OArFp/X9PJG6WAqU9vxfCRBMlTJyRmWkyBp7afAVD3Q=",
-      "MtgCsvHelper.BlazorWebAssembly.s8fbmaux9v.wasm": "sha256-FIC6q3yZ6MyENiJKcrY+ijKHf08oEUofPi1UYMACRzs=",
-      "MtgCsvHelper.g9iod74ak2.wasm": "sha256-jCSQvyyPrwvE52jUcZsOlGcCTc+z/j1g8iLjM7KHyTQ=",
+      "MtgCsvHelper.BlazorWebAssembly.h7hxwy3ps4.wasm": "sha256-XS2jM/CuW7dg1ltPcHsezXP5tcnG8KSyTfHZIhz5dPA=",
+      "MtgCsvHelper.jczmouwdxc.wasm": "sha256-c+zC6rPsFiE5zO2JZ9PJlBnQXiUmYIRn/QwEkTIIPaw=",
       "ScryfallApi.Client.2fsn0ugldn.wasm": "sha256-nmclXK1Xpnx23mVNIppdw7OyofbeuoobudBtF49jrZs=",
       "Serilog.4s67d7c21i.wasm": "sha256-7Ph4DpIYUm6II3daX+GzmBUn++wgpMabIVkhba2X9FE=",
       "Serilog.Extensions.Logging.3ys5876a4v.wasm": "sha256-y4W0voy68MdBaTWWr+aKh2gJwf1766giLjnw5DdKsmY=",
