@@ -1,4 +1,4 @@
-/* Manifest version: rgof98re */
+/* Manifest version: OrqPLWpy */
 // Caution! Be sure you understand the caveats before publishing an application with
 // offline support. See https://aka.ms/blazor-offline-considerations
 
