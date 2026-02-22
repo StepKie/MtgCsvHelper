@@ -12,7 +12,7 @@ public class DeckFormatTests(MtgApiFixture fixture, ITestOutputHelper output) : 
 	//[InlineData("CARDKINGDOM")]
 	public void SupportedTest(string deckFormatName)
 	{
-		var classMap = new CardMapFactory(_config).GenerateClassMap(deckFormatName);
+		var classMap = new CardMapFactory(_config).GenerateClassMap(deckFormatName, _api);
 		classMap.Should().NotBeNull();
 	}
 }

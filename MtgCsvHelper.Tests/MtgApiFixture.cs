@@ -13,7 +13,6 @@ public class MtgApiFixture : IAsyncLifetime
 		Log.Logger = AppLogging.GetDefaultLoggerConfig.CreateLogger();
 		Api = new CachedMtgApi(new ScryfallApiClient(CachedMtgApi.DEFAULT_CLIENT));
 		await Api.LoadData();
-		IMtgApi.Default = Api;
 	}
 
 	// HttpClient disposal intentionally skipped — acceptable for test fixtures
