@@ -63,8 +63,13 @@ public class MtgCardCsvHandler
 	{
 		outputFileName ??= $"{_format.ToLower()}-output-{DateTime.Now:yyyy-MM-dd_HH-mm-ss}.csv";
 		Log.Information($"Writing {cards.Sum(c => c.Count)} cards ({cards.Count} unique) cards to {outputFileName}");
+		using var stream = File.OpenWrite(outputFileName);
+		WriteCollectionCsv(cards, stream);
+	}
 
-		using var writer = new StreamWriter(outputFileName);
+	public void WriteCollectionCsv(IList<PhysicalMtgCard> cards, Stream outputStream)
+	{
+		using var writer = new StreamWriter(outputStream, leaveOpen: true);
 		using var csv = new CsvWriter(writer, CultureInfo.InvariantCulture);
 
 		csv.Context.RegisterClassMap(_classMap);

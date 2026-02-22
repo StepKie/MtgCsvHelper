@@ -102,6 +102,7 @@
 	private string? summary;
 	private bool isConverting;
 	private string? resultFileName;
+	private MemoryStream? resultStream;
 
 	private async Task HandleFileUpload(InputFileChangeEventArgs e)
 	{
@@ -136,7 +137,8 @@
 			var cards = collection.Cards;
 			processedRecords = cards.Select(c => c.Printing.Name).ToList();
 			resultFileName ??= $"{selectedInputFormat}-to-{selectedOutputFormat}_{DateTime.Now:yyyy-MM-dd_HH-mm-ss}.csv";
-			writer.WriteCollectionCsv(cards, resultFileName);
+			resultStream = new MemoryStream();
+			writer.WriteCollectionCsv(cards, resultStream);
 
 		}
 		catch (Exception ex)
@@ -152,16 +154,14 @@
 
 	private async Task DownloadResult()
 	{
-		if (string.IsNullOrEmpty(resultFileName))
+		if (resultStream is null || string.IsNullOrEmpty(resultFileName))
 		{
-			Log.Warning("No result file name set, this should not happen");
+			Log.Warning("No result available, this should not happen");
 			return;
 		}
 
-		var fileStream = File.OpenRead(resultFileName);
-		var fileName = resultFileName;
-		using var streamRef = new DotNetStreamReference(stream: fileStream);
-
-		await JS.InvokeVoidAsync("downloadFileFromStream", fileName, streamRef);
+		resultStream.Position = 0;
+		using var streamRef = new DotNetStreamReference(stream: resultStream, leaveOpen: true);
+		await JS.InvokeVoidAsync("downloadFileFromStream", resultFileName, streamRef);
 	}
 }
