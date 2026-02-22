@@ -1,6 +1,7 @@
 ﻿namespace MtgCsvHelper.Tests;
 
-public class MtgApiTests(ITestOutputHelper output) : BaseTest(output)
+[Collection(MtgApiCollection.Name)]
+public class MtgApiTests(MtgApiFixture fixture, ITestOutputHelper output) : ApiBaseTest(fixture, output)
 {
 	[Fact]
 	public void DownloadSetsTest()

@@ -4,7 +4,8 @@ using Serilog;
 
 namespace MtgCsvHelper.Tests;
 
-public class MtgCardCsvHandlerTests(ITestOutputHelper output) : BaseTest(output)
+[Collection(MtgApiCollection.Name)]
+public class MtgCardCsvHandlerTests(MtgApiFixture fixture, ITestOutputHelper output) : ApiBaseTest(fixture, output)
 {
 	public const string SAMPLES_FOLDER = "Resources/SampleCsvs/Samples";
 	public const string COLLECTIONS_FOLDER = "Resources/SampleCsvs/Collection";
