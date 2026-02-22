@@ -21,8 +21,8 @@ public class CachedMtgApi : IMtgApi
 		Log.Debug("CachedMtgApi created");
 	}
 
-	/// <summary> Default Client to use when accessing Scryfall API. Since 09/2024, required UserAgent and Accept headers to be set </summary>
-	public static HttpClient DEFAULT_CLIENT => new HttpClient()
+	/// <summary> Shared client for Scryfall API. Since 09/2024, required UserAgent and Accept headers to be set </summary>
+	public static readonly HttpClient DEFAULT_CLIENT = new()
 	{
 		BaseAddress = ScryfallApiClientConfig.GetDefault().ScryfallApiBaseAddress,
 		DefaultRequestHeaders =
@@ -49,7 +49,7 @@ public class CachedMtgApi : IMtgApi
 	public async Task<List<string>> GetDoubleFacedCardNamesAsync()
 	{
 		var cards = await _api.Catalogs.ListCardNames();
-		var names = cards.Where(name => name.Contains(" // ")).ToList() ?? [];
+		var names = cards.Where(name => name.Contains(" // ")).ToList();
 
 		return names;
 	}
@@ -67,9 +67,11 @@ public class CachedMtgApi : IMtgApi
 			try
 			{
 				var response = await httpClient.GetAsync(query);
+				response.EnsureSuccessStatusCode();
 				var content = await response.Content.ReadAsStringAsync();
-				var cards = JsonSerializer.Deserialize<ResultList<Card>>(content);
-				allCards.AddRange(cards!.Data);
+				var cards = JsonSerializer.Deserialize<ResultList<Card>>(content)
+					?? throw new InvalidOperationException("Unexpected null response from Scryfall API");
+				allCards.AddRange(cards.Data);
 
 				query = cards.NextPage;
 				hasMore = cards.HasMore;

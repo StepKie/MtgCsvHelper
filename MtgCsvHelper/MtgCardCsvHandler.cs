@@ -18,8 +18,6 @@ public class MtgCardCsvHandler
 		_api = api;
 	}
 
-	public string Format { get; init; }
-
 	public Collection ParseCollectionCsv(string csvFilePath) => ParseCollectionCsv(File.OpenRead(csvFilePath));
 
 	public Collection ParseCollectionCsv(Stream csvFilePath)
@@ -63,7 +61,7 @@ public class MtgCardCsvHandler
 	{
 		outputFileName ??= $"{_format.ToLower()}-output-{DateTime.Now:yyyy-MM-dd_HH-mm-ss}.csv";
 		Log.Information($"Writing {cards.Sum(c => c.Count)} cards ({cards.Count} unique) cards to {outputFileName}");
-		using var stream = File.OpenWrite(outputFileName);
+		using var stream = File.Create(outputFileName);
 		WriteCollectionCsv(cards, stream);
 	}
 
