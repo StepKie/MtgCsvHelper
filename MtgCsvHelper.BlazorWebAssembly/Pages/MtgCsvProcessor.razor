@@ -1,4 +1,4 @@
-﻿@page "/"
+@page "/"
 @inject IConfiguration Config
 @inject IMtgApi Api
 @inject IJSRuntime JS
@@ -23,8 +23,8 @@
 			<label for="inputFormat">Select Input Format:</label>
 		</div>
 		<div class="col-md-9">
-			<InputSelect id="inputFormat" @bind-Value="selectedInputFormat">
-				@foreach (var deckFormat in SUPPORTED_FORMATS)
+			<InputSelect id="inputFormat" @bind-Value="_selectedInputFormat">
+				@foreach (var deckFormat in _supportedFormats)
 				{
 					<option>@deckFormat</option>
 				}
@@ -37,8 +37,8 @@
 			<label for="outputFormat">Select Output Format:</label>
 		</div>
 		<div class="col-md-9">
-			<InputSelect id="outputFormat" @bind-Value="selectedOutputFormat">
-				@foreach (var deckFormat in SUPPORTED_FORMATS)
+			<InputSelect id="outputFormat" @bind-Value="_selectedOutputFormat">
+				@foreach (var deckFormat in _supportedFormats)
 				{
 					<option>@deckFormat</option>
 				}
@@ -48,8 +48,8 @@
 
 	<div class="form-group row">
 		<div class="col-md-3 text-end">
-			<button @onclick="Convert" disabled="@(csvFile is null)" class="btn btn-primary">
-				@if (isConverting)
+			<button @onclick="Convert" disabled="@(_csvFile is null)" class="btn btn-primary">
+				@if (_isConverting)
 				{
 					<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>
 					<span class="visually-hidden">Processing...</span>
@@ -62,7 +62,7 @@
 			</button>
 		</div>
 		<div class="col-md-9">
-			@if (!isConverting && processedRecords.Any())
+			@if (!_isConverting && _processedRecords.Any())
 			{
 				<button class="btn btn-success" @onclick="DownloadResult">Download Converted .csv</button>
 			}
@@ -71,17 +71,17 @@
 </div>
 
 
-@if (!string.IsNullOrEmpty(summary))
+@if (!string.IsNullOrEmpty(_summary))
 {
-	<p style="white-space: pre-line" >@summary</p>
+	<p style="white-space: pre-line" >@_summary</p>
 }
 
-@if (processedRecords.Any())
+@if (_processedRecords.Any())
 {
 	<h4>Processed Records</h4>
 	<!-- Display the processed records as needed -->
 	<ul>
-		@foreach (var record in processedRecords)
+		@foreach (var record in _processedRecords)
 		{
 			<li>@record</li>
 		}
@@ -89,26 +89,25 @@
 }
 
 @code {
-	private static int MAX_FILE_SIZE = 5 * 1024 * 1024; // 5MB
-	private static List<string> SUPPORTED_FORMATS = CardMapFactory.Supported;
+	private static readonly int _maxFileSize = 5 * 1024 * 1024; // 5MB
+	private static readonly List<string> _supportedFormats = CardMapFactory.Supported;
 
-	private string selectedInputFormat = SUPPORTED_FORMATS[0];
-	private string selectedOutputFormat = SUPPORTED_FORMATS[1];
+	private string _selectedInputFormat = _supportedFormats[0];
+	private string _selectedOutputFormat = _supportedFormats[1];
 
-	private List<string> processedRecords = [];
-	private IBrowserFile? csvFile;
+	private List<string> _processedRecords = [];
+	private IBrowserFile? _csvFile;
 
-
-	private string? summary;
-	private bool isConverting;
-	private string? resultFileName;
-	private MemoryStream? resultStream;
+	private string? _summary;
+	private bool _isConverting;
+	private string? _resultFileName;
+	private MemoryStream? _resultStream;
 
 	private async Task HandleFileUpload(InputFileChangeEventArgs e)
 	{
 		// Store the file for later use
 		// TODO GetMultipleFiles() support
-		csvFile = e.File;
+		_csvFile = e.File;
 		await Api.LoadData();
 	}
 
@@ -116,52 +115,47 @@
 	{
 		try
 		{
-			isConverting = true;
+			_isConverting = true;
 			StateHasChanged();
 			await Task.Delay(1);
 
 			Stream csvStream = new MemoryStream();
-			// We need an async stream to read the file contents
-
-			await csvFile!.OpenReadStream(maxAllowedSize: MAX_FILE_SIZE).CopyToAsync(csvStream);
-			// Reset the stream position so we can read it
+			await _csvFile!.OpenReadStream(maxAllowedSize: _maxFileSize).CopyToAsync(csvStream);
 			csvStream.Position = 0;
 
-			var reader = new MtgCardCsvHandler(Api, Config, selectedInputFormat);
-			var writer = new MtgCardCsvHandler(Api, Config, selectedOutputFormat);
+			var reader = new MtgCardCsvHandler(Api, Config, _selectedInputFormat);
+			var writer = new MtgCardCsvHandler(Api, Config, _selectedOutputFormat);
 
 			var collection = reader.ParseCollectionCsv(csvStream);
-			summary = collection.GenerateSummary();
-			Console.WriteLine(summary);
-			
-			var cards = collection.Cards;
-			processedRecords = cards.Select(c => c.Printing.Name).ToList();
-			resultFileName ??= $"{selectedInputFormat}-to-{selectedOutputFormat}_{DateTime.Now:yyyy-MM-dd_HH-mm-ss}.csv";
-			resultStream = new MemoryStream();
-			writer.WriteCollectionCsv(cards, resultStream);
+			_summary = collection.GenerateSummary();
 
+			var cards = collection.Cards;
+			_processedRecords = cards.Select(c => c.Printing.Name).ToList();
+			_resultFileName ??= $"{_selectedInputFormat}-to-{_selectedOutputFormat}_{DateTime.Now:yyyy-MM-dd_HH-mm-ss}.csv";
+			_resultStream = new MemoryStream();
+			writer.WriteCollectionCsv(cards, _resultStream);
 		}
 		catch (Exception ex)
 		{
-			summary = $"Unexpected error converting file: {ex.Message} \n {ex.StackTrace}";
+			_summary = $"Unexpected error converting file: {ex.Message} \n {ex.StackTrace}";
 		}
 		finally
 		{
-			isConverting = false;
+			_isConverting = false;
 			StateHasChanged();
 		}
 	}
 
 	private async Task DownloadResult()
 	{
-		if (resultStream is null || string.IsNullOrEmpty(resultFileName))
+		if (_resultStream is null || string.IsNullOrEmpty(_resultFileName))
 		{
 			Log.Warning("No result available, this should not happen");
 			return;
 		}
 
-		resultStream.Position = 0;
-		using var streamRef = new DotNetStreamReference(stream: resultStream, leaveOpen: true);
-		await JS.InvokeVoidAsync("downloadFileFromStream", resultFileName, streamRef);
+		_resultStream.Position = 0;
+		using var streamRef = new DotNetStreamReference(stream: _resultStream, leaveOpen: true);
+		await JS.InvokeVoidAsync("downloadFileFromStream", _resultFileName, streamRef);
 	}
 }
