@@ -4,7 +4,7 @@ using MtgCsvHelper.Services;
 
 namespace MtgCsvHelper;
 
-public class CardMapFactory(IConfiguration config)
+public class CardMapFactory(IConfiguration config, IMtgApi api)
 {
 	readonly List<DeckConfig> _deckConfigs = From(config).ToList();
 
@@ -18,5 +18,5 @@ public class CardMapFactory(IConfiguration config)
 
 	public DeckConfig? GetDeckConfig(string format) => _deckConfigs.FirstOrDefault(c => c.Name.Equals(format));
 
-	public PhysicalCardMap? GenerateClassMap(string format, IMtgApi api) => GetDeckConfig(format) is DeckConfig dc ? new(dc, format.Equals("CARDKINGDOM"), api) : null;
+	public PhysicalCardMap? GenerateClassMap(string format) => GetDeckConfig(format) is DeckConfig dc ? new(dc, format.Equals("CARDKINGDOM"), api) : null;
 }

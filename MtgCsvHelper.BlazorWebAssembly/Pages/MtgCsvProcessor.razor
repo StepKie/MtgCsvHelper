@@ -4,6 +4,7 @@
 @inject IJSRuntime JS
 @using Serilog
 @using System.Text
+@implements IDisposable
 
 <h3 class="mb-4">Convert your MtG collection .csv file</h3>
 
@@ -89,8 +90,8 @@
 }
 
 @code {
-	private static readonly int _maxFileSize = 5 * 1024 * 1024; // 5MB
-	private static readonly List<string> _supportedFormats = CardMapFactory.Supported;
+	private const int MaxFileSize = 5 * 1024 * 1024; // 5MB
+	private static readonly IReadOnlyList<string> _supportedFormats = CardMapFactory.Supported;
 
 	private string _selectedInputFormat = _supportedFormats[0];
 	private string _selectedOutputFormat = _supportedFormats[1];
@@ -120,7 +121,7 @@
 			await Task.Delay(1);
 
 			Stream csvStream = new MemoryStream();
-			await _csvFile!.OpenReadStream(maxAllowedSize: _maxFileSize).CopyToAsync(csvStream);
+			await _csvFile!.OpenReadStream(maxAllowedSize: MaxFileSize).CopyToAsync(csvStream);
 			csvStream.Position = 0;
 
 			var reader = new MtgCardCsvHandler(Api, Config, _selectedInputFormat);
@@ -131,13 +132,14 @@
 
 			var cards = collection.Cards;
 			_processedRecords = cards.Select(c => c.Printing.Name).ToList();
-			_resultFileName ??= $"{_selectedInputFormat}-to-{_selectedOutputFormat}_{DateTime.Now:yyyy-MM-dd_HH-mm-ss}.csv";
+			_resultFileName = $"{_selectedInputFormat}-to-{_selectedOutputFormat}_{DateTime.Now:yyyy-MM-dd_HH-mm-ss}.csv";
+			_resultStream?.Dispose();
 			_resultStream = new MemoryStream();
 			writer.WriteCollectionCsv(cards, _resultStream);
 		}
 		catch (Exception ex)
 		{
-			_summary = $"Unexpected error converting file: {ex.Message} \n {ex.StackTrace}";
+			_summary = $"Unexpected error converting file: {ex.Message}";
 		}
 		finally
 		{
@@ -157,5 +159,10 @@
 		_resultStream.Position = 0;
 		using var streamRef = new DotNetStreamReference(stream: _resultStream, leaveOpen: true);
 		await JS.InvokeVoidAsync("downloadFileFromStream", _resultFileName, streamRef);
+	}
+
+	public void Dispose()
+	{
+		_resultStream?.Dispose();
 	}
 }
