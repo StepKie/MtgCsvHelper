@@ -37,6 +37,10 @@ async function onActivate(event) {
         .map(key => caches.delete(key)));
 }
 
+self.addEventListener('message', event => {
+    if (event.data?.type === 'SKIP_WAITING') self.skipWaiting();
+});
+
 async function onFetch(event) {
     let cachedResponse = null;
     if (event.request.method === 'GET') {

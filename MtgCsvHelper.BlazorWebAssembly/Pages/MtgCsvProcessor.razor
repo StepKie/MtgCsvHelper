@@ -15,7 +15,7 @@
 		</div>
 		<div class="col-md-9">
 			<!-- TODO Add "multiple  after OnChange to support uploading multiple files -->
-			<InputFile id="fileUpload" OnChange="@HandleFileUpload" />
+			<InputFile id="fileUpload" OnChange="@HandleFileUpload" disabled="@_isApiLoading" />
 		</div>
 	</div>
 
@@ -49,7 +49,7 @@
 
 	<div class="form-group row">
 		<div class="col-md-3 text-end">
-			<button @onclick="Convert" disabled="@(_csvFile is null)" class="btn btn-primary">
+			<button @onclick="Convert" disabled="@(_csvFile is null || _isApiLoading)" class="btn btn-primary">
 				@if (_isConverting)
 				{
 					<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>
@@ -71,6 +71,13 @@
 	</div>
 </div>
 
+@if (_isApiLoading)
+{
+	<div class="alert alert-info mt-3" role="alert">
+		<span class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>
+		Loading card data from Scryfall...
+	</div>
+}
 
 @if (!string.IsNullOrEmpty(_summary))
 {
@@ -101,15 +108,22 @@
 
 	private string? _summary;
 	private bool _isConverting;
+	private bool _isApiLoading = true;
 	private string? _resultFileName;
 	private MemoryStream? _resultStream;
 
+	protected override async Task OnAfterRenderAsync(bool firstRender)
+	{
+		if (!firstRender) return;
+		await Api.LoadData();
+		_isApiLoading = false;
+		StateHasChanged();
+	}
+
 	private async Task HandleFileUpload(InputFileChangeEventArgs e)
 	{
-		// Store the file for later use
 		// TODO GetMultipleFiles() support
 		_csvFile = e.File;
-		await Api.LoadData();
 	}
 
 	private async Task Convert()

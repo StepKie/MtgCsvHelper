@@ -29,6 +29,13 @@
         <a href="" class="reload">Reload</a>
         <a class="dismiss">🗙</a>
     </div>
+
+    <div id="sw-update-banner"
+         style="display:none; position:fixed; bottom:0; left:0; right:0; padding:10px 16px; background:#0d6efd; color:white; text-align:center; z-index:9999; box-shadow:0 -2px 6px rgba(0,0,0,.25)">
+        A new version is available.
+        <button onclick="applyUpdate()" class="btn btn-light btn-sm" style="margin-left:12px;">Reload to update</button>
+    </div>
+
     <script src="_framework/blazor.webassembly.js"></script>
 	<script>
 		window.downloadFileFromStream = async (fileName, contentStreamReference) => {
@@ -43,8 +50,36 @@
 			URL.revokeObjectURL(url);
 		}
 	</script>
-    <script>navigator.serviceWorker.register('service-worker.js');</script>
+    <script>
+        navigator.serviceWorker.register('service-worker.js');
+
+        // Show a reload banner when a new version of the app is available
+        let _pendingWorker = null;
+
+        function showUpdateBanner(worker) {
+            _pendingWorker = worker;
+            document.getElementById('sw-update-banner').style.display = 'block';
+        }
+
+        function applyUpdate() {
+            if (_pendingWorker) _pendingWorker.postMessage({ type: 'SKIP_WAITING' });
+        }
+
+        if ('serviceWorker' in navigator) {
+            navigator.serviceWorker.ready.then(reg => {
+                if (reg.waiting) showUpdateBanner(reg.waiting);
+                reg.addEventListener('updatefound', () => {
+                    const sw = reg.installing;
+                    sw.addEventListener('statechange', () => {
+                        if (sw.state === 'installed' && navigator.serviceWorker.controller)
+                            showUpdateBanner(sw);
+                    });
+                });
+            });
+            // Reload once the new SW takes control so the fresh version is served
+            navigator.serviceWorker.addEventListener('controllerchange', () => location.reload());
+        }
+    </script>
 </body>
 
 </html>
-
