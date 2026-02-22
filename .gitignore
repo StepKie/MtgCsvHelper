@@ -362,3 +362,9 @@ MigrationBackup/
 # Fody - auto-generated XML schema
 FodyWeavers.xsd
 MtgCsvHelper.BlazorWebAssembly/wwwroot/README.md
+
+# VS Code workspace file
+*.code-workspace
+
+# Claude Code local settings
+.claude/settings.local.json
