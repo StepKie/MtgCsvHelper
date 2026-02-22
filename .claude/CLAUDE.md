@@ -11,7 +11,7 @@ Tool for converting Magic: The Gathering card collection CSV files between forma
 
 ## Tech Stack
 
-- .NET 9.0, C#
+- .NET 10.0, C#
 - Blazor WebAssembly for the web frontend
 - xUnit + AwesomeAssertions for tests
 - CsvHelper for CSV parsing
