@@ -22,6 +22,7 @@
             <circle r="40%" cx="50%" cy="50%" />
         </svg>
         <div class="loading-progress-text"></div>
+        <p id="loading-status" style="text-align:center; color:#666; display:none;">Initializing runtime&hellip;</p>
     </div>
 
     <div id="blazor-error-ui">
@@ -51,7 +52,7 @@
 		}
 	</script>
     <script>
-        // Once the download circle hits 100%, swap the text to "Initializing…"
+        // Once the download circle hits 100%, show a status message below it
         // so users know the runtime is still starting up (not frozen)
         (function () {
             var watcher = setInterval(function () {
@@ -59,8 +60,7 @@
                     .getPropertyValue('--blazor-load-percentage').trim();
                 if (pct === '100%') {
                     clearInterval(watcher);
-                    document.documentElement.style.setProperty(
-                        '--blazor-load-percentage-text', '"Initializing\2026"');
+                    document.getElementById('loading-status').style.display = 'block';
                 }
             }, 100);
         })();
