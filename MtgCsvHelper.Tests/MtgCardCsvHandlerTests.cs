@@ -1,4 +1,3 @@
-using Microsoft.Extensions.Configuration;
 using ScryfallApi.Client.Models;
 using Serilog;
 
@@ -75,12 +74,7 @@ public class MtgCardCsvHandlerTests(MtgApiFixture fixture, ITestOutputHelper out
 		cards.Should().HaveCountGreaterThan(500);
 	}
 
-	MtgCardCsvHandler CreateHandler(string deckFormatName)
-	{
-		IConfigurationRoot configuration = new ConfigurationBuilder().AddJsonFile("appsettings.json", false).Build();
-
-		return new MtgCardCsvHandler(_api, configuration, deckFormatName);
-	}
+	MtgCardCsvHandler CreateHandler(string deckFormatName) => new(_api, _config, deckFormatName);
 
 	static List<PhysicalMtgCard> GetReferenceCards(Currency currency)
 	{
