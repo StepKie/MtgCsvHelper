@@ -10,7 +10,7 @@ public class BaseTest
 
 	public BaseTest(ITestOutputHelper output, LogEventLevel level = LogEventLevel.Debug)
 	{
-		Log.Logger = AppLogging.GetDefaultLoggerConfig.WriteTo.TestOutput(output, level).CreateLogger();
+		Log.Logger = AppLogging.CreateDefaultLoggerConfig().WriteTo.TestOutput(output, level).CreateLogger();
 		_config = new ConfigurationBuilder().AddJsonFile("appsettings.json").Build();
 	}
 }
