@@ -51,6 +51,20 @@
 		}
 	</script>
     <script>
+        // Once the download circle hits 100%, swap the text to "Initializing…"
+        // so users know the runtime is still starting up (not frozen)
+        (function () {
+            var watcher = setInterval(function () {
+                var pct = getComputedStyle(document.documentElement)
+                    .getPropertyValue('--blazor-load-percentage').trim();
+                if (pct === '100%') {
+                    clearInterval(watcher);
+                    document.documentElement.style.setProperty(
+                        '--blazor-load-percentage-text', '"Initializing\2026"');
+                }
+            }, 100);
+        })();
+
         navigator.serviceWorker.register('service-worker.js');
 
         // Show a reload banner when a new version of the app is available
