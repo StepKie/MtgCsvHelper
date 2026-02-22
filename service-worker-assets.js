@@ -113,12 +113,12 @@
       "url": "_framework\/Microsoft.JSInterop.cu5anwo1y2.wasm"
     },
     {
-      "hash": "sha256-WZTzlQohqI3Mmjq6NHe887FOtKeDWswQbTIkMtN22g8=",
-      "url": "_framework\/MtgCsvHelper.7gafdf0bwe.wasm"
+      "hash": "sha256-0g96mcp71nxmHi7asXiBWFIVuqmGriN1arCeIe\/NhCg=",
+      "url": "_framework\/MtgCsvHelper.BlazorWebAssembly.ehuu61ndc4.wasm"
     },
     {
-      "hash": "sha256-rxH\/B8dcy2YRZo6uAr5ik2zTuV8rCCPAZpDSDNOW36w=",
-      "url": "_framework\/MtgCsvHelper.BlazorWebAssembly.bpaq5hpzwj.wasm"
+      "hash": "sha256-ZSbBQ5VEl4WR1ZIZk83YXXtHCaVrapCBOq\/6yAPElro=",
+      "url": "_framework\/MtgCsvHelper.fbgg3o2ndd.wasm"
     },
     {
       "hash": "sha256-nmclXK1Xpnx23mVNIppdw7OyofbeuoobudBtF49jrZs=",
@@ -313,7 +313,7 @@
       "url": "_framework\/blazor.webassembly.js"
     },
     {
-      "hash": "sha256-xfZsBklXe\/8GE\/O0huGpLPz1WlV\/UcxMFbdGJEFK+Fk=",
+      "hash": "sha256-X\/gaFBInO3EWPk4NsPK3x5BdSwzB6X6FG2gtdjPOjhk=",
       "url": "_framework\/dotnet.js"
     },
     {
@@ -377,5 +377,5 @@
       "url": "sample-data\/weather.json"
     }
   ],
-  "version": "Az3kMZOq"
+  "version": "P\/r5YTR7"
 };
