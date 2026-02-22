@@ -17,7 +17,6 @@ Log.Logger = new LoggerConfiguration().ReadFrom.Configuration(config).CreateLogg
 
 var api = host.Services.GetService<IMtgApi>()!;
 await api.LoadData();
-IMtgApi.Default = api;
 
 Parser.Default.ParseArguments<CommandLineOptions>(args)
 	.WithNotParsed(HandleParseError)

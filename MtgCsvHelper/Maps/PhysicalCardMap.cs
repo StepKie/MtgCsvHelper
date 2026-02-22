@@ -1,27 +1,28 @@
 ﻿using CsvHelper.Configuration;
 using MtgCsvHelper.Converters;
+using MtgCsvHelper.Services;
 
 namespace MtgCsvHelper.Maps;
 
 public class PhysicalCardMap : ClassMap<PhysicalMtgCard>
 {
-    public PhysicalCardMap(DeckConfig columnConfig, bool ck)
+    public PhysicalCardMap(DeckConfig columnConfig, bool ck, IMtgApi api)
     {
         // Yes it is ugly. No I dont care. F#!& you CardKingdom!
         if (ck)
         {
-            ConfigureCK(columnConfig);
+            ConfigureCK(columnConfig, api);
         }
         else
         {
-            ConfigureMaps(columnConfig);
+            ConfigureMaps(columnConfig, api);
         }
     }
 
-    void ConfigureMaps(DeckConfig columnConfig)
+    void ConfigureMaps(DeckConfig columnConfig, IMtgApi api)
     {
         Map(card => card.Count).Name(columnConfig.Quantity).Index(1);
-        Map(card => card.Printing.Name).TypeConverter(new CardNameConverter(columnConfig.CardName)).Name(columnConfig.CardName.HeaderName).Index(0);
+        Map(card => card.Printing.Name).TypeConverter(new CardNameConverter(columnConfig.CardName, api)).Name(columnConfig.CardName.HeaderName).Index(0);
         if (columnConfig.SetNumber is not null) { Map(card => card.Printing.CollectorNumber).Name(columnConfig.SetNumber).Optional(); }
 
         // We implicitly assume that at least one of them is present (some sites use SetName, some use SetCode, some use both...)
@@ -34,9 +35,9 @@ public class PhysicalCardMap : ClassMap<PhysicalMtgCard>
         if (columnConfig.PriceBought is PriceConfiguration price) { Map(card => card.PriceBought).TypeConverter(new PriceConverter(price)).Name(price.HeaderName).Optional(); }
     }
 
-    void ConfigureCK(DeckConfig columnConfig)
+    void ConfigureCK(DeckConfig columnConfig, IMtgApi api)
     {
-        Map(card => card.Printing.Name).TypeConverter(new CardNameConverter(columnConfig.CardName)).Name(columnConfig.CardName.HeaderName).Index(0);
+        Map(card => card.Printing.Name).TypeConverter(new CardNameConverter(columnConfig.CardName, api)).Name(columnConfig.CardName.HeaderName).Index(0);
         if (columnConfig.SetName is not null) { Map(card => card.Printing.SetName).TypeConverter<UpperCaseConverter>().Name(columnConfig.SetName).Index(1); }
         Map(card => card.Foil).TypeConverter(new FinishConverter(columnConfig.Finish!)).Name(columnConfig.Finish!.HeaderName).Index(2);
         Map(card => card.Count).Name(columnConfig.Quantity).Index(3);

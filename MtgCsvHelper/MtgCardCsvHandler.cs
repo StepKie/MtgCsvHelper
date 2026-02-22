@@ -14,7 +14,7 @@ public class MtgCardCsvHandler
 	public MtgCardCsvHandler(IMtgApi api, IConfiguration config, string format)
 	{
 		_format = format;
-		_classMap = new CardMapFactory(config).GenerateClassMap(format) ?? throw new ArgumentException($"Unsupported {format} - not found in configuration file");
+		_classMap = new CardMapFactory(config).GenerateClassMap(format, api) ?? throw new ArgumentException($"Unsupported {format} - not found in configuration file");
 		_api = api;
 	}
 

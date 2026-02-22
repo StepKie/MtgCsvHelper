@@ -4,9 +4,6 @@ namespace MtgCsvHelper.Services;
 
 public interface IMtgApi
 {
-	// FIXME Workaround since it is currently annoying to pass IMtgApi to CardNameConverter instance through DI
-	static IMtgApi Default { get; set; }
-
 	IEnumerable<Set> GetSets();
 	Task<IEnumerable<Set>> GetSetsAsync();
 

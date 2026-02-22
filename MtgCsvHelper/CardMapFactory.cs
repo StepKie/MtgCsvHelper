@@ -1,5 +1,6 @@
-﻿using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.Configuration;
 using MtgCsvHelper.Maps;
+using MtgCsvHelper.Services;
 
 namespace MtgCsvHelper;
 
@@ -17,5 +18,5 @@ public class CardMapFactory(IConfiguration config)
 
 	public DeckConfig? GetDeckConfig(string format) => _deckConfigs.FirstOrDefault(c => c.Name.Equals(format));
 
-	public PhysicalCardMap? GenerateClassMap(string format) => GetDeckConfig(format) is DeckConfig dc ? new(dc, format.Equals("CARDKINGDOM")) : null;
+	public PhysicalCardMap? GenerateClassMap(string format, IMtgApi api) => GetDeckConfig(format) is DeckConfig dc ? new(dc, format.Equals("CARDKINGDOM"), api) : null;
 }
