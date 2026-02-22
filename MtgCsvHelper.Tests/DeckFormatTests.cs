@@ -1,6 +1,7 @@
-﻿namespace MtgCsvHelper.Tests;
+namespace MtgCsvHelper.Tests;
 
-public class DeckFormatTests(ITestOutputHelper output) : BaseTest(output)
+[Collection(MtgApiCollection.Name)]
+public class DeckFormatTests(MtgApiFixture fixture, ITestOutputHelper output) : ApiBaseTest(fixture, output)
 {
 	[Theory]
 	[InlineData("DRAGONSHIELD")]
