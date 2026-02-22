@@ -116,11 +116,11 @@ silently. Should throw a descriptive exception listing supported formats instead
 
 ---
 
-### 17. `GetDefaultLoggerConfig` is a factory property
+### ✅ 17. `GetDefaultLoggerConfig` is a factory property
 **File**: `MtgCsvHelper/AppLogging.cs`
 `public static LoggerConfiguration GetDefaultLoggerConfig => new LoggerConfiguration()...` looks like a static getter but returns a new instance on every access. Properties that create new objects on every call are misleading.
 
-**Fix**: Rename to `CreateDefaultLoggerConfig()` (method) to signal that it creates a new instance.
+**Fixed**: Renamed to `CreateDefaultLoggerConfig()` (method) to signal that it creates a new instance.
 
 ---
 
