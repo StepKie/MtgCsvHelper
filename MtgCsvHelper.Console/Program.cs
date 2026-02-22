@@ -36,7 +36,7 @@ void RunWithOptions(CommandLineOptions opts)
 
 	foreach (var fileName in filesToParse)
 	{
-		var parsedCardsFromFile = reader.ParseCollectionCsv(new FileStream(fileName, FileMode.Open)).Cards;
+		var parsedCardsFromFile = reader.ParseCollectionCsv(fileName).Cards;
 		cardsFound.AddRange(parsedCardsFromFile);
 	}
 

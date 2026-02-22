@@ -10,7 +10,7 @@ public class MtgApiFixture : IAsyncLifetime
 
 	public async Task InitializeAsync()
 	{
-		Log.Logger = AppLogging.GetDefaultLoggerConfig.CreateLogger();
+		Log.Logger = AppLogging.CreateDefaultLoggerConfig().CreateLogger();
 		Api = new CachedMtgApi(new ScryfallApiClient(CachedMtgApi.DEFAULT_CLIENT));
 		await Api.LoadData();
 	}
