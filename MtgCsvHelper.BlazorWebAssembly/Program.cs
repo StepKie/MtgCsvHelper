@@ -21,15 +21,10 @@ var host = builder.Build();
 var config = builder.Configuration;
 
 Log.Logger = new LoggerConfiguration().ReadFrom.Configuration(config).CreateLogger();
-// TODO Figure out why serilog does not want to work
+// TODO Figure out why Serilog does not want to work
 Log.Information("Hello, Blazor, Serilog online!");
 
-// TODO Everything below is just for debugging dependency injection, remove when stable
-var csvConfigs = config.GetSection("CsvConfigurations");
-var deckConfigsBuilder = CardMapFactory.From(config).ToList();
-
 var api = host.Services.GetService<IMtgApi>()!;
-IMtgApi.Default = api;
 await api.LoadData();
 
 await host.RunAsync();
