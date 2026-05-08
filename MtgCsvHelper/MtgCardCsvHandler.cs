@@ -1,20 +1,19 @@
-﻿using System.Globalization;
+using System.Globalization;
 using CsvHelper.Configuration;
 using Microsoft.Extensions.Configuration;
-using MtgCsvHelper.Maps;
 using MtgCsvHelper.Services;
 
 namespace MtgCsvHelper;
 public class MtgCardCsvHandler
 {
-	readonly PhysicalCardMap _classMap;
+	readonly CardMapFactory _factory;
 	readonly IMtgApi _api;
 	readonly string _format;
 
 	public MtgCardCsvHandler(IMtgApi api, IConfiguration config, string format)
 	{
 		_format = format;
-		_classMap = new CardMapFactory(config, api).GenerateClassMap(format) ?? throw new ArgumentException($"Unsupported {format} - not found in configuration file");
+		_factory = new CardMapFactory(config, api);
 		_api = api;
 	}
 
@@ -27,7 +26,7 @@ public class MtgCardCsvHandler
 		CheckIfFirstLineCanBeIgnored(stream);
 
 		using var csv = new CsvReader(stream, new CsvConfiguration(CultureInfo.InvariantCulture) {/* HeaderValidated = null,*/ MissingFieldFound = null });
-		csv.Context.RegisterClassMap(_classMap);
+		csv.Context.RegisterClassMap(_factory.GenerateReadMap(_format));
 		List<PhysicalMtgCard> cards = csv.GetRecords<PhysicalMtgCard>().ToList();
 
 		var sets = _api.GetSets();
@@ -70,7 +69,7 @@ public class MtgCardCsvHandler
 		using var writer = new StreamWriter(outputStream, leaveOpen: true);
 		using var csv = new CsvWriter(writer, CultureInfo.InvariantCulture);
 
-		csv.Context.RegisterClassMap(_classMap);
+		csv.Context.RegisterClassMap(_factory.GenerateWriteMap(_format));
 		csv.WriteHeader<PhysicalMtgCard>();
 		csv.NextRecord();
 		csv.WriteRecords(cards);

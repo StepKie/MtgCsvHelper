@@ -11,11 +11,56 @@ public class DeckFormatTests(MtgApiFixture fixture, ITestOutputHelper output) : 
 	[InlineData("MANABOX")]
 	[InlineData("TOPDECKED")]
 	[InlineData("DECKBOX")]
-	//[InlineData("CARDKINGDOM")]
-	public void SupportedTest(string deckFormatName)
+	[InlineData("MTGGOLDFISH")]
+	[InlineData("TCGPLAYER")]
+	public void GenerateReadMap_ForBidirectionalFormats_Succeeds(string deckFormatName)
 	{
-		var classMap = new CardMapFactory(_config, _api).GenerateClassMap(deckFormatName);
-		classMap.Should().NotBeNull();
+		var map = new CardMapFactory(_config, _api).GenerateReadMap(deckFormatName);
+		map.Should().NotBeNull();
+	}
+
+	[Theory]
+	[InlineData("DRAGONSHIELD")]
+	[InlineData("MOXFIELD")]
+	[InlineData("MANABOX")]
+	[InlineData("TOPDECKED")]
+	[InlineData("DECKBOX")]
+	[InlineData("MTGGOLDFISH")]
+	[InlineData("TCGPLAYER")]
+	[InlineData("CARDKINGDOM")]
+	public void GenerateWriteMap_ForAllSupportedFormats_Succeeds(string deckFormatName)
+	{
+		var map = new CardMapFactory(_config, _api).GenerateWriteMap(deckFormatName);
+		map.Should().NotBeNull();
+	}
+
+	[Fact]
+	public void GenerateReadMap_ForCardKingdom_Throws()
+	{
+		var factory = new CardMapFactory(_config, _api);
+		var act = () => factory.GenerateReadMap("CARDKINGDOM");
+		act.Should().Throw<InvalidOperationException>().WithMessage("*write-only*");
+	}
+
+	[Theory]
+	[InlineData("UNKNOWN_FORMAT")]
+	[InlineData("")]
+	public void GenerateReadMap_ForUnknownFormat_ThrowsWithSupportedList(string deckFormatName)
+	{
+		var factory = new CardMapFactory(_config, _api);
+		var act = () => factory.GenerateReadMap(deckFormatName);
+		act.Should().Throw<ArgumentException>()
+			.WithMessage("*MOXFIELD*"); // supported list is included in the message
+	}
+
+	[Theory]
+	[InlineData("UNKNOWN_FORMAT")]
+	public void GenerateWriteMap_ForUnknownFormat_ThrowsWithSupportedList(string deckFormatName)
+	{
+		var factory = new CardMapFactory(_config, _api);
+		var act = () => factory.GenerateWriteMap(deckFormatName);
+		act.Should().Throw<ArgumentException>()
+			.WithMessage("*MOXFIELD*");
 	}
 
 	[Theory]
@@ -41,5 +86,13 @@ public class DeckFormatTests(MtgApiFixture fixture, ITestOutputHelper output) : 
 		parsed.Should().HaveCount(1);
 		parsed[0].Printing.Name.Should().Be("Lightning Bolt");
 		parsed[0].Count.Should().Be(2);
+	}
+
+	[Fact]
+	public void ParseCollectionCsv_WithCardKingdomAsInput_Throws()
+	{
+		var handler = new MtgCardCsvHandler(_api, _config, "CARDKINGDOM");
+		var act = () => handler.ParseCollectionCsv(new MemoryStream("a,b,c\n"u8.ToArray()));
+		act.Should().Throw<InvalidOperationException>().WithMessage("*write-only*");
 	}
 }

@@ -34,7 +34,7 @@ dotnet run --project MtgCsvHelper.Console
 ## Conventions
 
 - File-scoped namespaces (`csharp_style_namespace_declarations = file_scoped`)
-- 4 spaces indentation for C#, 2 spaces for XML/csproj
+- Tabs (width 4) for C#, 2 spaces for XML/csproj
 - Allman brace style (opening brace on new line)
 - PascalCase for types and public members, `_camelCase` for private fields
 - Interfaces prefixed with `I`

@@ -1,3 +1,4 @@
+using CsvHelper.Configuration;
 using Microsoft.Extensions.Configuration;
 using MtgCsvHelper.Maps;
 using MtgCsvHelper.Services;
@@ -6,17 +7,39 @@ namespace MtgCsvHelper;
 
 public class CardMapFactory(IConfiguration config, IMtgApi api)
 {
-	readonly List<DeckConfig> _deckConfigs = From(config).ToList();
+	readonly List<FormatConfig> _formatConfigs = From(config).ToList();
 
 	public static List<string> Supported { get; } = ["MOXFIELD", "DRAGONSHIELD", "MANABOX", "TOPDECKED", "DECKBOX", "CARDKINGDOM", "MTGGOLDFISH", "TCGPLAYER"];
 	public static List<string> NotYetFullySupported { get; } = ["URZAGATHERER"];
 
-	public static IEnumerable<DeckConfig> From(IConfiguration config) =>
+	// Formats that cannot be parsed (their CSV does not carry enough information to recover a canonical card).
+	static readonly HashSet<string> WriteOnlyFormats = new(StringComparer.OrdinalIgnoreCase) { "CARDKINGDOM" };
+
+	public static IEnumerable<FormatConfig> From(IConfiguration config) =>
 		config.GetSection("CsvConfigurations")
 		.GetChildren()
-		.Select(c => c.Get<DeckConfig>()!);
+		.Select(c => c.Get<FormatConfig>()!);
 
-	public DeckConfig? GetDeckConfig(string format) => _deckConfigs.FirstOrDefault(c => c.Name.Equals(format));
+	public FormatConfig? GetFormatConfig(string format) => _formatConfigs.FirstOrDefault(c => c.Name.Equals(format, StringComparison.OrdinalIgnoreCase));
 
-	public PhysicalCardMap? GenerateClassMap(string format) => GetDeckConfig(format) is DeckConfig dc ? new(dc, format.Equals("CARDKINGDOM"), api) : null;
+	public ClassMap<PhysicalMtgCard> GenerateReadMap(string format)
+	{
+		var cfg = RequireFormat(format);
+		if (WriteOnlyFormats.Contains(format))
+		{
+			throw new InvalidOperationException($"Format '{format}' is write-only and cannot be parsed.");
+		}
+		return new PhysicalCardMap(cfg, api);
+	}
+
+	public ClassMap<PhysicalMtgCard> GenerateWriteMap(string format)
+	{
+		var cfg = RequireFormat(format);
+		return format.Equals("CARDKINGDOM", StringComparison.OrdinalIgnoreCase)
+			? new CardKingdomWriteMap(cfg, api)
+			: new PhysicalCardMap(cfg, api);
+	}
+
+	FormatConfig RequireFormat(string format) => GetFormatConfig(format)
+		?? throw new ArgumentException($"Unsupported format '{format}'. Supported: {string.Join(", ", Supported)}.", nameof(format));
 }

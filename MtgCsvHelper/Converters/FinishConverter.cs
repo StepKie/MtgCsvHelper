@@ -1,6 +1,5 @@
 ﻿using CsvHelper.Configuration;
 using CsvHelper.TypeConversion;
-using MtgCsvHelper.Maps;
 
 namespace MtgCsvHelper.Converters;
 
