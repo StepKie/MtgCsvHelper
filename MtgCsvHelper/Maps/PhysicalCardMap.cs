@@ -1,101 +1,43 @@
-﻿using CsvHelper.Configuration;
+using System.Linq.Expressions;
+using CsvHelper.Configuration;
+using CsvHelper.TypeConversion;
 using MtgCsvHelper.Converters;
 using MtgCsvHelper.Services;
 
 namespace MtgCsvHelper.Maps;
 
+// Bidirectional map for formats whose read and write shape are identical (every supported format except Card Kingdom).
+// MapOptional hides the "if config is null skip, otherwise Map(...).Name(...).Optional()" boilerplate
+// so the body reads as a flat list of mappings rather than a forest of null checks.
 public class PhysicalCardMap : ClassMap<PhysicalMtgCard>
 {
-    public PhysicalCardMap(DeckConfig columnConfig, bool ck, IMtgApi api)
-    {
-        // Yes it is ugly. No I dont care. F#!& you CardKingdom!
-        if (ck)
-        {
-            ConfigureCK(columnConfig, api);
-        }
-        else
-        {
-            ConfigureMaps(columnConfig, api);
-        }
-    }
+	public PhysicalCardMap(FormatConfig cfg, IMtgApi api)
+	{
+		Map(c => c.Count).Name(cfg.Quantity).Index(1);
+		Map(c => c.Printing.Name)
+			.TypeConverter(new CardNameConverter(cfg.CardName, api))
+			.Name(cfg.CardName.HeaderName).Index(0);
 
-    void ConfigureMaps(DeckConfig columnConfig, IMtgApi api)
-    {
-        Map(card => card.Count).Name(columnConfig.Quantity).Index(1);
-        Map(card => card.Printing.Name).TypeConverter(new CardNameConverter(columnConfig.CardName, api)).Name(columnConfig.CardName.HeaderName).Index(0);
-        if (columnConfig.SetNumber is not null) { Map(card => card.Printing.CollectorNumber).Name(columnConfig.SetNumber).Optional(); }
+		// At least one of SetCode / SetName is expected per format (sites differ on which they include).
+		MapOptional(c => c.Printing.CollectorNumber, cfg.SetNumber);
+		MapOptional(c => c.Printing.Set, cfg.SetCode)?.TypeConverter<UpperCaseConverter>();
+		MapOptional(c => c.Printing.SetName, cfg.SetName);
 
-        // We implicitly assume that at least one of them is present (some sites use SetName, some use SetCode, some use both...)
-        if (columnConfig.SetCode is not null) { Map(card => card.Printing.Set).TypeConverter<UpperCaseConverter>().Name(columnConfig.SetCode).Optional(); }
-        if (columnConfig.SetName is not null) { Map(card => card.Printing.SetName).Name(columnConfig.SetName).Optional(); }
+		MapOptional(c => c.Condition, cfg.Condition, c => new CardConditionConverter(c));
+		MapOptional(c => c.Foil, cfg.Finish, c => new FinishConverter(c));
+		MapOptional(c => c.Language, cfg.Language, c => new LanguageConverter(c));
+		MapOptional(c => c.PriceBought, cfg.PriceBought, c => new PriceConverter(c));
+	}
 
-        if (columnConfig.Condition is ConditionConfiguration cond) { Map(card => card.Condition).TypeConverter(new CardConditionConverter(cond)).Name(cond.HeaderName).Optional(); }
-        if (columnConfig.Finish is FinishConfiguration finish) { Map(card => card.Foil).TypeConverter(new FinishConverter(finish)).Name(finish.HeaderName).Optional(); }
-        if (columnConfig.Language is LanguageConfiguration lang) { Map(card => card.Language).TypeConverter(new LanguageConverter(lang)).Name(lang.HeaderName).Optional(); }
-        if (columnConfig.PriceBought is PriceConfiguration price) { Map(card => card.PriceBought).TypeConverter(new PriceConverter(price)).Name(price.HeaderName).Optional(); }
-    }
+	MemberMap<PhysicalMtgCard, TMember>? MapOptional<TMember>(
+		Expression<Func<PhysicalMtgCard, TMember?>> property,
+		string? headerName)
+		=> headerName is null ? null : Map(property).Name(headerName).Optional();
 
-    void ConfigureCK(DeckConfig columnConfig, IMtgApi api)
-    {
-        Map(card => card.Printing.Name).TypeConverter(new CardNameConverter(columnConfig.CardName, api)).Name(columnConfig.CardName.HeaderName).Index(0);
-        if (columnConfig.SetName is not null) { Map(card => card.Printing.SetName).TypeConverter<UpperCaseConverter>().Name(columnConfig.SetName).Index(1); }
-        Map(card => card.Foil).TypeConverter(new FinishConverter(columnConfig.Finish!)).Name(columnConfig.Finish!.HeaderName).Index(2);
-        Map(card => card.Count).Name(columnConfig.Quantity).Index(3);
-    }
+	MemberMap<PhysicalMtgCard, TMember>? MapOptional<TMember, TConfig>(
+		Expression<Func<PhysicalMtgCard, TMember?>> property,
+		TConfig? config,
+		Func<TConfig, ITypeConverter> converterFactory)
+		where TConfig : class, IHeaderConfig
+		=> config is null ? null : Map(property).TypeConverter(converterFactory(config)).Name(config.HeaderName).Optional();
 }
-
-public record DeckConfig(
-    string Name,
-    string Quantity,
-    CardNameConfiguration CardName,
-    string? SetNumber = null,
-    string? SetCode = null,
-    string? SetName = null,
-    FinishConfiguration? Finish = null,
-    ConditionConfiguration? Condition = null,
-    LanguageConfiguration? Language = null,
-    PriceConfiguration? PriceBought = null
-    )
-{
-    public Currency Currency => Currency.FromString(PriceBought?.Currency);
-};
-
-public record CardNameConfiguration(
-    string HeaderName,
-    bool ShortNames = false,
-    bool EncodeToken = false);
-public record FinishConfiguration(
-    string HeaderName,
-    string Foil,
-    string Normal,
-    string? Etched = null);
-public record ConditionConfiguration(
-    string HeaderName,
-    string Mint,
-    string NearMint,
-    string Excellent,
-    string Good,
-    string LightlyPlayed,
-    string Played,
-    string Poor);
-public record LanguageConfiguration(
-    string HeaderName,
-    LanguageMappings Mappings);
-public record LanguageMappings(
-    string en,
-    string es,
-    string fr,
-    string de,
-    string it,
-    string pt,
-    string ja,
-    string ko,
-    string ru,
-    string zht,
-    string zhs
-    );
-
-public record PriceConfiguration(
-    string HeaderName,
-    string Currency,
-    string CurrencySymbol);

@@ -1,0 +1,67 @@
+namespace MtgCsvHelper;
+
+public record FormatConfig(
+	string Name,
+	string Quantity,
+	CardNameConfiguration CardName,
+	string? SetNumber = null,
+	string? SetCode = null,
+	string? SetName = null,
+	FinishConfiguration? Finish = null,
+	ConditionConfiguration? Condition = null,
+	LanguageConfiguration? Language = null,
+	PriceConfiguration? PriceBought = null
+	)
+{
+	public Currency Currency => Currency.FromString(PriceBought?.Currency);
+};
+
+// Shared shape for the rich sub-record configurations: all expose the CSV header they bind to.
+// Lets the map base class register them generically without per-type branching.
+public interface IHeaderConfig
+{
+	string HeaderName { get; }
+}
+
+public record CardNameConfiguration(
+	string HeaderName,
+	bool ShortNames = false,
+	bool EncodeToken = false) : IHeaderConfig;
+
+public record FinishConfiguration(
+	string HeaderName,
+	string Foil,
+	string Normal,
+	string? Etched = null) : IHeaderConfig;
+
+public record ConditionConfiguration(
+	string HeaderName,
+	string Mint,
+	string NearMint,
+	string Excellent,
+	string Good,
+	string LightlyPlayed,
+	string Played,
+	string Poor) : IHeaderConfig;
+
+public record LanguageConfiguration(
+	string HeaderName,
+	LanguageMappings Mappings) : IHeaderConfig;
+
+public record LanguageMappings(
+	string en,
+	string es,
+	string fr,
+	string de,
+	string it,
+	string pt,
+	string ja,
+	string ko,
+	string ru,
+	string zht,
+	string zhs);
+
+public record PriceConfiguration(
+	string HeaderName,
+	string Currency,
+	string CurrencySymbol) : IHeaderConfig;

@@ -10,12 +10,6 @@
 
 ---
 
-### 6. Improve error messages in `CardMapFactory`
-**File**: `MtgCsvHelper/CardMapFactory.cs:20`
-`GenerateClassMap` returns `null` for unsupported formats. Callers have to handle null
-silently. Should throw a descriptive exception listing supported formats instead.
-
----
 
 ### 16. `LoadData()` `??=` assignments are not thread-safe
 **File**: `MtgCsvHelper/Services/CachedMtgApi.cs`
@@ -62,6 +56,7 @@ this logs the stream's type name, not something useful. Should log the format na
 - ✅ **#3** Deleted dead `IMtgCardCsvHandlerService` / `MtgCardCsvHandlerService`
 - ✅ **#4** Serilog in Blazor fixed — `BrowserConsole` sink, dev-only via `appsettings.Development.json`
 - ✅ **#5 (partial)** Scryfall rate limiting fixed (shared `MtgApiFixture`), `BaseTest`/`ApiBaseTest` split, `StreamRoundTripTest` added
+- ✅ **#6** `CardMapFactory.GenerateClassMap` replaced by `GenerateReadMap` / `GenerateWriteMap`; both throw `ArgumentException` with the supported-format list for unknown formats, and `GenerateReadMap` throws `InvalidOperationException` for write-only formats (CARDKINGDOM)
 - ✅ **#10** `File.OpenWrite` → `File.Create` (truncates existing files)
 - ✅ **#11** `FileStream` resource leak in Console — uses string overload now
 - ✅ **#12** Missing `EnsureSuccessStatusCode` in Scryfall token fetch

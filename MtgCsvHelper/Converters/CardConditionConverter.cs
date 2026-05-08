@@ -1,6 +1,5 @@
 ﻿using CsvHelper.Configuration;
 using CsvHelper.TypeConversion;
-using MtgCsvHelper.Maps;
 
 namespace MtgCsvHelper.Converters;
 
@@ -21,7 +20,6 @@ public class CardConditionConverter(ConditionConfiguration configuration) : ITyp
 				_ when _conditionConfig.Played.Equals(text)			=> CardCondition.PLAYED,
 				_ when _conditionConfig.Poor.Equals(text)			=> CardCondition.POOR,
 				_													=> CardCondition.UNKNOWN,
-
 			};
 
 		}
