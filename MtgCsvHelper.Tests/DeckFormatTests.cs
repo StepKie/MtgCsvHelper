@@ -45,12 +45,25 @@ public class DeckFormatTests(MtgApiFixture fixture, ITestOutputHelper output) : 
 	[Theory]
 	[InlineData("UNKNOWN_FORMAT")]
 	[InlineData("")]
-	public void GenerateReadMap_ForUnknownFormat_ThrowsWithSupportedList(string deckFormatName)
+	public void GenerateReadMap_ForUnknownFormat_ThrowsWithLoadedList(string deckFormatName)
 	{
 		var factory = new CardMapFactory(_config, _api);
 		var act = () => factory.GenerateReadMap(deckFormatName);
 		act.Should().Throw<ArgumentException>()
-			.WithMessage("*MOXFIELD*"); // supported list is included in the message
+			.WithMessage("*MOXFIELD*"); // loaded formats appear in the message
+	}
+
+	[Fact]
+	public void GenerateReadMap_WithNoConfigLoaded_ThrowsHelpfulError()
+	{
+		// Empty configuration — simulates appsettings.json failing to load.
+		var emptyConfig = new Microsoft.Extensions.Configuration.ConfigurationBuilder().Build();
+		var factory = new CardMapFactory(emptyConfig, _api);
+
+		var act = () => factory.GenerateReadMap("MOXFIELD");
+
+		act.Should().Throw<InvalidOperationException>()
+			.WithMessage("*No format configurations loaded*");
 	}
 
 	[Theory]
