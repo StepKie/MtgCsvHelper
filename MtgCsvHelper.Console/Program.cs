@@ -6,8 +6,13 @@ using Microsoft.Extensions.Hosting;
 using MtgCsvHelper;
 using MtgCsvHelper.Services;
 
+// Load appsettings.json from next to the exe, not from the user's cwd. Without this, running
+// the Console from anywhere except its bin output makes config loading silently fail and the
+// "supported formats" list ends up empty (which then surfaces as a confusing "Unsupported format"
+// error even for known formats).
 IHostBuilder builder = Host
 	.CreateDefaultBuilder(args)
+	.UseContentRoot(AppContext.BaseDirectory)
 	.ConfigureServices(builder => builder.ConfigureMtgCsvHelper());
 
 using IHost host = builder.Build();
@@ -28,7 +33,13 @@ Console.ReadLine();
 
 void RunWithOptions(CommandLineOptions opts)
 {
-	var filesToParse = Directory.GetFiles(Directory.GetCurrentDirectory(), opts.InputFilePattern);
+	var filesToParse = InputFileResolver.Resolve(opts.InputFilePattern).ToList();
+	if (filesToParse.Count == 0)
+	{
+		Log.Error("No files matched pattern {Pattern} (looked relative to {Cwd}).",
+			opts.InputFilePattern, Directory.GetCurrentDirectory());
+		return;
+	}
 
 	var reader = new MtgCardCsvHandler(api, config, opts.InputFormat);
 	var writer = new MtgCardCsvHandler(api, config, opts.OutputFormat);

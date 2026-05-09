@@ -10,6 +10,10 @@
 *.userosscache
 *.sln.docstates
 
+# Console output CSVs (written to cwd by the Console during runs)
+# Filename shape: {format-lowercase}-output-{yyyy-MM-dd_HH-mm-ss}.csv
+*-output-*.csv
+
 # User-specific files (MonoDevelop/Xamarin Studio)
 *.userprefs
 

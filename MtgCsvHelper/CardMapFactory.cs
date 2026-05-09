@@ -20,42 +20,52 @@ public class CardMapFactory(IConfiguration config, IMtgApi api)
 	public static IEnumerable<FormatConfig> From(IConfiguration config) =>
 		config.GetSection("CsvConfigurations")
 		.GetChildren()
-		.Select(c => c.Get<FormatConfig>()!);
+		.Select(c =>
+		{
+			var cfg = c.Get<FormatConfig>()!;
+			cfg.Validate(); // fail fast at load: any malformed format blocks startup, not just first use
+			return cfg;
+		});
 
 	public FormatConfig? GetFormatConfig(string format) => _formatConfigs.FirstOrDefault(c => c.Name.Equals(format, StringComparison.OrdinalIgnoreCase));
 
 	public ClassMap<PhysicalMtgCard> GenerateReadMap(string format)
 	{
-		var cfg = RequireFormat(format);
+		var cfg = GetRequiredFormatConfig(format);
 		if (WriteOnlyFormats.Contains(format))
 		{
 			throw new InvalidOperationException($"Format '{format}' is write-only and cannot be parsed.");
 		}
-		ValidateCardIdentifier(cfg);
 		return new PhysicalCardMap(cfg, api);
 	}
 
 	public ClassMap<PhysicalMtgCard> GenerateWriteMap(string format)
 	{
-		var cfg = RequireFormat(format);
+		var cfg = GetRequiredFormatConfig(format);
 		if (ReadOnlyFormats.Contains(format))
 		{
 			throw new InvalidOperationException($"Format '{format}' is read-only and cannot be written.");
 		}
-		ValidateCardIdentifier(cfg);
 		return format.Equals("CARDKINGDOM", StringComparison.OrdinalIgnoreCase)
 			? new CardKingdomWriteMap(cfg, api)
 			: new PhysicalCardMap(cfg, api);
 	}
 
-	FormatConfig RequireFormat(string format) => GetFormatConfig(format)
-		?? throw new ArgumentException($"Unsupported format '{format}'. Supported: {string.Join(", ", Supported)}.", nameof(format));
-
-	static void ValidateCardIdentifier(FormatConfig cfg)
+	// Throwing counterpart to GetFormatConfig (matches the GetService/GetRequiredService convention).
+	// Two distinct failure modes, in order of precondition:
+	//   1. _formatConfigs is empty       — appsettings.json never loaded; system is misconfigured.
+	//   2. format isn't in _formatConfigs — caller asked for something we don't know.
+	FormatConfig GetRequiredFormatConfig(string format)
 	{
-		if (cfg.CardName is null && cfg.CardmarketId is null)
+		if (_formatConfigs.Count == 0)
 		{
-			throw new InvalidOperationException($"Format '{cfg.Name}' must specify either a CardName or a CardmarketId column.");
+			throw new InvalidOperationException(
+				"No format configurations loaded. Check that appsettings.json is reachable and contains a 'CsvConfigurations' section.");
 		}
+
+		return GetFormatConfig(format)
+			?? throw new ArgumentException(
+				$"Unsupported format '{format}'. Loaded: {string.Join(", ", _formatConfigs.Select(c => c.Name))}.",
+				nameof(format));
 	}
 }

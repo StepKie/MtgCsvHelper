@@ -20,6 +20,16 @@ public record FormatConfig(
 	)
 {
 	public Currency Currency => Currency.FromString(PriceBought?.Currency);
+
+	// Throws when the config is structurally invalid for use as a read or write map.
+	// Add rules here as new invariants emerge (e.g. delimiter sanity, language-mappings completeness).
+	public void Validate()
+	{
+		if (CardName is null && CardmarketId is null)
+		{
+			throw new InvalidOperationException($"Format '{Name}' must specify either a CardName or a CardmarketId column.");
+		}
+	}
 };
 
 // Shared shape for the rich sub-record configurations: all expose the CSV header they bind to.
