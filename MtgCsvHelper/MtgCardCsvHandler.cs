@@ -18,30 +18,46 @@ public class MtgCardCsvHandler
 		_api = api;
 	}
 
-	public ParseResult ParseCollectionCsv(string csvFilePath) => ParseCollectionCsv(File.OpenRead(csvFilePath));
+	// Sync wrappers — fine for non-Blazor callers and for formats that don't need network I/O.
+	// Cardmarket forces async (Scryfall lookups), so the sync path blocks on the async path.
+	public ParseResult ParseCollectionCsv(string csvFilePath) => ParseCollectionCsvAsync(csvFilePath).GetAwaiter().GetResult();
+	public ParseResult ParseCollectionCsv(Stream csvStream) => ParseCollectionCsvAsync(csvStream).GetAwaiter().GetResult();
 
-	public ParseResult ParseCollectionCsv(Stream csvStream)
+	public Task<ParseResult> ParseCollectionCsvAsync(string csvFilePath) => ParseCollectionCsvAsync(File.OpenRead(csvFilePath));
+
+	public async Task<ParseResult> ParseCollectionCsvAsync(Stream csvStream)
 	{
 		Log.Information($"Parsing input format {_format} ...");
 		using var reader = new StreamReader(csvStream);
 		CheckIfFirstLineCanBeIgnored(reader);
 
-		using var csv = new CsvReader(reader, new CsvConfiguration(CultureInfo.InvariantCulture) { MissingFieldFound = null });
+		var formatConfig = _factory.GetFormatConfig(_format)
+			?? throw new InvalidOperationException($"Format '{_format}' configuration not found.");
+
+		using var csv = new CsvReader(reader, new CsvConfiguration(CultureInfo.InvariantCulture)
+		{
+			MissingFieldFound = null,
+			Delimiter = formatConfig.Delimiter,
+		});
 		csv.Context.RegisterClassMap(_factory.GenerateReadMap(_format));
 
-		if (!csv.Read())
+		if (!await csv.ReadAsync())
 		{
-			// Empty file — no header, no rows. Return empty result rather than treating as an error.
+			// Empty file — no header, no rows.
 			return new ParseResult(new Collection { Name = $"Import {_format}, Date: {DateTime.Now}", Cards = [] }, []);
 		}
 		csv.ReadHeader();
 		csv.ValidateHeader<PhysicalMtgCard>(); // throws HeaderValidationException if non-Optional fields are missing
 
 		var cards = new List<PhysicalMtgCard>();
+		var rowNumbers = new List<int>(); // parallel to cards; needed for issue reporting in the post-parse enrichment step
 		var issues = new List<ImportIssue>();
+		// Sets are pre-loaded into the cached IMtgApi during startup; the sync accessor is a property read, not network I/O.
+#pragma warning disable CA1849
 		var sets = _api.GetSets();
+#pragma warning restore CA1849
 
-		while (csv.Read())
+		while (await csv.ReadAsync())
 		{
 			// Skip rows that are blank or contain only delimiters/whitespace.
 			if (csv.Parser.Record is null || csv.Parser.Record.All(string.IsNullOrWhiteSpace))
@@ -53,8 +69,14 @@ public class MtgCardCsvHandler
 			try
 			{
 				var card = csv.GetRecord<PhysicalMtgCard>();
-				EnrichSetInfo(card, sets, issues, rowNum);
+				// For non-cardmarket formats, the printing's Name is set during parse; backfill set info now.
+				// For cardmarket-style stubs (Name empty, CardMarketId set), defer to the cardmarket enricher.
+				if (!string.IsNullOrEmpty(card.Printing.Name))
+				{
+					EnrichSetInfo(card, sets, issues, rowNum);
+				}
 				cards.Add(card);
+				rowNumbers.Add(rowNum);
 			}
 			catch (TypeConverterException tcex)
 			{
@@ -75,6 +97,9 @@ public class MtgCardCsvHandler
 					RawContent: csv.Parser.RawRecord?.TrimEnd()));
 			}
 		}
+
+		// Post-parse enrichment: fill in stubbed cards (Cardmarket) by batched Scryfall lookup.
+		await EnrichByCardmarketIdAsync(cards, rowNumbers, issues);
 
 		var collection = new Collection { Name = $"Import {_format}, Date: {DateTime.Now}", Cards = cards };
 		Log.Debug(collection.GenerateSummary());
@@ -113,6 +138,45 @@ public class MtgCardCsvHandler
 		else if (hadSetName && p.Set is null)
 		{
 			issues.Add(new ImportIssue(IssueSeverity.Warning, rowNum, $"Set name '{p.SetName}' not found in Scryfall data", CardName: p.Name));
+		}
+	}
+
+	// For cards whose Printing was parsed as a stub (only CardMarketId set), batch-resolve the
+	// full Scryfall card by cardmarket_id and fill in name/set/setName/collectorNumber.
+	// IDs not found in Scryfall produce an ImportIssue.Warning per affected card.
+	async Task EnrichByCardmarketIdAsync(IList<PhysicalMtgCard> cards, IList<int> rowNumbers, List<ImportIssue> issues)
+	{
+		// CardMarketId is `int` (not `int?`) in the Scryfall library, so 0 acts as the "unset" sentinel —
+		// real cardmarket_ids are always positive in Scryfall data.
+		var pending = new List<(PhysicalMtgCard Card, int RowNum)>();
+		for (int i = 0; i < cards.Count; i++)
+		{
+			var c = cards[i];
+			if (c.Printing.CardMarketId > 0 && string.IsNullOrEmpty(c.Printing.Name))
+			{
+				pending.Add((c, rowNumbers[i]));
+			}
+		}
+
+		if (pending.Count == 0) return;
+
+		var ids = pending.Select(x => x.Card.Printing.CardMarketId).Distinct().ToList();
+		var resolved = await _api.GetCardsByCardmarketIdsAsync(ids);
+
+		foreach (var entry in pending)
+		{
+			var id = entry.Card.Printing.CardMarketId;
+			if (resolved.TryGetValue(id, out var full))
+			{
+				entry.Card.Printing.Name = full.Name;
+				entry.Card.Printing.Set = full.Set;
+				entry.Card.Printing.SetName = full.SetName;
+				entry.Card.Printing.CollectorNumber = full.CollectorNumber;
+			}
+			else
+			{
+				issues.Add(new ImportIssue(IssueSeverity.Warning, entry.RowNum, $"Cardmarket ID {id} not found in Scryfall data"));
+			}
 		}
 	}
 
