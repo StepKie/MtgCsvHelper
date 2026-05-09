@@ -177,7 +177,7 @@
 			var reader = new MtgCardCsvHandler(Api, Config, _selectedInputFormat);
 			var writer = new MtgCardCsvHandler(Api, Config, _selectedOutputFormat);
 
-			var result = reader.ParseCollectionCsv(csvStream);
+			var result = await reader.ParseCollectionCsvAsync(csvStream);
 			_summary = result.Collection.GenerateSummary();
 			_issues = result.Issues.ToList();
 

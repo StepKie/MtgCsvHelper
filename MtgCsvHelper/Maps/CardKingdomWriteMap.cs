@@ -10,6 +10,7 @@ public class CardKingdomWriteMap : ClassMap<PhysicalMtgCard>
 {
 	public CardKingdomWriteMap(FormatConfig columnConfig, IMtgApi api)
 	{
+		_ = columnConfig.CardName ?? throw new InvalidOperationException($"Format '{columnConfig.Name}' is missing the required 'CardName' configuration section.");
 		_ = columnConfig.Finish ?? throw new InvalidOperationException($"Format '{columnConfig.Name}' is missing the required 'Finish' configuration section.");
 
 		Map(card => card.Printing.Name).TypeConverter(new CardNameConverter(columnConfig.CardName, api)).Name(columnConfig.CardName.HeaderName).Index(0);

@@ -14,9 +14,21 @@ public class PhysicalCardMap : ClassMap<PhysicalMtgCard>
 	public PhysicalCardMap(FormatConfig cfg, IMtgApi api)
 	{
 		Map(c => c.Count).Name(cfg.Quantity).Index(1);
-		Map(c => c.Printing.Name)
-			.TypeConverter(new CardNameConverter(cfg.CardName, api))
-			.Name(cfg.CardName.HeaderName).Index(0);
+
+		// Card identification: most formats use a card-name column; Cardmarket uses an external ID.
+		// At least one must be set (validated in CardMapFactory).
+		if (cfg.CardName is not null)
+		{
+			Map(c => c.Printing.Name)
+				.TypeConverter(new CardNameConverter(cfg.CardName, api))
+				.Name(cfg.CardName.HeaderName).Index(0);
+		}
+		if (cfg.CardmarketId is not null)
+		{
+			// Stub Card object: only CardMarketId is filled here; name/set/etc. get resolved
+			// later in MtgCardCsvHandler.EnrichByCardmarketIdAsync via batched Scryfall lookup.
+			Map(c => c.Printing.CardMarketId).Name(cfg.CardmarketId);
+		}
 
 		// At least one of SetCode / SetName is expected per format (sites differ on which they include).
 		MapOptional(c => c.Printing.CollectorNumber, cfg.SetNumber);

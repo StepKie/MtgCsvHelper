@@ -3,14 +3,20 @@ namespace MtgCsvHelper;
 public record FormatConfig(
 	string Name,
 	string Quantity,
-	CardNameConfiguration CardName,
+	// Either CardName or CardmarketId (or in the future another card-identifier kind) must be set.
+	// Most formats identify cards by name + set; Cardmarket identifies by its internal product ID and
+	// requires Scryfall reverse-lookup to fill in name/set/etc. during enrichment.
+	CardNameConfiguration? CardName = null,
+	string? CardmarketId = null,
 	string? SetNumber = null,
 	string? SetCode = null,
 	string? SetName = null,
 	FinishConfiguration? Finish = null,
 	ConditionConfiguration? Condition = null,
 	LanguageConfiguration? Language = null,
-	PriceConfiguration? PriceBought = null
+	PriceConfiguration? PriceBought = null,
+	// CSV delimiter. Most sites use comma; Cardmarket exports use semicolon.
+	string Delimiter = ","
 	)
 {
 	public Currency Currency => Currency.FromString(PriceBought?.Currency);
