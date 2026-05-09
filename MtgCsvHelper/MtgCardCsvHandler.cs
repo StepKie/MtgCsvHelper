@@ -163,6 +163,7 @@ public class MtgCardCsvHandler
 		var ids = pending.Select(x => x.Card.Printing.CardMarketId).Distinct().ToList();
 		var resolved = await _api.GetCardsByCardmarketIdsAsync(ids);
 
+		var unresolved = new List<PhysicalMtgCard>();
 		foreach (var entry in pending)
 		{
 			var id = entry.Card.Printing.CardMarketId;
@@ -175,8 +176,15 @@ public class MtgCardCsvHandler
 			}
 			else
 			{
-				issues.Add(new ImportIssue(IssueSeverity.Warning, entry.RowNum, $"Cardmarket ID {id} not found in Scryfall data"));
+				// Without a name/set, we can't write a meaningful row — drop the card.
+				// This is data loss (Error), not just degraded fidelity (Warning).
+				issues.Add(new ImportIssue(IssueSeverity.Error, entry.RowNum, $"Cardmarket ID {id} not found in Scryfall data — card skipped"));
+				unresolved.Add(entry.Card);
 			}
+		}
+		foreach (var dropped in unresolved)
+		{
+			cards.Remove(dropped);
 		}
 	}
 

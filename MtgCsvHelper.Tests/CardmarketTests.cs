@@ -66,7 +66,7 @@ public class CardmarketTests(MtgApiFixture fixture, ITestOutputHelper output) : 
 	}
 
 	[Fact]
-	public async Task UnknownCardmarketId_RaisesWarning_KeepsOtherCards()
+	public async Task UnknownCardmarketId_RaisesError_DropsCardKeepsOthers()
 	{
 		// 99999999 is far above any real cardmarket_id; Scryfall returns it as not_found.
 		var csv = "idProduct;groupCount;price;idLanguage;condition;isFoil;isSigned;isAltered;isPlayset;isReverseHolo;isFirstEd;isFullArt;isUberRare;isWithDie\n"
@@ -75,11 +75,12 @@ public class CardmarketTests(MtgApiFixture fixture, ITestOutputHelper output) : 
 
 		var result = await Handler().ParseCollectionCsvAsync(CsvStream(csv));
 
-		result.Collection.Cards.Should().HaveCount(2); // both rows parsed; one fails at the lookup step
-		result.ErrorCount.Should().Be(0);
-		result.WarningCount.Should().Be(1);
+		// The unresolved card is dropped (without name/set we can't write a meaningful row).
+		result.Collection.Cards.Should().HaveCount(1);
+		result.ErrorCount.Should().Be(1);
+		result.WarningCount.Should().Be(0);
 		result.Issues[0].Reason.Should().Contain("99999999");
-		result.Issues[0].Severity.Should().Be(IssueSeverity.Warning);
+		result.Issues[0].Severity.Should().Be(IssueSeverity.Error);
 
 		// The valid card still resolved.
 		result.Collection.Cards.Should().Contain(c => c.Printing.Name == "Putrid Leech");
