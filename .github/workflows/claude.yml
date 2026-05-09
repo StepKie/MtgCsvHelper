@@ -54,6 +54,9 @@ jobs:
         uses: anthropics/claude-code-action@v1
         with:
           claude_code_oauth_token: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
+          # Enabled so we can debug why Claude posts nothing despite running successfully (issue: 2 consecutive PRs).
+          # Safe for our review prompts: no secrets in the input. Disable once auto-review is reliably commenting.
+          show_full_output: true
           prompt: |
             Please review this pull request for:
             - Code quality and .NET best practices
