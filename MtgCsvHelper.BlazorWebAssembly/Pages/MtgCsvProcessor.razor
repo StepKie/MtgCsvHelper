@@ -4,6 +4,7 @@
 @inject IJSRuntime JS
 @using Serilog
 @using System.Text
+@using CsvHelper
 @implements IDisposable
 
 <h3 class="mb-4">Convert your MtG collection .csv file</h3>
@@ -67,6 +68,10 @@
 			{
 				<button class="btn btn-success" @onclick="DownloadResult">Download Converted .csv</button>
 			}
+			@if (!_isConverting && _issues.Any(i => i.Severity == IssueSeverity.Error))
+			{
+				<button class="btn btn-warning ms-2" @onclick="DownloadErrorCsv">Download Error Report .csv</button>
+			}
 		</div>
 	</div>
 </div>
@@ -79,15 +84,37 @@
 	</div>
 }
 
+@if (!string.IsNullOrEmpty(_headerError))
+{
+	<div class="alert alert-danger mt-3" role="alert">
+		@_headerError
+	</div>
+}
+
 @if (!string.IsNullOrEmpty(_summary))
 {
-	<p style="white-space: pre-line" >@_summary</p>
+	<p style="white-space: pre-line">@_summary</p>
+}
+
+@if (_issues.Any())
+{
+	var errorCount = _issues.Count(i => i.Severity == IssueSeverity.Error);
+	var warningCount = _issues.Count(i => i.Severity == IssueSeverity.Warning);
+	<h4>Import Issues — @errorCount errors, @warningCount warnings</h4>
+	<ul>
+		@foreach (var issue in _issues)
+		{
+			var label = issue.Severity == IssueSeverity.Error ? "text-danger" : "text-warning";
+			<li class="@label">
+				<strong>[@issue.Severity]</strong> row @issue.RowNumber@(issue.CardName is not null ? $" ({issue.CardName})" : ""): @issue.Reason
+			</li>
+		}
+	</ul>
 }
 
 @if (_processedRecords.Any())
 {
 	<h4>Processed Records</h4>
-	<!-- Display the processed records as needed -->
 	<ul>
 		@foreach (var record in _processedRecords)
 		{
@@ -104,9 +131,11 @@
 	private string _selectedOutputFormat = _supportedFormats[1];
 
 	private List<string> _processedRecords = [];
+	private List<ImportIssue> _issues = [];
 	private IBrowserFile? _csvFile;
 
 	private string? _summary;
+	private string? _headerError;
 	private bool _isConverting;
 	private bool _isApiLoading = true;
 	private string? _resultFileName;
@@ -131,6 +160,13 @@
 		try
 		{
 			_isConverting = true;
+			_summary = null;
+			_headerError = null;
+			_issues = [];
+			_processedRecords = [];
+			_resultStream?.Dispose();
+			_resultStream = null;
+			_resultFileName = null;
 			StateHasChanged();
 			await Task.Delay(1);
 
@@ -141,15 +177,24 @@
 			var reader = new MtgCardCsvHandler(Api, Config, _selectedInputFormat);
 			var writer = new MtgCardCsvHandler(Api, Config, _selectedOutputFormat);
 
-			var collection = reader.ParseCollectionCsv(csvStream);
-			_summary = collection.GenerateSummary();
+			var result = reader.ParseCollectionCsv(csvStream);
+			_summary = result.Collection.GenerateSummary();
+			_issues = result.Issues.ToList();
 
-			var cards = collection.Cards;
+			var cards = result.Collection.Cards;
 			_processedRecords = cards.Select(c => c.Printing.Name).ToList();
-			_resultFileName = $"{_selectedInputFormat}-to-{_selectedOutputFormat}_{DateTime.Now:yyyy-MM-dd_HH-mm-ss}.csv";
-			_resultStream?.Dispose();
-			_resultStream = new MemoryStream();
-			writer.WriteCollectionCsv(cards, _resultStream);
+
+			if (cards.Count > 0)
+			{
+				_resultFileName = $"{_selectedInputFormat}-to-{_selectedOutputFormat}_{DateTime.Now:yyyy-MM-dd_HH-mm-ss}.csv";
+				_resultStream = new MemoryStream();
+				writer.WriteCollectionCsv(cards, _resultStream);
+			}
+		}
+		catch (HeaderValidationException hex)
+		{
+			var missing = hex.InvalidHeaders.SelectMany(h => h.Names).Distinct().ToList();
+			_headerError = $"This doesn't look like a valid {_selectedInputFormat} CSV — missing required column(s): {string.Join(", ", missing)}. Did you select the correct input format?";
 		}
 		catch (Exception ex)
 		{
@@ -173,6 +218,26 @@
 		_resultStream.Position = 0;
 		using var streamRef = new DotNetStreamReference(stream: _resultStream, leaveOpen: true);
 		await JS.InvokeVoidAsync("downloadFileFromStream", _resultFileName, streamRef);
+	}
+
+	private async Task DownloadErrorCsv()
+	{
+		var errors = _issues.Where(i => i.Severity == IssueSeverity.Error).ToList();
+		if (errors.Count == 0) return;
+
+		var sb = new StringBuilder();
+		sb.AppendLine("RowNumber,RawContent,Reason");
+		foreach (var e in errors)
+		{
+			sb.AppendLine($"{e.RowNumber},{Csv(e.RawContent)},{Csv(e.Reason)}");
+		}
+
+		var bytes = Encoding.UTF8.GetBytes(sb.ToString());
+		using var stream = new MemoryStream(bytes);
+		using var streamRef = new DotNetStreamReference(stream, leaveOpen: false);
+		await JS.InvokeVoidAsync("downloadFileFromStream", $"{_selectedInputFormat}-import-errors-{DateTime.Now:yyyy-MM-dd_HH-mm-ss}.csv", streamRef);
+
+		static string Csv(string? value) => value is null ? "" : $"\"{value.Replace("\"", "\"\"")}\"";
 	}
 
 	public void Dispose()

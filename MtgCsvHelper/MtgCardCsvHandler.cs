@@ -1,5 +1,6 @@
 using System.Globalization;
 using CsvHelper.Configuration;
+using CsvHelper.TypeConversion;
 using Microsoft.Extensions.Configuration;
 using MtgCsvHelper.Services;
 
@@ -17,31 +18,67 @@ public class MtgCardCsvHandler
 		_api = api;
 	}
 
-	public Collection ParseCollectionCsv(string csvFilePath) => ParseCollectionCsv(File.OpenRead(csvFilePath));
+	public ParseResult ParseCollectionCsv(string csvFilePath) => ParseCollectionCsv(File.OpenRead(csvFilePath));
 
-	public Collection ParseCollectionCsv(Stream csvFilePath)
+	public ParseResult ParseCollectionCsv(Stream csvStream)
 	{
-		Log.Information($"Parsing {csvFilePath} with input format {_format} ...");
-		using var stream = new StreamReader(csvFilePath);
-		CheckIfFirstLineCanBeIgnored(stream);
+		Log.Information($"Parsing input format {_format} ...");
+		using var reader = new StreamReader(csvStream);
+		CheckIfFirstLineCanBeIgnored(reader);
 
-		using var csv = new CsvReader(stream, new CsvConfiguration(CultureInfo.InvariantCulture) {/* HeaderValidated = null,*/ MissingFieldFound = null });
+		using var csv = new CsvReader(reader, new CsvConfiguration(CultureInfo.InvariantCulture) { MissingFieldFound = null });
 		csv.Context.RegisterClassMap(_factory.GenerateReadMap(_format));
-		List<PhysicalMtgCard> cards = csv.GetRecords<PhysicalMtgCard>().ToList();
 
+		if (!csv.Read())
+		{
+			// Empty file — no header, no rows. Return empty result rather than treating as an error.
+			return new ParseResult(new Collection { Name = $"Import {_format}, Date: {DateTime.Now}", Cards = [] }, []);
+		}
+		csv.ReadHeader();
+		csv.ValidateHeader<PhysicalMtgCard>(); // throws HeaderValidationException if non-Optional fields are missing
+
+		var cards = new List<PhysicalMtgCard>();
+		var issues = new List<ImportIssue>();
 		var sets = _api.GetSets();
 
-		foreach (var card in cards)
+		while (csv.Read())
 		{
-			var logicalCard = card.Printing;
-			logicalCard.SetName ??= sets.FirstOrDefault(s => s.Code.Equals(logicalCard.Set, StringComparison.OrdinalIgnoreCase))?.Name;
-			logicalCard.Set ??= sets.FirstOrDefault(s => s.Name.Equals(logicalCard.SetName, StringComparison.OrdinalIgnoreCase))?.Code.ToUpper();
+			// Skip rows that are blank or contain only delimiters/whitespace.
+			if (csv.Parser.Record is null || csv.Parser.Record.All(string.IsNullOrWhiteSpace))
+			{
+				continue;
+			}
+
+			int rowNum = csv.Parser.Row;
+			try
+			{
+				var card = csv.GetRecord<PhysicalMtgCard>();
+				EnrichSetInfo(card, sets, issues, rowNum);
+				cards.Add(card);
+			}
+			catch (TypeConverterException tcex)
+			{
+				var memberName = tcex.MemberMapData?.Member?.Name ?? "?";
+				var value = tcex.Text ?? "";
+				issues.Add(new ImportIssue(
+					IssueSeverity.Error,
+					rowNum,
+					$"Invalid value '{value}' for column '{memberName}'",
+					RawContent: csv.Parser.RawRecord?.TrimEnd()));
+			}
+			catch (Exception ex)
+			{
+				issues.Add(new ImportIssue(
+					IssueSeverity.Error,
+					rowNum,
+					ex.Message,
+					RawContent: csv.Parser.RawRecord?.TrimEnd()));
+			}
 		}
 
-		Collection collection = new() { Name = $"Import {_format}, Date: {DateTime.Now}", Cards = cards };
+		var collection = new Collection { Name = $"Import {_format}, Date: {DateTime.Now}", Cards = cards };
 		Log.Debug(collection.GenerateSummary());
-
-		return collection;
+		return new ParseResult(collection, issues);
 
 		static void CheckIfFirstLineCanBeIgnored(StreamReader stream)
 		{
@@ -53,6 +90,29 @@ public class MtgCardCsvHandler
 				stream.BaseStream.Position = 0;
 				stream.DiscardBufferedData();
 			}
+		}
+	}
+
+	static void EnrichSetInfo(PhysicalMtgCard card, IEnumerable<ScryfallApi.Client.Models.Set> sets, List<ImportIssue> issues, int rowNum)
+	{
+		var p = card.Printing;
+		bool hadSetCode = p.Set is not null;
+		bool hadSetName = p.SetName is not null;
+
+		p.SetName ??= sets.FirstOrDefault(s => s.Code.Equals(p.Set, StringComparison.OrdinalIgnoreCase))?.Name;
+		p.Set ??= sets.FirstOrDefault(s => s.Name.Equals(p.SetName, StringComparison.OrdinalIgnoreCase))?.Code.ToUpper();
+
+		if (!hadSetCode && !hadSetName)
+		{
+			issues.Add(new ImportIssue(IssueSeverity.Warning, rowNum, "No set information found in row", CardName: p.Name));
+		}
+		else if (hadSetCode && p.SetName is null)
+		{
+			issues.Add(new ImportIssue(IssueSeverity.Warning, rowNum, $"Set code '{p.Set}' not found in Scryfall data", CardName: p.Name));
+		}
+		else if (hadSetName && p.Set is null)
+		{
+			issues.Add(new ImportIssue(IssueSeverity.Warning, rowNum, $"Set name '{p.SetName}' not found in Scryfall data", CardName: p.Name));
 		}
 	}
 
