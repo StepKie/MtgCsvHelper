@@ -1,4 +1,5 @@
 ﻿using CommandLine;
+using CsvHelper;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
@@ -36,8 +37,30 @@ void RunWithOptions(CommandLineOptions opts)
 
 	foreach (var fileName in filesToParse)
 	{
-		var parsedCardsFromFile = reader.ParseCollectionCsv(fileName).Cards;
-		cardsFound.AddRange(parsedCardsFromFile);
+		try
+		{
+			var result = reader.ParseCollectionCsv(fileName);
+			cardsFound.AddRange(result.Collection.Cards);
+			if (result.ErrorCount > 0 || result.WarningCount > 0)
+			{
+				Log.Information($"{fileName}: {result.Collection.Cards.Count} cards parsed, {result.ErrorCount} errors, {result.WarningCount} warnings");
+				foreach (var issue in result.Issues)
+				{
+					Log.Warning($"  [{issue.Severity}] row {issue.RowNumber}: {issue.Reason}");
+				}
+			}
+		}
+		catch (HeaderValidationException ex)
+		{
+			var missing = ex.InvalidHeaders.SelectMany(h => h.Names).Distinct().ToList();
+			Log.Error($"{fileName}: header mismatch — missing required column(s): {string.Join(", ", missing)}. Did you select the correct input format ({opts.InputFormat})?");
+		}
+	}
+
+	if (cardsFound.Count == 0)
+	{
+		Log.Warning("No cards parsed from any input file - skipping output write.");
+		return;
 	}
 
 	writer.WriteCollectionCsv(cardsFound);

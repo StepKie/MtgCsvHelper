@@ -81,7 +81,7 @@ public class DeckFormatTests(MtgApiFixture fixture, ITestOutputHelper output) : 
 		handler.WriteCollectionCsv(original, stream);
 		stream.Position = 0;
 
-		var parsed = handler.ParseCollectionCsv(stream).Cards;
+		var parsed = handler.ParseCollectionCsv(stream).Collection.Cards;
 
 		parsed.Should().HaveCount(1);
 		parsed[0].Printing.Name.Should().Be("Lightning Bolt");

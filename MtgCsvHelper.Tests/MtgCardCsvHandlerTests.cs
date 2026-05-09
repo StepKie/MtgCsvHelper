@@ -24,7 +24,7 @@ public class MtgCardCsvHandlerTests(MtgApiFixture fixture, ITestOutputHelper out
 		// Act
 		string fileName = $"unittest-{deckFormatName}.csv";
 		handler.WriteCollectionCsv(originalCards, fileName);
-		List<PhysicalMtgCard> parsedCards = handler.ParseCollectionCsv(fileName).Cards;
+		List<PhysicalMtgCard> parsedCards = handler.ParseCollectionCsv(fileName).Collection.Cards;
 
 		// Assert
 		parsedCards.Should().BeEquivalentTo(originalCards);
@@ -43,7 +43,7 @@ public class MtgCardCsvHandlerTests(MtgApiFixture fixture, ITestOutputHelper out
 		IList<PhysicalMtgCard> expectedCards = GetReferenceCards(Currency.FromString(currency));
 
 		// Act
-		IList<PhysicalMtgCard> cards = handler.ParseCollectionCsv(csvFilePath).Cards;
+		IList<PhysicalMtgCard> cards = handler.ParseCollectionCsv(csvFilePath).Collection.Cards;
 
 		// Assert
 		cards.Should().BeEquivalentTo(expectedCards);
@@ -65,12 +65,12 @@ public class MtgCardCsvHandlerTests(MtgApiFixture fixture, ITestOutputHelper out
 		MtgCardCsvHandler handlerIn = CreateHandler(deckFormatIn);
 		MtgCardCsvHandler handlerOut = CreateHandler(deckFormatOut);
 
-		var collection = handlerIn.ParseCollectionCsv(csvFilePath);
-		var cards = collection.Cards;
+		var result = handlerIn.ParseCollectionCsv(csvFilePath);
+		var cards = result.Collection.Cards;
 		var resultFileName = $"unittest_{deckFormatIn}-to-{deckFormatOut}_{DateTime.Now:yyyy-MM-dd_HH-mm-ss}.csv";
 		handlerOut.WriteCollectionCsv(cards, resultFileName);
 
-		Log.Information(collection.GenerateSummary());
+		Log.Information(result.Collection.GenerateSummary());
 		cards.Should().HaveCountGreaterThan(500);
 	}
 
