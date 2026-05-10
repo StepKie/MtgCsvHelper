@@ -4,12 +4,12 @@ using CsvHelper;
 namespace MtgCsvHelper.Tests;
 
 [Collection(MtgApiCollection.Name)]
-public class FaultToleranceTests(MtgApiFixture fixture, ITestOutputHelper output) : ApiBaseTest(fixture, output)
+public class FaultToleranceTests(CatalogFixture fixture, ITestOutputHelper output) : ApiBaseTest(fixture, output)
 {
 	const string MoxHeader = "Count,Name,Edition,Collector Number,Foil,Condition,Language,Purchase Price";
 
 	static MemoryStream CsvStream(string csv) => new(Encoding.UTF8.GetBytes(csv));
-	MtgCardCsvHandler Handler(string format = "MOXFIELD") => new(_api, _config, format);
+	MtgCardCsvHandler Handler(string format = "MOXFIELD") => new(_catalog, _api, _config, format);
 
 	[Fact]
 	public void HappyPath_AllValid_ProducesCardsAndNoIssues()

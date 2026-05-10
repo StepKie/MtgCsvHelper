@@ -1,11 +1,10 @@
 using CsvHelper.Configuration;
 using Microsoft.Extensions.Configuration;
 using MtgCsvHelper.Maps;
-using MtgCsvHelper.Services;
 
 namespace MtgCsvHelper;
 
-public class CardMapFactory(IConfiguration config, IMtgApi api)
+public class CardMapFactory(IConfiguration config, IReferenceCardCatalog catalog)
 {
 	readonly List<FormatConfig> _formatConfigs = From(config).ToList();
 
@@ -36,7 +35,7 @@ public class CardMapFactory(IConfiguration config, IMtgApi api)
 		{
 			throw new InvalidOperationException($"Format '{format}' is write-only and cannot be parsed.");
 		}
-		return new PhysicalCardMap(cfg, api);
+		return new PhysicalCardMap(cfg, catalog);
 	}
 
 	public ClassMap<PhysicalMtgCard> GenerateWriteMap(string format)
@@ -47,8 +46,8 @@ public class CardMapFactory(IConfiguration config, IMtgApi api)
 			throw new InvalidOperationException($"Format '{format}' is read-only and cannot be written.");
 		}
 		return format.Equals("CARDKINGDOM", StringComparison.OrdinalIgnoreCase)
-			? new CardKingdomWriteMap(cfg, api)
-			: new PhysicalCardMap(cfg, api);
+			? new CardKingdomWriteMap(cfg, catalog)
+			: new PhysicalCardMap(cfg, catalog);
 	}
 
 	// Throwing counterpart to GetFormatConfig (matches the GetService/GetRequiredService convention).

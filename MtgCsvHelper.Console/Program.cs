@@ -13,7 +13,18 @@ using MtgCsvHelper.Services;
 IHostBuilder builder = Host
 	.CreateDefaultBuilder(args)
 	.UseContentRoot(AppContext.BaseDirectory)
-	.ConfigureServices(builder => builder.ConfigureMtgCsvHelper());
+	.ConfigureServices(services =>
+	{
+		services.ConfigureMtgCsvHelper();
+		services.AddSingleton<IReferenceCardCatalog>(_ =>
+		{
+			// Bundle ships next to the exe under data/. Refresh via:
+			//   dotnet run --project tools/MtgCsvHelper.RefreshReferenceData -- <path>
+			var bundlePath = Path.Combine(AppContext.BaseDirectory, "data", "cards.min.json.gz");
+			using var fs = File.OpenRead(bundlePath);
+			return ReferenceCardCatalog.LoadGzipAsync(fs).GetAwaiter().GetResult();
+		});
+	});
 
 using IHost host = builder.Build();
 
@@ -21,8 +32,9 @@ using IHost host = builder.Build();
 var config = host.Services.GetRequiredService<IConfiguration>();
 Log.Logger = new LoggerConfiguration().ReadFrom.Configuration(config).CreateLogger();
 
-var api = host.Services.GetService<IMtgApi>()!;
-await api.LoadData();
+var catalog = host.Services.GetRequiredService<IReferenceCardCatalog>();
+var api = host.Services.GetRequiredService<IMtgApi>();
+Log.Information($"Loaded reference catalog: {catalog.Count:N0} printings.");
 
 Parser.Default.ParseArguments<CommandLineOptions>(args)
 	.WithNotParsed(HandleParseError)
@@ -41,8 +53,8 @@ void RunWithOptions(CommandLineOptions opts)
 		return;
 	}
 
-	var reader = new MtgCardCsvHandler(api, config, opts.InputFormat);
-	var writer = new MtgCardCsvHandler(api, config, opts.OutputFormat);
+	var reader = new MtgCardCsvHandler(catalog, api, config, opts.InputFormat);
+	var writer = new MtgCardCsvHandler(catalog, api, config, opts.OutputFormat);
 
 	List<PhysicalMtgCard> cardsFound = [];
 

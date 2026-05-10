@@ -54,13 +54,23 @@ public sealed class ReferenceCardCatalog : IReferenceCardCatalog
 			_bySetAndCollector.TryAdd((c.Set, c.CollectorNumber), c);
 			_sets.TryAdd(c.Set, c.SetName);
 
-			if (c.Name.Contains(DoubleFacedSeparator, StringComparison.Ordinal))
+			bool isToken = TokenLayouts.Contains(c.Layout);
+			if (isToken) { _tokenNames.Add(c.Name); }
+
+			// DFC indexing intentionally skips token/emblem layouts. Tokens like "Bolt // Bolt"
+			// would otherwise pollute the front-face map and shadow real transform pairs because
+			// of TryAdd's first-write-wins semantics.
+			if (!isToken && c.Name.Contains(DoubleFacedSeparator, StringComparison.Ordinal))
 			{
 				_doubleFacedNames.Add(c.Name);
 				var split = c.Name.Split(DoubleFacedSeparator, 2);
-				if (split.Length == 2) { _frontFaceToFull.TryAdd(split[0], c.Name); }
+				// Skip self-pairs ("X // X" — reversible art cards, Doppelganger-style promos)
+				// since they can't disambiguate a front-face lookup.
+				if (split.Length == 2 && !split[0].Equals(split[1], StringComparison.Ordinal))
+				{
+					_frontFaceToFull.TryAdd(split[0], c.Name);
+				}
 			}
-			if (TokenLayouts.Contains(c.Layout)) { _tokenNames.Add(c.Name); }
 		}
 	}
 

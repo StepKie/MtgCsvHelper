@@ -24,7 +24,12 @@ jobs:
       # Install dotnet wasm buildtools workload
       - name: Install .NET WASM Build Tools
         run: dotnet workload install wasm-tools
-          
+
+      # Refresh the bundled Scryfall reference catalog so the deployed app
+      # ships with up-to-date data. Output goes to wwwroot/data/cards.min.json.gz.
+      - name: Refresh reference card bundle
+        run: dotnet run --project tools/MtgCsvHelper.RefreshReferenceData -c Release
+
       # Publishes Blazor project to the release-folder
       - name: Publish BlazorWebAssembly Project
         run: dotnet publish MtgCsvHelper.BlazorWebAssembly/MtgCsvHelper.BlazorWebAssembly.csproj -c:Release -p:GHPages=true -o dist/Web --nologo

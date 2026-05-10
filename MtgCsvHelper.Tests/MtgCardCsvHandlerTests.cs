@@ -4,7 +4,7 @@ using Serilog;
 namespace MtgCsvHelper.Tests;
 
 [Collection(MtgApiCollection.Name)]
-public class MtgCardCsvHandlerTests(MtgApiFixture fixture, ITestOutputHelper output) : ApiBaseTest(fixture, output)
+public class MtgCardCsvHandlerTests(CatalogFixture fixture, ITestOutputHelper output) : ApiBaseTest(fixture, output)
 {
 	public const string SAMPLES_FOLDER = "Resources/SampleCsvs/Samples";
 	public const string COLLECTIONS_FOLDER = "Resources/SampleCsvs/Collection";
@@ -74,7 +74,7 @@ public class MtgCardCsvHandlerTests(MtgApiFixture fixture, ITestOutputHelper out
 		cards.Should().HaveCountGreaterThan(500);
 	}
 
-	MtgCardCsvHandler CreateHandler(string deckFormatName) => new(_api, _config, deckFormatName);
+	MtgCardCsvHandler CreateHandler(string deckFormatName) => new(_catalog, _api, _config, deckFormatName);
 
 	static List<PhysicalMtgCard> GetReferenceCards(Currency currency)
 	{

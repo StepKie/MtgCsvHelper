@@ -73,6 +73,24 @@ This tool defines configurable mappings addressing the above issues in *appsetti
 * Some additional configurability for end user via appsettings.json etc.
 	*
 
+### Refreshing the bundled card data
+
+Both the web app and console ship with a Scryfall reference bundle (`cards.min.json.gz`, ~10 MB)
+under `MtgCsvHelper.BlazorWebAssembly/wwwroot/data/`. This avoids hitting the Scryfall
+API at runtime for static lookups (set names, double-faced names, tokens).
+
+To regenerate it locally — e.g. after a new MtG set release:
+
+```bash
+dotnet run --project tools/MtgCsvHelper.RefreshReferenceData
+```
+
+This downloads Scryfall's `default_cards` bulk file, strips it to the fields the catalog needs,
+and writes the gzipped bundle to the default location above. The Console and test projects pick
+up the refreshed bundle on the next build via `<None CopyToOutputDirectory>`.
+
+CI regenerates the bundle automatically on every deploy of the web app (see `.github/workflows/github-pages.yml`).
+
 
 ## Troubleshooting
 
