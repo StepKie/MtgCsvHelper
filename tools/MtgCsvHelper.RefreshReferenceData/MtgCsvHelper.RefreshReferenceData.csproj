@@ -1,0 +1,19 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+	<PropertyGroup>
+		<OutputType>Exe</OutputType>
+		<TargetFramework>net10.0</TargetFramework>
+		<Nullable>enable</Nullable>
+		<ImplicitUsings>enable</ImplicitUsings>
+		<RootNamespace>MtgCsvHelper.RefreshReferenceData</RootNamespace>
+		<!-- Build-time tool. Not part of the solution's main build; not packaged. -->
+		<IsPackable>false</IsPackable>
+		<!-- CA1303: localization warnings on Console.WriteLine — irrelevant for a build tool. -->
+		<NoWarn>$(NoWarn);CA1303</NoWarn>
+	</PropertyGroup>
+
+	<ItemGroup>
+		<ProjectReference Include="..\..\MtgCsvHelper\MtgCsvHelper.csproj" />
+	</ItemGroup>
+
+</Project>
