@@ -374,5 +374,6 @@ MtgCsvHelper.BlazorWebAssembly/wwwroot/README.md
 # VS Code workspace file
 *.code-workspace
 
-# Claude Code local settings
+# Claude Code local settings + runtime files
 .claude/settings.local.json
+.claude/scheduled_tasks.lock
