@@ -28,7 +28,7 @@ public class CachedMtgApi : IMtgApi
 		BaseAddress = ScryfallApiClientConfig.GetDefault().ScryfallApiBaseAddress,
 		DefaultRequestHeaders =
 				{
-					{"User-Agent", "MtgCsvHelper/1.0.0"},
+					{"User-Agent", AppInfo.UserAgent},
 					{"Accept", "application/json"}
 				}
 	};

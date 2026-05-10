@@ -16,7 +16,7 @@ public static class ServiceConfiguration
 		services.AddHttpClient<ScryfallApiClient>(client =>
 		{
 			client.BaseAddress = new Uri("https://api.scryfall.com/");
-			client.DefaultRequestHeaders.Add("User-Agent", "MtgCsvHelper/1.0.0");
+			client.DefaultRequestHeaders.Add("User-Agent", AppInfo.UserAgent);
 			client.DefaultRequestHeaders.Add("Accept", "application/json");
 
 		});
