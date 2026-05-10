@@ -19,6 +19,13 @@ public class CatalogFixture : IAsyncLifetime
 		Log.Logger = AppLogging.CreateDefaultLoggerConfig().CreateLogger();
 
 		var bundlePath = Path.Combine(AppContext.BaseDirectory, "data", "cards.min.json.gz");
+		if (!File.Exists(bundlePath))
+		{
+			throw new FileNotFoundException(
+				$"Reference card bundle not found at: {bundlePath}. " +
+				$"Generate it with: dotnet run --project tools/MtgCsvHelper.RefreshReferenceData",
+				bundlePath);
+		}
 		await using var fs = File.OpenRead(bundlePath);
 		Catalog = await ReferenceCardCatalog.LoadGzipAsync(fs);
 

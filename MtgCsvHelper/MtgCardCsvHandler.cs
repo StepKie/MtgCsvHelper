@@ -123,14 +123,8 @@ public class MtgCardCsvHandler
 		bool hadSetName = p.SetName is not null;
 
 		// Both directions are O(1) — the catalog maintains forward (code → name) and reverse (name → code) indexes.
-		if (hadSetCode && catalog.GetSets().TryGetValue(p.Set!, out var nameFromCode))
-		{
-			p.SetName ??= nameFromCode;
-		}
-		if (!hadSetCode && hadSetName)
-		{
-			p.Set = catalog.GetSetCodeByName(p.SetName!);
-		}
+		if (hadSetCode) { p.SetName ??= catalog.GetSetNameByCode(p.Set!); }
+		if (hadSetName) { p.Set ??= catalog.GetSetCodeByName(p.SetName!); }
 
 		if (!hadSetCode && !hadSetName)
 		{

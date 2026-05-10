@@ -68,8 +68,9 @@ public sealed class ReferenceCardCatalog : IReferenceCardCatalog
 				_doubleFacedNames.Add(c.Name);
 				var split = c.Name.Split(DoubleFacedSeparator, 2);
 				// Skip self-pairs ("X // X" — reversible art cards, Doppelganger-style promos)
-				// since they can't disambiguate a front-face lookup.
-				if (split.Length == 2 && !split[0].Equals(split[1], StringComparison.Ordinal))
+				// since they can't disambiguate a front-face lookup. Case-insensitive match
+				// catches hypothetical "Forest // forest" variants too — defensive cost: zero.
+				if (split.Length == 2 && !split[0].Equals(split[1], StringComparison.OrdinalIgnoreCase))
 				{
 					_frontFaceToFull.TryAdd(split[0], c.Name);
 				}
@@ -83,6 +84,7 @@ public sealed class ReferenceCardCatalog : IReferenceCardCatalog
 		_bySetAndCollector.GetValueOrDefault((setCode, collectorNumber));
 
 	public IReadOnlyDictionary<string, string> GetSets() => _sets;
+	public string? GetSetNameByCode(string setCode) => _sets.GetValueOrDefault(setCode);
 	public string? GetSetCodeByName(string setName) => _setCodeByName.GetValueOrDefault(setName);
 	public bool IsDoubleFacedName(string name) => _doubleFacedNames.Contains(name);
 	public string? ExpandFrontFaceToFullName(string frontFaceName) => _frontFaceToFull.GetValueOrDefault(frontFaceName);

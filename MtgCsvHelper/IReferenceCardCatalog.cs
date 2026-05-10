@@ -20,6 +20,11 @@ public interface IReferenceCardCatalog
 	IReadOnlyDictionary<string, string> GetSets();
 
 	/// <summary>
+	/// Returns the set name for a given set code (case-insensitive), or null if not present. O(1).
+	/// </summary>
+	string? GetSetNameByCode(string setCode);
+
+	/// <summary>
 	/// Reverse-lookup: returns the set code (uppercase) for a given set name, case-insensitive.
 	/// Null if no set in the catalog has this name. O(1).
 	/// </summary>
