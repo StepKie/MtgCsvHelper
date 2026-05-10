@@ -27,6 +27,7 @@ public sealed class ReferenceCardCatalog : IReferenceCardCatalog
 	readonly Dictionary<int, ReferenceCard> _byCardmarketId;
 	readonly Dictionary<(string Set, string CollectorNumber), ReferenceCard> _bySetAndCollector;
 	readonly Dictionary<string, string> _sets;
+	readonly Dictionary<string, string> _setCodeByName;     // "Innistrad" -> "ISD" (uppercase)
 	readonly HashSet<string> _doubleFacedNames;
 	readonly Dictionary<string, string> _frontFaceToFull;  // "Delver of Secrets" -> "Delver of Secrets // Insectile Aberration"
 	readonly HashSet<string> _tokenNames;
@@ -41,6 +42,7 @@ public sealed class ReferenceCardCatalog : IReferenceCardCatalog
 		_byCardmarketId = [];
 		_bySetAndCollector = new(cards.Count);
 		_sets = new(StringComparer.OrdinalIgnoreCase);
+		_setCodeByName = new(StringComparer.OrdinalIgnoreCase);
 		_doubleFacedNames = new(StringComparer.OrdinalIgnoreCase);
 		_frontFaceToFull = new(StringComparer.OrdinalIgnoreCase);
 		_tokenNames = new(StringComparer.OrdinalIgnoreCase);
@@ -53,6 +55,7 @@ public sealed class ReferenceCardCatalog : IReferenceCardCatalog
 			// per English printing in default_cards but TryAdd makes the intent explicit.
 			_bySetAndCollector.TryAdd((c.Set, c.CollectorNumber), c);
 			_sets.TryAdd(c.Set, c.SetName);
+			_setCodeByName.TryAdd(c.SetName, c.Set.ToUpperInvariant());
 
 			bool isToken = TokenLayouts.Contains(c.Layout);
 			if (isToken) { _tokenNames.Add(c.Name); }
@@ -80,6 +83,7 @@ public sealed class ReferenceCardCatalog : IReferenceCardCatalog
 		_bySetAndCollector.GetValueOrDefault((setCode, collectorNumber));
 
 	public IReadOnlyDictionary<string, string> GetSets() => _sets;
+	public string? GetSetCodeByName(string setName) => _setCodeByName.GetValueOrDefault(setName);
 	public bool IsDoubleFacedName(string name) => _doubleFacedNames.Contains(name);
 	public string? ExpandFrontFaceToFullName(string frontFaceName) => _frontFaceToFull.GetValueOrDefault(frontFaceName);
 	public bool IsTokenName(string name) => _tokenNames.Contains(name);

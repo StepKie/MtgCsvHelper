@@ -54,7 +54,6 @@ public class MtgCardCsvHandler
 		var cards = new List<PhysicalMtgCard>();
 		var rowNumbers = new List<int>(); // parallel to cards; needed for issue reporting in the post-parse enrichment step
 		var issues = new List<ImportIssue>();
-		var setCodeToName = _catalog.GetSets();
 
 		while (await csv.ReadAsync())
 		{
@@ -72,7 +71,7 @@ public class MtgCardCsvHandler
 				// For cardmarket-style stubs (Name empty, CardMarketId set), defer to the cardmarket enricher.
 				if (!string.IsNullOrEmpty(card.Printing.Name))
 				{
-					EnrichSetInfo(card, setCodeToName, issues, rowNum);
+					EnrichSetInfo(card, _catalog, issues, rowNum);
 				}
 				cards.Add(card);
 				rowNumbers.Add(rowNum);
@@ -117,21 +116,20 @@ public class MtgCardCsvHandler
 		}
 	}
 
-	static void EnrichSetInfo(PhysicalMtgCard card, IReadOnlyDictionary<string, string> setCodeToName, List<ImportIssue> issues, int rowNum)
+	static void EnrichSetInfo(PhysicalMtgCard card, IReferenceCardCatalog catalog, List<ImportIssue> issues, int rowNum)
 	{
 		var p = card.Printing;
 		bool hadSetCode = p.Set is not null;
 		bool hadSetName = p.SetName is not null;
 
-		// The catalog's set dictionary is keyed by Scryfall's lowercase set code, with a case-insensitive comparer.
-		if (hadSetCode && setCodeToName.TryGetValue(p.Set!, out var nameFromCode))
+		// Both directions are O(1) — the catalog maintains forward (code → name) and reverse (name → code) indexes.
+		if (hadSetCode && catalog.GetSets().TryGetValue(p.Set!, out var nameFromCode))
 		{
 			p.SetName ??= nameFromCode;
 		}
 		if (!hadSetCode && hadSetName)
 		{
-			var match = setCodeToName.FirstOrDefault(kv => kv.Value.Equals(p.SetName, StringComparison.OrdinalIgnoreCase));
-			if (match.Key is not null) { p.Set = match.Key.ToUpperInvariant(); }
+			p.Set = catalog.GetSetCodeByName(p.SetName!);
 		}
 
 		if (!hadSetCode && !hadSetName)

@@ -19,6 +19,12 @@ public interface IReferenceCardCatalog
 	/// <summary> Distinct sets present in the catalog. Maps set code to set name. </summary>
 	IReadOnlyDictionary<string, string> GetSets();
 
+	/// <summary>
+	/// Reverse-lookup: returns the set code (uppercase) for a given set name, case-insensitive.
+	/// Null if no set in the catalog has this name. O(1).
+	/// </summary>
+	string? GetSetCodeByName(string setName);
+
 	/// <summary> True if at least one printing of this exact name is a double-faced layout. </summary>
 	bool IsDoubleFacedName(string name);
 

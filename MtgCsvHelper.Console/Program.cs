@@ -8,8 +8,14 @@ using MtgCsvHelper.Services;
 
 // Load the bundled reference catalog up-front so we can register the pre-loaded instance
 // into DI (avoids sync-over-async in a factory lambda). Bundle ships next to the exe under data/.
-// Refresh via: dotnet run --project tools/MtgCsvHelper.RefreshReferenceData -- <path>
 var bundlePath = Path.Combine(AppContext.BaseDirectory, "data", "cards.min.json.gz");
+if (!File.Exists(bundlePath))
+{
+	await Console.Error.WriteLineAsync($"Reference card bundle not found at: {bundlePath}");
+	await Console.Error.WriteLineAsync("Generate it with:");
+	await Console.Error.WriteLineAsync($"  dotnet run --project tools/MtgCsvHelper.RefreshReferenceData -- \"{bundlePath}\"");
+	Environment.Exit(1);
+}
 await using var bundleStream = File.OpenRead(bundlePath);
 var catalog = await ReferenceCardCatalog.LoadGzipAsync(bundleStream);
 
