@@ -16,4 +16,11 @@
     <ProjectReference Include="..\MtgCsvHelper\MtgCsvHelper.csproj" />
   </ItemGroup>
 
+  <!-- Ship the reference-card bundle next to the exe. Refresh via the RefreshReferenceData tool. -->
+  <ItemGroup>
+    <None Include="..\MtgCsvHelper.BlazorWebAssembly\wwwroot\data\cards.min.json.gz"
+          Link="data\cards.min.json.gz"
+          CopyToOutputDirectory="PreserveNewest" />
+  </ItemGroup>
+
 </Project>

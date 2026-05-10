@@ -8,13 +8,15 @@ namespace MtgCsvHelper;
 public class MtgCardCsvHandler
 {
 	readonly CardMapFactory _factory;
+	readonly IReferenceCardCatalog _catalog;
 	readonly IMtgApi _api;
 	readonly string _format;
 
-	public MtgCardCsvHandler(IMtgApi api, IConfiguration config, string format)
+	public MtgCardCsvHandler(IReferenceCardCatalog catalog, IMtgApi api, IConfiguration config, string format)
 	{
 		_format = format;
-		_factory = new CardMapFactory(config, api);
+		_factory = new CardMapFactory(config, catalog);
+		_catalog = catalog;
 		_api = api;
 	}
 
@@ -52,10 +54,6 @@ public class MtgCardCsvHandler
 		var cards = new List<PhysicalMtgCard>();
 		var rowNumbers = new List<int>(); // parallel to cards; needed for issue reporting in the post-parse enrichment step
 		var issues = new List<ImportIssue>();
-		// Sets are pre-loaded into the cached IMtgApi during startup; the sync accessor is a property read, not network I/O.
-#pragma warning disable CA1849
-		var sets = _api.GetSets();
-#pragma warning restore CA1849
 
 		while (await csv.ReadAsync())
 		{
@@ -73,7 +71,7 @@ public class MtgCardCsvHandler
 				// For cardmarket-style stubs (Name empty, CardMarketId set), defer to the cardmarket enricher.
 				if (!string.IsNullOrEmpty(card.Printing.Name))
 				{
-					EnrichSetInfo(card, sets, issues, rowNum);
+					EnrichSetInfo(card, _catalog, issues, rowNum);
 				}
 				cards.Add(card);
 				rowNumbers.Add(rowNum);
@@ -118,14 +116,15 @@ public class MtgCardCsvHandler
 		}
 	}
 
-	static void EnrichSetInfo(PhysicalMtgCard card, IEnumerable<ScryfallApi.Client.Models.Set> sets, List<ImportIssue> issues, int rowNum)
+	static void EnrichSetInfo(PhysicalMtgCard card, IReferenceCardCatalog catalog, List<ImportIssue> issues, int rowNum)
 	{
 		var p = card.Printing;
 		bool hadSetCode = p.Set is not null;
 		bool hadSetName = p.SetName is not null;
 
-		p.SetName ??= sets.FirstOrDefault(s => s.Code.Equals(p.Set, StringComparison.OrdinalIgnoreCase))?.Name;
-		p.Set ??= sets.FirstOrDefault(s => s.Name.Equals(p.SetName, StringComparison.OrdinalIgnoreCase))?.Code.ToUpper();
+		// Both directions are O(1) — the catalog maintains forward (code → name) and reverse (name → code) indexes.
+		if (hadSetCode) { p.SetName ??= catalog.GetSetNameByCode(p.Set!); }
+		if (hadSetName) { p.Set ??= catalog.GetSetCodeByName(p.SetName!); }
 
 		if (!hadSetCode && !hadSetName)
 		{

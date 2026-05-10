@@ -27,6 +27,7 @@ public sealed class ReferenceCardCatalog : IReferenceCardCatalog
 	readonly Dictionary<int, ReferenceCard> _byCardmarketId;
 	readonly Dictionary<(string Set, string CollectorNumber), ReferenceCard> _bySetAndCollector;
 	readonly Dictionary<string, string> _sets;
+	readonly Dictionary<string, string> _setCodeByName;     // "Innistrad" -> "ISD" (uppercase)
 	readonly HashSet<string> _doubleFacedNames;
 	readonly Dictionary<string, string> _frontFaceToFull;  // "Delver of Secrets" -> "Delver of Secrets // Insectile Aberration"
 	readonly HashSet<string> _tokenNames;
@@ -41,6 +42,7 @@ public sealed class ReferenceCardCatalog : IReferenceCardCatalog
 		_byCardmarketId = [];
 		_bySetAndCollector = new(cards.Count);
 		_sets = new(StringComparer.OrdinalIgnoreCase);
+		_setCodeByName = new(StringComparer.OrdinalIgnoreCase);
 		_doubleFacedNames = new(StringComparer.OrdinalIgnoreCase);
 		_frontFaceToFull = new(StringComparer.OrdinalIgnoreCase);
 		_tokenNames = new(StringComparer.OrdinalIgnoreCase);
@@ -52,15 +54,32 @@ public sealed class ReferenceCardCatalog : IReferenceCardCatalog
 			// First-write-wins on duplicate (set, collector_number); Scryfall keeps these unique
 			// per English printing in default_cards but TryAdd makes the intent explicit.
 			_bySetAndCollector.TryAdd((c.Set, c.CollectorNumber), c);
-			_sets.TryAdd(c.Set, c.SetName);
+			// Both set indexes use uppercase keys so GetSets()/GetSetNameByCode/GetSetCodeByName
+			// are consistent — Scryfall's raw set codes are lowercase (e.g. "isd"), but our
+			// public contract is to expose them uppercase to match historical convention.
+			var setUpper = c.Set.ToUpperInvariant();
+			_sets.TryAdd(setUpper, c.SetName);
+			_setCodeByName.TryAdd(c.SetName, setUpper);
 
-			if (c.Name.Contains(DoubleFacedSeparator, StringComparison.Ordinal))
+			bool isToken = TokenLayouts.Contains(c.Layout);
+			if (isToken) { _tokenNames.Add(c.Name); }
+
+			// DFC indexing intentionally skips token/emblem layouts. Tokens like "Bolt // Bolt"
+			// would otherwise pollute the front-face map and shadow real transform pairs because
+			// of TryAdd's first-write-wins semantics.
+			if (!isToken && c.Name.Contains(DoubleFacedSeparator, StringComparison.Ordinal))
 			{
 				_doubleFacedNames.Add(c.Name);
 				var split = c.Name.Split(DoubleFacedSeparator, 2);
-				if (split.Length == 2) { _frontFaceToFull.TryAdd(split[0], c.Name); }
+				// Skip self-pairs ("X // X" — Scryfall's `reversible_card` layout, where both
+				// faces share the same oracle name). They can't disambiguate a front-face lookup.
+				// Case-insensitive match catches hypothetical "Forest // forest" variants too —
+				// defensive cost: zero.
+				if (split.Length == 2 && !split[0].Equals(split[1], StringComparison.OrdinalIgnoreCase))
+				{
+					_frontFaceToFull.TryAdd(split[0], c.Name);
+				}
 			}
-			if (TokenLayouts.Contains(c.Layout)) { _tokenNames.Add(c.Name); }
 		}
 	}
 
@@ -70,6 +89,8 @@ public sealed class ReferenceCardCatalog : IReferenceCardCatalog
 		_bySetAndCollector.GetValueOrDefault((setCode, collectorNumber));
 
 	public IReadOnlyDictionary<string, string> GetSets() => _sets;
+	public string? GetSetNameByCode(string setCode) => _sets.GetValueOrDefault(setCode);
+	public string? GetSetCodeByName(string setName) => _setCodeByName.GetValueOrDefault(setName);
 	public bool IsDoubleFacedName(string name) => _doubleFacedNames.Contains(name);
 	public string? ExpandFrontFaceToFullName(string frontFaceName) => _frontFaceToFull.GetValueOrDefault(frontFaceName);
 	public bool IsTokenName(string name) => _tokenNames.Contains(name);

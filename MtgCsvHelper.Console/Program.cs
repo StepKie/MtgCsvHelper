@@ -6,6 +6,21 @@ using Microsoft.Extensions.Hosting;
 using MtgCsvHelper;
 using MtgCsvHelper.Services;
 
+// Load the bundled reference catalog up-front so we can register the pre-loaded instance
+// into DI (avoids sync-over-async in a factory lambda). Bundle ships next to the exe under data/.
+var bundlePath = Path.Combine(AppContext.BaseDirectory, "data", "cards.min.json.gz");
+if (!File.Exists(bundlePath))
+{
+	await Console.Error.WriteLineAsync($"""
+		Reference card bundle not found at: {bundlePath}
+		Generate it with:
+		  dotnet run --project tools/MtgCsvHelper.RefreshReferenceData -- "{bundlePath}"
+		""");
+	Environment.Exit(1);
+}
+await using var bundleStream = File.OpenRead(bundlePath);
+var catalog = await ReferenceCardCatalog.LoadGzipAsync(bundleStream);
+
 // Load appsettings.json from next to the exe, not from the user's cwd. Without this, running
 // the Console from anywhere except its bin output makes config loading silently fail and the
 // "supported formats" list ends up empty (which then surfaces as a confusing "Unsupported format"
@@ -13,7 +28,11 @@ using MtgCsvHelper.Services;
 IHostBuilder builder = Host
 	.CreateDefaultBuilder(args)
 	.UseContentRoot(AppContext.BaseDirectory)
-	.ConfigureServices(builder => builder.ConfigureMtgCsvHelper());
+	.ConfigureServices(services =>
+	{
+		services.ConfigureMtgCsvHelper();
+		services.AddSingleton<IReferenceCardCatalog>(catalog);
+	});
 
 using IHost host = builder.Build();
 
@@ -21,8 +40,8 @@ using IHost host = builder.Build();
 var config = host.Services.GetRequiredService<IConfiguration>();
 Log.Logger = new LoggerConfiguration().ReadFrom.Configuration(config).CreateLogger();
 
-var api = host.Services.GetService<IMtgApi>()!;
-await api.LoadData();
+var api = host.Services.GetRequiredService<IMtgApi>();
+Log.Information("Loaded reference catalog: {Count:N0} printings.", catalog.Count);
 
 Parser.Default.ParseArguments<CommandLineOptions>(args)
 	.WithNotParsed(HandleParseError)
@@ -41,8 +60,8 @@ void RunWithOptions(CommandLineOptions opts)
 		return;
 	}
 
-	var reader = new MtgCardCsvHandler(api, config, opts.InputFormat);
-	var writer = new MtgCardCsvHandler(api, config, opts.OutputFormat);
+	var reader = new MtgCardCsvHandler(catalog, api, config, opts.InputFormat);
+	var writer = new MtgCardCsvHandler(catalog, api, config, opts.OutputFormat);
 
 	List<PhysicalMtgCard> cardsFound = [];
 

@@ -16,8 +16,23 @@ public interface IReferenceCardCatalog
 	ReferenceCard? FindByCardmarketId(int cardmarketId);
 	ReferenceCard? FindBySetAndCollectorNumber(string setCode, string collectorNumber);
 
-	/// <summary> Distinct sets present in the catalog. Maps set code to set name. </summary>
+	/// <summary>
+	/// Distinct sets present in the catalog. Keys are uppercase set codes (e.g. "ISD"),
+	/// values are mixed-case set names as Scryfall delivers them (e.g. "Innistrad").
+	/// </summary>
 	IReadOnlyDictionary<string, string> GetSets();
+
+	/// <summary>
+	/// Returns the set name (mixed case, as Scryfall delivers it) for a given set code.
+	/// Lookup is case-insensitive. Null if not present. O(1).
+	/// </summary>
+	string? GetSetNameByCode(string setCode);
+
+	/// <summary>
+	/// Returns the set code (uppercase) for a given set name. Lookup is case-insensitive.
+	/// Null if no set in the catalog has this name. O(1).
+	/// </summary>
+	string? GetSetCodeByName(string setName);
 
 	/// <summary> True if at least one printing of this exact name is a double-faced layout. </summary>
 	bool IsDoubleFacedName(string name);

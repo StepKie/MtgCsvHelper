@@ -3,14 +3,14 @@ using CsvHelper;
 
 namespace MtgCsvHelper.Tests;
 
-[Collection(MtgApiCollection.Name)]
-public class CardmarketTests(MtgApiFixture fixture, ITestOutputHelper output) : ApiBaseTest(fixture, output)
+[Collection(CatalogCollection.Name)]
+public class CardmarketTests(CatalogFixture fixture, ITestOutputHelper output) : ApiBaseTest(fixture, output)
 {
 	const string SamplePath = "Resources/SampleCsvs/Samples/cardmarket-sample.csv";
 
 	static MemoryStream CsvStream(string csv) => new(Encoding.UTF8.GetBytes(csv));
 
-	MtgCardCsvHandler Handler() => new(_api, _config, "CARDMARKET");
+	MtgCardCsvHandler Handler() => new(_catalog, _api, _config, "CARDMARKET");
 
 	[Fact]
 	public async Task ParseSample_ResolvesAllFiveCardsViaScryfall()
@@ -101,7 +101,7 @@ public class CardmarketTests(MtgApiFixture fixture, ITestOutputHelper output) : 
 	[Fact]
 	public void GenerateWriteMap_ForCardmarket_Throws()
 	{
-		var factory = new CardMapFactory(_config, _api);
+		var factory = new CardMapFactory(_config, _catalog);
 		var act = () => factory.GenerateWriteMap("CARDMARKET");
 
 		act.Should().Throw<InvalidOperationException>().WithMessage("*read-only*");
