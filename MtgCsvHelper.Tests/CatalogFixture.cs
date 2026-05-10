@@ -33,6 +33,9 @@ public class CatalogFixture : IAsyncLifetime
 		await using var fs = File.OpenRead(bundlePath);
 		Catalog = await ReferenceCardCatalog.LoadGzipAsync(fs);
 
+		// Note: Api makes live Scryfall calls for cardmarket-id resolution (the only
+		// network path still owned by IMtgApi). Tests that exercise it (CardmarketTests)
+		// remain integration-flavored. Catalog-backed paths are fully offline.
 		Api = new CachedMtgApi();
 	}
 

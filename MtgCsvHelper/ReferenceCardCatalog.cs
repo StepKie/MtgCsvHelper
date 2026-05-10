@@ -57,8 +57,9 @@ public sealed class ReferenceCardCatalog : IReferenceCardCatalog
 			// Both set indexes use uppercase keys so GetSets()/GetSetNameByCode/GetSetCodeByName
 			// are consistent — Scryfall's raw set codes are lowercase (e.g. "isd"), but our
 			// public contract is to expose them uppercase to match historical convention.
-			_sets.TryAdd(c.Set.ToUpperInvariant(), c.SetName);
-			_setCodeByName.TryAdd(c.SetName, c.Set.ToUpperInvariant());
+			var setUpper = c.Set.ToUpperInvariant();
+			_sets.TryAdd(setUpper, c.SetName);
+			_setCodeByName.TryAdd(c.SetName, setUpper);
 
 			bool isToken = TokenLayouts.Contains(c.Layout);
 			if (isToken) { _tokenNames.Add(c.Name); }
