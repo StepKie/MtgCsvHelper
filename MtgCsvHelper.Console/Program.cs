@@ -11,9 +11,11 @@ using MtgCsvHelper.Services;
 var bundlePath = Path.Combine(AppContext.BaseDirectory, "data", "cards.min.json.gz");
 if (!File.Exists(bundlePath))
 {
-	await Console.Error.WriteLineAsync($"Reference card bundle not found at: {bundlePath}");
-	await Console.Error.WriteLineAsync("Generate it with:");
-	await Console.Error.WriteLineAsync($"  dotnet run --project tools/MtgCsvHelper.RefreshReferenceData -- \"{bundlePath}\"");
+	await Console.Error.WriteLineAsync($"""
+		Reference card bundle not found at: {bundlePath}
+		Generate it with:
+		  dotnet run --project tools/MtgCsvHelper.RefreshReferenceData -- "{bundlePath}"
+		""");
 	Environment.Exit(1);
 }
 await using var bundleStream = File.OpenRead(bundlePath);
