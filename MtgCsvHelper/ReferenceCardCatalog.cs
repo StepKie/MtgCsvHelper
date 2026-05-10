@@ -70,9 +70,10 @@ public sealed class ReferenceCardCatalog : IReferenceCardCatalog
 			{
 				_doubleFacedNames.Add(c.Name);
 				var split = c.Name.Split(DoubleFacedSeparator, 2);
-				// Skip self-pairs ("X // X" — reversible art cards, Doppelganger-style promos)
-				// since they can't disambiguate a front-face lookup. Case-insensitive match
-				// catches hypothetical "Forest // forest" variants too — defensive cost: zero.
+				// Skip self-pairs ("X // X" — Scryfall's `reversible_card` layout, where both
+				// faces share the same oracle name). They can't disambiguate a front-face lookup.
+				// Case-insensitive match catches hypothetical "Forest // forest" variants too —
+				// defensive cost: zero.
 				if (split.Length == 2 && !split[0].Equals(split[1], StringComparison.OrdinalIgnoreCase))
 				{
 					_frontFaceToFull.TryAdd(split[0], c.Name);

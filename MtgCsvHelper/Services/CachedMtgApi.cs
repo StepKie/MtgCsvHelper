@@ -14,8 +14,8 @@ public class CachedMtgApi : IMtgApi
 
 	public CachedMtgApi() => Log.Debug("CachedMtgApi created");
 
-	/// <summary> Shared client for Scryfall API. Since 09/2024, required UserAgent and Accept headers to be set </summary>
-	public static readonly HttpClient DEFAULT_CLIENT = new()
+	// Scryfall requires UserAgent and Accept headers since 09/2024.
+	static readonly HttpClient HttpClient = new()
 	{
 		BaseAddress = ScryfallApiClientConfig.GetDefault().ScryfallApiBaseAddress,
 		DefaultRequestHeaders =
@@ -45,7 +45,7 @@ public class CachedMtgApi : IMtgApi
 			var id = notYetFetched[i];
 			try
 			{
-				var response = await DEFAULT_CLIENT.GetAsync(new Uri($"https://api.scryfall.com/cards/cardmarket/{id}"));
+				var response = await HttpClient.GetAsync(new Uri($"https://api.scryfall.com/cards/cardmarket/{id}"));
 				if (response.StatusCode == System.Net.HttpStatusCode.NotFound)
 				{
 					continue; // not found — caller will see this id absent from the returned dictionary

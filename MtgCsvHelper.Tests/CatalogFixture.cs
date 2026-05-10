@@ -21,8 +21,12 @@ public class CatalogFixture : IAsyncLifetime
 		var bundlePath = Path.Combine(AppContext.BaseDirectory, "data", "cards.min.json.gz");
 		if (!File.Exists(bundlePath))
 		{
+			// The bundle is linked from MtgCsvHelper.BlazorWebAssembly/wwwroot/data/cards.min.json.gz
+			// via <None CopyToOutputDirectory> in the test csproj. If the link target is missing
+			// (fresh checkout, never built the Blazor project), the link copy silently produces nothing.
 			throw new FileNotFoundException(
 				$"Reference card bundle not found at: {bundlePath}. " +
+				$"Source: MtgCsvHelper.BlazorWebAssembly/wwwroot/data/cards.min.json.gz (linked into test output). " +
 				$"Generate it with: dotnet run --project tools/MtgCsvHelper.RefreshReferenceData",
 				bundlePath);
 		}
