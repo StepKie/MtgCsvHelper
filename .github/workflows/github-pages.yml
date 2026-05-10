@@ -27,7 +27,10 @@ jobs:
 
       # Refresh the bundled Scryfall reference catalog so the deployed app
       # ships with up-to-date data. Output goes to wwwroot/data/cards.min.json.gz.
+      # `continue-on-error: true` keeps deploys working when Scryfall's bulk-data
+      # endpoint is degraded — the previously committed bundle is used as fallback.
       - name: Refresh reference card bundle
+        continue-on-error: true
         run: dotnet run --project tools/MtgCsvHelper.RefreshReferenceData -c Release
 
       # Publishes Blazor project to the release-folder

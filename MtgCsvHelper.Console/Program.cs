@@ -6,6 +6,13 @@ using Microsoft.Extensions.Hosting;
 using MtgCsvHelper;
 using MtgCsvHelper.Services;
 
+// Load the bundled reference catalog up-front so we can register the pre-loaded instance
+// into DI (avoids sync-over-async in a factory lambda). Bundle ships next to the exe under data/.
+// Refresh via: dotnet run --project tools/MtgCsvHelper.RefreshReferenceData -- <path>
+var bundlePath = Path.Combine(AppContext.BaseDirectory, "data", "cards.min.json.gz");
+await using var bundleStream = File.OpenRead(bundlePath);
+var catalog = await ReferenceCardCatalog.LoadGzipAsync(bundleStream);
+
 // Load appsettings.json from next to the exe, not from the user's cwd. Without this, running
 // the Console from anywhere except its bin output makes config loading silently fail and the
 // "supported formats" list ends up empty (which then surfaces as a confusing "Unsupported format"
@@ -16,14 +23,7 @@ IHostBuilder builder = Host
 	.ConfigureServices(services =>
 	{
 		services.ConfigureMtgCsvHelper();
-		services.AddSingleton<IReferenceCardCatalog>(_ =>
-		{
-			// Bundle ships next to the exe under data/. Refresh via:
-			//   dotnet run --project tools/MtgCsvHelper.RefreshReferenceData -- <path>
-			var bundlePath = Path.Combine(AppContext.BaseDirectory, "data", "cards.min.json.gz");
-			using var fs = File.OpenRead(bundlePath);
-			return ReferenceCardCatalog.LoadGzipAsync(fs).GetAwaiter().GetResult();
-		});
+		services.AddSingleton<IReferenceCardCatalog>(catalog);
 	});
 
 using IHost host = builder.Build();
@@ -32,9 +32,8 @@ using IHost host = builder.Build();
 var config = host.Services.GetRequiredService<IConfiguration>();
 Log.Logger = new LoggerConfiguration().ReadFrom.Configuration(config).CreateLogger();
 
-var catalog = host.Services.GetRequiredService<IReferenceCardCatalog>();
 var api = host.Services.GetRequiredService<IMtgApi>();
-Log.Information($"Loaded reference catalog: {catalog.Count:N0} printings.");
+Log.Information("Loaded reference catalog: {Count:N0} printings.", catalog.Count);
 
 Parser.Default.ParseArguments<CommandLineOptions>(args)
 	.WithNotParsed(HandleParseError)
