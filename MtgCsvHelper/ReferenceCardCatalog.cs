@@ -54,7 +54,10 @@ public sealed class ReferenceCardCatalog : IReferenceCardCatalog
 			// First-write-wins on duplicate (set, collector_number); Scryfall keeps these unique
 			// per English printing in default_cards but TryAdd makes the intent explicit.
 			_bySetAndCollector.TryAdd((c.Set, c.CollectorNumber), c);
-			_sets.TryAdd(c.Set, c.SetName);
+			// Both set indexes use uppercase keys so GetSets()/GetSetNameByCode/GetSetCodeByName
+			// are consistent — Scryfall's raw set codes are lowercase (e.g. "isd"), but our
+			// public contract is to expose them uppercase to match historical convention.
+			_sets.TryAdd(c.Set.ToUpperInvariant(), c.SetName);
 			_setCodeByName.TryAdd(c.SetName, c.Set.ToUpperInvariant());
 
 			bool isToken = TokenLayouts.Contains(c.Layout);

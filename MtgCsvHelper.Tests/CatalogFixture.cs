@@ -35,8 +35,8 @@ public class CatalogFixture : IAsyncLifetime
 	public Task DisposeAsync() => Task.CompletedTask;
 }
 
-[CollectionDefinition(MtgApiCollection.Name)]
-public class MtgApiCollection : ICollectionFixture<CatalogFixture>
+[CollectionDefinition(CatalogCollection.Name)]
+public class CatalogCollection : ICollectionFixture<CatalogFixture>
 {
-	public const string Name = "MtgApi";
+	public const string Name = "Catalog";
 }

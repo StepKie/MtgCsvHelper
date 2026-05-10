@@ -2,7 +2,7 @@ using ScryfallApi.Client.Models;
 
 namespace MtgCsvHelper.Tests;
 
-[Collection(MtgApiCollection.Name)]
+[Collection(CatalogCollection.Name)]
 public class DeckFormatTests(CatalogFixture fixture, ITestOutputHelper output) : ApiBaseTest(fixture, output)
 {
 	[Theory]

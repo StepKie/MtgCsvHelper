@@ -3,7 +3,7 @@ using CsvHelper;
 
 namespace MtgCsvHelper.Tests;
 
-[Collection(MtgApiCollection.Name)]
+[Collection(CatalogCollection.Name)]
 public class CardmarketTests(CatalogFixture fixture, ITestOutputHelper output) : ApiBaseTest(fixture, output)
 {
 	const string SamplePath = "Resources/SampleCsvs/Samples/cardmarket-sample.csv";
