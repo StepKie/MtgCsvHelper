@@ -13,7 +13,7 @@ namespace MtgCsvHelper.Services;
 /// </summary>
 public class CachedMtgApi : IMtgApi
 {
-	// ConcurrentDictionary because CachedMtgApi is registered as a DI singleton — protects against future ASP.NET-style concurrent callers.
+	// ConcurrentDictionary because CachedMtgApi is a DI singleton — keeps the cache consistent under concurrent callers (duplicate fetches of the same id are still possible but idempotent).
 	readonly ConcurrentDictionary<int, ReferenceCard> _cardsByCardmarketId = new();
 
 	public CachedMtgApi() => Log.Debug("CachedMtgApi created");
