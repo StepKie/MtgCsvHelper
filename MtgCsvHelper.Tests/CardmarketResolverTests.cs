@@ -14,7 +14,7 @@ public class CardmarketResolverTests(CatalogFixture fixture, ITestOutputHelper o
 		public List<int> CallsReceived { get; } = [];
 		public IReadOnlyDictionary<int, ReferenceCard> NextResponse { get; set; } = new Dictionary<int, ReferenceCard>();
 
-		public Task<IReadOnlyDictionary<int, ReferenceCard>> GetCardsByCardmarketIdsAsync(IEnumerable<int> cardmarketIds)
+		public Task<IReadOnlyDictionary<int, ReferenceCard>> GetCardsByCardmarketIdsAsync(IEnumerable<int> cardmarketIds, CancellationToken ct = default)
 		{
 			CallsReceived.AddRange(cardmarketIds);
 

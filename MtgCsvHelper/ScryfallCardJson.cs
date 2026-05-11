@@ -7,10 +7,10 @@ namespace MtgCsvHelper;
 /// in <see cref="ReferenceCard"/>. Used as the deserialization target for both the bulk-data
 /// pipeline (bundle generator) and the per-card endpoint (<c>CachedMtgApi</c>), so the field
 /// list lives in exactly one place. Nullable where Scryfall may omit the property (<c>oracle_id</c>
-/// on tokens/emblems, the various external-id fields). Not a stable public API — its shape
-/// follows whatever Scryfall ships; consumers should work with <see cref="ReferenceCard"/> instead.
+/// on tokens/emblems, the various external-id fields). Internal because its shape follows
+/// whatever Scryfall ships — consumers should work with <see cref="ReferenceCard"/> instead.
 /// </summary>
-public sealed record ScryfallCardJson(
+internal sealed record ScryfallCardJson(
 	Guid Id,
 	[property: JsonPropertyName("oracle_id")] Guid? OracleId,
 	string Name,

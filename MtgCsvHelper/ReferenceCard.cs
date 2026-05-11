@@ -35,9 +35,10 @@ public sealed record ReferenceCard(
 	/// shape, applying the defaults in one place: <c>Lang</c> falls back to <c>"en"</c>, <c>Layout</c>
 	/// to <c>"normal"</c>, <c>Finishes</c> to an empty list. Both the bundle generator and the runtime
 	/// network fallback go through this factory, so the field list and defaulting rules can't
-	/// silently drift between them.
+	/// silently drift between them. Internal because the input <see cref="ScryfallCardJson"/> is
+	/// internal — external consumers should use the positional constructor directly.
 	/// </summary>
-	public static ReferenceCard CreateFromScryfall(ScryfallCardJson c) => new(
+	internal static ReferenceCard CreateFromScryfall(ScryfallCardJson c) => new(
 		Id: c.Id,
 		OracleId: c.OracleId,
 		Name: c.Name,

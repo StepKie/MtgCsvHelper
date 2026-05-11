@@ -10,5 +10,6 @@ public interface IMtgApi
 {
 	// Batched lookup of cards by cardmarket_id. Missing IDs are absent from the returned dictionary.
 	// Cached: subsequent calls for already-resolved IDs return instantly without hitting the network.
-	Task<IReadOnlyDictionary<int, ReferenceCard>> GetCardsByCardmarketIdsAsync(IEnumerable<int> cardmarketIds);
+	// The token aborts the in-flight Scryfall request and any inter-request delay.
+	Task<IReadOnlyDictionary<int, ReferenceCard>> GetCardsByCardmarketIdsAsync(IEnumerable<int> cardmarketIds, CancellationToken ct = default);
 }

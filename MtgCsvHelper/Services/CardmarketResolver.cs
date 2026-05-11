@@ -7,7 +7,7 @@ namespace MtgCsvHelper.Services;
 /// </summary>
 public sealed class CardmarketResolver(IReferenceCardCatalog catalog, IMtgApi api) : ICardmarketResolver
 {
-	public async Task<IReadOnlyDictionary<int, ReferenceCard>> ResolveAsync(IEnumerable<int> cardmarketIds)
+	public async Task<IReadOnlyDictionary<int, ReferenceCard>> ResolveAsync(IEnumerable<int> cardmarketIds, CancellationToken ct = default)
 	{
 		var resolved = new Dictionary<int, ReferenceCard>();
 		var misses = new List<int>();
@@ -21,7 +21,7 @@ public sealed class CardmarketResolver(IReferenceCardCatalog catalog, IMtgApi ap
 
 		if (misses.Count > 0)
 		{
-			var fetched = await api.GetCardsByCardmarketIdsAsync(misses);
+			var fetched = await api.GetCardsByCardmarketIdsAsync(misses, ct);
 			foreach (var (id, card) in fetched)
 			{
 				resolved[id] = card;

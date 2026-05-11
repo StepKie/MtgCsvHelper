@@ -37,7 +37,7 @@ public class CachedMtgApi : IMtgApi
 		PropertyNamingPolicy = JsonNamingPolicy.SnakeCaseLower,
 	};
 
-	public async Task<IReadOnlyDictionary<int, ReferenceCard>> GetCardsByCardmarketIdsAsync(IEnumerable<int> cardmarketIds)
+	public async Task<IReadOnlyDictionary<int, ReferenceCard>> GetCardsByCardmarketIdsAsync(IEnumerable<int> cardmarketIds, CancellationToken ct = default)
 	{
 		var requested = cardmarketIds.Distinct().ToList();
 		var notYetFetched = requested.Where(id => !_cardsByCardmarketId.ContainsKey(id)).ToList();
@@ -47,13 +47,13 @@ public class CachedMtgApi : IMtgApi
 			var id = notYetFetched[i];
 			try
 			{
-				var response = await ScryfallHttpClient.GetAsync(new Uri($"https://api.scryfall.com/cards/cardmarket/{id}"));
+				var response = await ScryfallHttpClient.GetAsync(new Uri($"https://api.scryfall.com/cards/cardmarket/{id}"), ct);
 				if (response.StatusCode == System.Net.HttpStatusCode.NotFound)
 				{
 					continue; // not found — caller will see this id absent from the returned dictionary
 				}
 				response.EnsureSuccessStatusCode();
-				var body = await response.Content.ReadAsStringAsync();
+				var body = await response.Content.ReadAsStringAsync(ct);
 				var card = JsonSerializer.Deserialize<ScryfallCardJson>(body, ScryfallJsonOptions);
 				if (card is not null)
 				{
@@ -67,7 +67,7 @@ public class CachedMtgApi : IMtgApi
 
 			if (i + 1 < notYetFetched.Count)
 			{
-				await Task.Delay(InterRequestDelayMs);
+				await Task.Delay(InterRequestDelayMs, ct);
 			}
 		}
 
