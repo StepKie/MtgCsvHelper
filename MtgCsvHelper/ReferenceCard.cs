@@ -28,4 +28,24 @@ public sealed record ReferenceCard(
 	int? CardmarketId,
 	int? TcgplayerId,
 	int? TcgplayerEtchedId,
-	IReadOnlyList<int>? MultiverseIds);
+	IReadOnlyList<int>? MultiverseIds)
+{
+	/// <summary> Single canonical factory used by the bundle generator and the runtime network path — keeps Lang/Layout/Finishes defaults from drifting between them. </summary>
+	internal static ReferenceCard CreateFromScryfall(ScryfallCardJson c) => new(
+		Id: c.Id,
+		OracleId: c.OracleId,
+		Name: c.Name,
+		Set: c.Set,
+		SetName: c.SetName,
+		CollectorNumber: c.CollectorNumber,
+		Lang: string.IsNullOrEmpty(c.Lang) ? "en" : c.Lang,
+		Layout: string.IsNullOrEmpty(c.Layout) ? "normal" : c.Layout,
+		Finishes: c.Finishes ?? [],
+		FrameEffects: c.FrameEffects,
+		BorderColor: c.BorderColor,
+		PromoTypes: c.PromoTypes,
+		CardmarketId: c.CardmarketId,
+		TcgplayerId: c.TcgplayerId,
+		TcgplayerEtchedId: c.TcgplayerEtchedId,
+		MultiverseIds: c.MultiverseIds);
+}

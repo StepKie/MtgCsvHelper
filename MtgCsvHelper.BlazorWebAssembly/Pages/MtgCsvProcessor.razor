@@ -1,6 +1,6 @@
 @page "/"
 @inject IConfiguration Config
-@inject IMtgApi Api
+@inject ICardmarketResolver Resolver
 @inject IReferenceCardCatalog Catalog
 @inject IJSRuntime JS
 @using Serilog
@@ -133,6 +133,9 @@
 	private string? _resultFileName;
 	private MemoryStream? _resultStream;
 
+	// Cancelled on component teardown to abort any in-flight Scryfall lookup.
+	private readonly CancellationTokenSource _cts = new();
+
 	private async Task HandleFileUpload(InputFileChangeEventArgs e)
 	{
 		// TODO GetMultipleFiles() support
@@ -158,10 +161,10 @@
 			await _csvFile!.OpenReadStream(maxAllowedSize: MaxFileSize).CopyToAsync(csvStream);
 			csvStream.Position = 0;
 
-			var reader = new MtgCardCsvHandler(Catalog, Api, Config, _selectedInputFormat);
-			var writer = new MtgCardCsvHandler(Catalog, Api, Config, _selectedOutputFormat);
+			var reader = new MtgCardCsvHandler(Catalog, Resolver, Config, _selectedInputFormat);
+			var writer = new MtgCardCsvHandler(Catalog, Resolver, Config, _selectedOutputFormat);
 
-			var result = await reader.ParseCollectionCsvAsync(csvStream);
+			var result = await reader.ParseCollectionCsvAsync(csvStream, _cts.Token);
 			_summary = result.Collection.GenerateSummary();
 			_issues = result.Issues.ToList();
 
@@ -179,6 +182,11 @@
 		{
 			var missing = hex.InvalidHeaders.SelectMany(h => h.Names).Distinct().ToList();
 			_headerError = $"This doesn't look like a valid {_selectedInputFormat} CSV — missing required column(s): {string.Join(", ", missing)}. Did you select the correct input format?";
+		}
+		catch (OperationCanceledException)
+		{
+			// Component torn down mid-parse — silent abort, no UI update needed.
+			return;
 		}
 		catch (Exception ex)
 		{
@@ -226,6 +234,8 @@
 
 	public void Dispose()
 	{
+		_cts.Cancel();
+		_cts.Dispose();
 		_resultStream?.Dispose();
 	}
 }

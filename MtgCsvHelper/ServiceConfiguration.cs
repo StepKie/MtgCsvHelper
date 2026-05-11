@@ -6,7 +6,8 @@ namespace MtgCsvHelper;
 public static class ServiceConfiguration
 {
 	/// <summary>
-	/// Registers the always-available <see cref="IMtgApi"/> singleton.
+	/// Registers the always-available <see cref="IMtgApi"/> and <see cref="ICardmarketResolver"/>
+	/// singletons.
 	/// </summary>
 	/// <remarks>
 	/// Caller must <b>also</b> register <see cref="IReferenceCardCatalog"/> before resolving
@@ -17,6 +18,8 @@ public static class ServiceConfiguration
 	public static IServiceCollection ConfigureMtgCsvHelper(this IServiceCollection services)
 	{
 		services.AddSingleton<IMtgApi, CachedMtgApi>();
+		services.AddSingleton<ICardmarketResolver, CardmarketResolver>();
+
 		return services;
 	}
 }

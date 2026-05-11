@@ -1,16 +1,20 @@
+using System.Collections.Concurrent;
 using System.Text.Json;
 using ScryfallApi.Client;
-using ScryfallApi.Client.Models;
 
 namespace MtgCsvHelper.Services;
 
 /// <summary>
 /// Network fallback for Scryfall lookups not covered by <see cref="IReferenceCardCatalog"/>:
 /// per-card resolution by cardmarket_id, cached in-process for the lifetime of the instance.
+/// Scryfall's response is deserialized into the shared <see cref="ScryfallCardJson"/> DTO and
+/// then run through <see cref="ReferenceCard.CreateFromScryfall"/>, the same factory the bundle
+/// generator uses — keeping the wire-format mapping in a single, canonical place.
 /// </summary>
 public class CachedMtgApi : IMtgApi
 {
-	readonly Dictionary<int, Card> _cardsByCardmarketId = [];
+	// ConcurrentDictionary because CachedMtgApi is a DI singleton — keeps the cache consistent under concurrent callers (duplicate fetches of the same id are still possible but idempotent).
+	readonly ConcurrentDictionary<int, ReferenceCard> _cardsByCardmarketId = new();
 
 	public CachedMtgApi() => Log.Debug("CachedMtgApi created");
 
@@ -35,7 +39,7 @@ public class CachedMtgApi : IMtgApi
 		PropertyNamingPolicy = JsonNamingPolicy.SnakeCaseLower,
 	};
 
-	public async Task<IReadOnlyDictionary<int, Card>> GetCardsByCardmarketIdsAsync(IEnumerable<int> cardmarketIds)
+	public async Task<IReadOnlyDictionary<int, ReferenceCard>> GetCardsByCardmarketIdsAsync(IEnumerable<int> cardmarketIds, CancellationToken ct = default)
 	{
 		var requested = cardmarketIds.Distinct().ToList();
 		var notYetFetched = requested.Where(id => !_cardsByCardmarketId.ContainsKey(id)).ToList();
@@ -45,17 +49,17 @@ public class CachedMtgApi : IMtgApi
 			var id = notYetFetched[i];
 			try
 			{
-				var response = await ScryfallHttpClient.GetAsync(new Uri($"https://api.scryfall.com/cards/cardmarket/{id}"));
+				var response = await ScryfallHttpClient.GetAsync(new Uri($"https://api.scryfall.com/cards/cardmarket/{id}"), ct);
 				if (response.StatusCode == System.Net.HttpStatusCode.NotFound)
 				{
 					continue; // not found — caller will see this id absent from the returned dictionary
 				}
 				response.EnsureSuccessStatusCode();
-				var body = await response.Content.ReadAsStringAsync();
-				var card = JsonSerializer.Deserialize<Card>(body, ScryfallJsonOptions);
+				var body = await response.Content.ReadAsStringAsync(ct);
+				var card = JsonSerializer.Deserialize<ScryfallCardJson>(body, ScryfallJsonOptions);
 				if (card is not null)
 				{
-					_cardsByCardmarketId[id] = card;
+					_cardsByCardmarketId[id] = ReferenceCard.CreateFromScryfall(card);
 				}
 			}
 			catch (HttpRequestException ex)
@@ -65,7 +69,7 @@ public class CachedMtgApi : IMtgApi
 
 			if (i + 1 < notYetFetched.Count)
 			{
-				await Task.Delay(InterRequestDelayMs);
+				await Task.Delay(InterRequestDelayMs, ct);
 			}
 		}
 

@@ -74,7 +74,7 @@ public class MtgCardCsvHandlerTests(CatalogFixture fixture, ITestOutputHelper ou
 		cards.Should().HaveCountGreaterThan(500);
 	}
 
-	MtgCardCsvHandler CreateHandler(string deckFormatName) => new(_catalog, _api, _config, deckFormatName);
+	MtgCardCsvHandler CreateHandler(string deckFormatName) => new(_catalog, _resolver, _config, deckFormatName);
 
 	static List<PhysicalMtgCard> GetReferenceCards(Currency currency)
 	{

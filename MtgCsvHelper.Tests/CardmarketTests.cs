@@ -10,10 +10,10 @@ public class CardmarketTests(CatalogFixture fixture, ITestOutputHelper output) :
 
 	static MemoryStream CsvStream(string csv) => new(Encoding.UTF8.GetBytes(csv));
 
-	MtgCardCsvHandler Handler() => new(_catalog, _api, _config, "CARDMARKET");
+	MtgCardCsvHandler Handler() => new(_catalog, _resolver, _config, "CARDMARKET");
 
 	[Fact]
-	public async Task ParseSample_ResolvesAllFiveCardsViaScryfall()
+	public async Task ParseSample_ResolvesAllFiveCardsFromCatalog()
 	{
 		var result = await Handler().ParseCollectionCsvAsync(SamplePath);
 
