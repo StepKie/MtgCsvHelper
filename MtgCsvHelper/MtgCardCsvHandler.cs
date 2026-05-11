@@ -25,9 +25,9 @@ public class MtgCardCsvHandler
 	public ParseResult ParseCollectionCsv(string csvFilePath) => ParseCollectionCsvAsync(csvFilePath).GetAwaiter().GetResult();
 	public ParseResult ParseCollectionCsv(Stream csvStream) => ParseCollectionCsvAsync(csvStream).GetAwaiter().GetResult();
 
-	public Task<ParseResult> ParseCollectionCsvAsync(string csvFilePath) => ParseCollectionCsvAsync(File.OpenRead(csvFilePath));
+	public Task<ParseResult> ParseCollectionCsvAsync(string csvFilePath, CancellationToken ct = default) => ParseCollectionCsvAsync(File.OpenRead(csvFilePath), ct);
 
-	public async Task<ParseResult> ParseCollectionCsvAsync(Stream csvStream)
+	public async Task<ParseResult> ParseCollectionCsvAsync(Stream csvStream, CancellationToken ct = default)
 	{
 		Log.Information($"Parsing input format {_format} ...");
 		using var reader = new StreamReader(csvStream);
@@ -55,8 +55,10 @@ public class MtgCardCsvHandler
 		var rowNumbers = new List<int>(); // parallel to cards; needed for issue reporting in the post-parse enrichment step
 		var issues = new List<ImportIssue>();
 
+		// CsvHelper's ReadAsync doesn't take a CT, so cancellation is checked per-row instead.
 		while (await csv.ReadAsync())
 		{
+			ct.ThrowIfCancellationRequested();
 			// Skip rows that are blank or contain only delimiters/whitespace.
 			if (csv.Parser.Record is null || csv.Parser.Record.All(string.IsNullOrWhiteSpace))
 			{
@@ -97,7 +99,7 @@ public class MtgCardCsvHandler
 		}
 
 		// Post-parse enrichment: fill in stubbed cards (Cardmarket) by batched Scryfall lookup.
-		await EnrichByCardmarketIdAsync(cards, rowNumbers, issues);
+		await EnrichByCardmarketIdAsync(cards, rowNumbers, issues, ct);
 
 		var collection = new Collection { Name = $"Import {_format}, Date: {DateTime.Now}", Cards = cards };
 		Log.Debug(collection.GenerateSummary());
@@ -143,7 +145,7 @@ public class MtgCardCsvHandler
 	// For cards whose Printing was parsed as a stub (only CardMarketId set), batch-resolve the
 	// full Scryfall card by cardmarket_id and fill in name/set/setName/collectorNumber.
 	// IDs not found in Scryfall produce an ImportIssue.Warning per affected card.
-	async Task EnrichByCardmarketIdAsync(IList<PhysicalMtgCard> cards, IList<int> rowNumbers, List<ImportIssue> issues)
+	async Task EnrichByCardmarketIdAsync(IList<PhysicalMtgCard> cards, IList<int> rowNumbers, List<ImportIssue> issues, CancellationToken ct)
 	{
 		// CardMarketId is `int` (not `int?`) in the Scryfall library, so 0 acts as the "unset" sentinel —
 		// real cardmarket_ids are always positive in Scryfall data.
@@ -160,7 +162,7 @@ public class MtgCardCsvHandler
 		if (pending.Count == 0) return;
 
 		var ids = pending.Select(x => x.Card.Printing.CardMarketId).Distinct().ToList();
-		var resolved = await _resolver.ResolveAsync(ids);
+		var resolved = await _resolver.ResolveAsync(ids, ct);
 
 		var unresolved = new List<PhysicalMtgCard>();
 		foreach (var entry in pending)

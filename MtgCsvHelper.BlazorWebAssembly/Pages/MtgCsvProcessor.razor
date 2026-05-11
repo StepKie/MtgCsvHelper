@@ -133,6 +133,9 @@
 	private string? _resultFileName;
 	private MemoryStream? _resultStream;
 
+	// Cancelled on component teardown to abort any in-flight Scryfall lookup.
+	private readonly CancellationTokenSource _cts = new();
+
 	private async Task HandleFileUpload(InputFileChangeEventArgs e)
 	{
 		// TODO GetMultipleFiles() support
@@ -161,7 +164,7 @@
 			var reader = new MtgCardCsvHandler(Catalog, Resolver, Config, _selectedInputFormat);
 			var writer = new MtgCardCsvHandler(Catalog, Resolver, Config, _selectedOutputFormat);
 
-			var result = await reader.ParseCollectionCsvAsync(csvStream);
+			var result = await reader.ParseCollectionCsvAsync(csvStream, _cts.Token);
 			_summary = result.Collection.GenerateSummary();
 			_issues = result.Issues.ToList();
 
@@ -226,6 +229,8 @@
 
 	public void Dispose()
 	{
+		_cts.Cancel();
+		_cts.Dispose();
 		_resultStream?.Dispose();
 	}
 }

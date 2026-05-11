@@ -12,6 +12,7 @@ namespace MtgCsvHelper.Services;
 /// </summary>
 public class CachedMtgApi : IMtgApi
 {
+	// Single-threaded use only (sequential calls per parse); swap to ConcurrentDictionary if that ever changes.
 	readonly Dictionary<int, ReferenceCard> _cardsByCardmarketId = [];
 
 	public CachedMtgApi() => Log.Debug("CachedMtgApi created");
