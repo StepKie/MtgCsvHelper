@@ -40,7 +40,7 @@ using IHost host = builder.Build();
 var config = host.Services.GetRequiredService<IConfiguration>();
 Log.Logger = new LoggerConfiguration().ReadFrom.Configuration(config).CreateLogger();
 
-var api = host.Services.GetRequiredService<IMtgApi>();
+var resolver = host.Services.GetRequiredService<ICardmarketResolver>();
 Log.Information("Loaded reference catalog: {Count:N0} printings.", catalog.Count);
 
 Parser.Default.ParseArguments<CommandLineOptions>(args)
@@ -60,8 +60,8 @@ void RunWithOptions(CommandLineOptions opts)
 		return;
 	}
 
-	var reader = new MtgCardCsvHandler(catalog, api, config, opts.InputFormat);
-	var writer = new MtgCardCsvHandler(catalog, api, config, opts.OutputFormat);
+	var reader = new MtgCardCsvHandler(catalog, resolver, config, opts.InputFormat);
+	var writer = new MtgCardCsvHandler(catalog, resolver, config, opts.OutputFormat);
 
 	List<PhysicalMtgCard> cardsFound = [];
 

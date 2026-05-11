@@ -19,5 +19,5 @@ public class ApiBaseTest(CatalogFixture fixture, ITestOutputHelper output, LogEv
 	: BaseTest(output, level)
 {
 	protected readonly IReferenceCardCatalog _catalog = fixture.Catalog;
-	protected readonly MtgCsvHelper.Services.IMtgApi _api = fixture.Api;
+	protected readonly MtgCsvHelper.Services.ICardmarketResolver _resolver = fixture.Resolver;
 }

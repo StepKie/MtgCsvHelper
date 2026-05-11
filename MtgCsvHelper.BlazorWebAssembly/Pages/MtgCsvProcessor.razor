@@ -1,6 +1,6 @@
 @page "/"
 @inject IConfiguration Config
-@inject IMtgApi Api
+@inject ICardmarketResolver Resolver
 @inject IReferenceCardCatalog Catalog
 @inject IJSRuntime JS
 @using Serilog
@@ -158,8 +158,8 @@
 			await _csvFile!.OpenReadStream(maxAllowedSize: MaxFileSize).CopyToAsync(csvStream);
 			csvStream.Position = 0;
 
-			var reader = new MtgCardCsvHandler(Catalog, Api, Config, _selectedInputFormat);
-			var writer = new MtgCardCsvHandler(Catalog, Api, Config, _selectedOutputFormat);
+			var reader = new MtgCardCsvHandler(Catalog, Resolver, Config, _selectedInputFormat);
+			var writer = new MtgCardCsvHandler(Catalog, Resolver, Config, _selectedOutputFormat);
 
 			var result = await reader.ParseCollectionCsvAsync(csvStream);
 			_summary = result.Collection.GenerateSummary();

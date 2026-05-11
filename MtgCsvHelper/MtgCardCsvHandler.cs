@@ -9,15 +9,15 @@ public class MtgCardCsvHandler
 {
 	readonly CardMapFactory _factory;
 	readonly IReferenceCardCatalog _catalog;
-	readonly IMtgApi _api;
+	readonly ICardmarketResolver _resolver;
 	readonly string _format;
 
-	public MtgCardCsvHandler(IReferenceCardCatalog catalog, IMtgApi api, IConfiguration config, string format)
+	public MtgCardCsvHandler(IReferenceCardCatalog catalog, ICardmarketResolver resolver, IConfiguration config, string format)
 	{
 		_format = format;
 		_factory = new CardMapFactory(config, catalog);
 		_catalog = catalog;
-		_api = api;
+		_resolver = resolver;
 	}
 
 	// Sync wrappers — fine for non-Blazor callers and for formats that don't need network I/O.
@@ -160,7 +160,7 @@ public class MtgCardCsvHandler
 		if (pending.Count == 0) return;
 
 		var ids = pending.Select(x => x.Card.Printing.CardMarketId).Distinct().ToList();
-		var resolved = await _api.GetCardsByCardmarketIdsAsync(ids);
+		var resolved = await _resolver.ResolveAsync(ids);
 
 		var unresolved = new List<PhysicalMtgCard>();
 		foreach (var entry in pending)

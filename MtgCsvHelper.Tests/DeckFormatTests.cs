@@ -84,7 +84,7 @@ public class DeckFormatTests(CatalogFixture fixture, ITestOutputHelper output) :
 	[InlineData("DECKBOX")]
 	public void StreamRoundTripTest(string deckFormatName)
 	{
-		var handler = new MtgCardCsvHandler(_catalog, _api, _config, deckFormatName);
+		var handler = new MtgCardCsvHandler(_catalog, _resolver, _config, deckFormatName);
 		var original = new List<PhysicalMtgCard>
 		{
 			new() { Count = 2, Printing = new Card { Name = "Lightning Bolt", Set = "M11", SetName = "Magic 2011", CollectorNumber = "149" } }
@@ -104,7 +104,7 @@ public class DeckFormatTests(CatalogFixture fixture, ITestOutputHelper output) :
 	[Fact]
 	public void ParseCollectionCsv_WithCardKingdomAsInput_Throws()
 	{
-		var handler = new MtgCardCsvHandler(_catalog, _api, _config, "CARDKINGDOM");
+		var handler = new MtgCardCsvHandler(_catalog, _resolver, _config, "CARDKINGDOM");
 		var act = () => handler.ParseCollectionCsv(new MemoryStream("a,b,c\n"u8.ToArray()));
 		act.Should().Throw<InvalidOperationException>().WithMessage("*write-only*");
 	}

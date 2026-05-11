@@ -4,15 +4,16 @@ using Serilog;
 namespace MtgCsvHelper.Tests;
 
 /// <summary>
-/// Loads the bundled reference catalog once for the entire test run, plus a fresh
-/// <see cref="IMtgApi"/> for the cardmarket-fallback path. Tests that don't need either
-/// can stick with <see cref="BaseTest"/>; tests that touch handlers or the catalog
-/// extend <see cref="ApiBaseTest"/>.
+/// Loads the bundled reference catalog once for the entire test run, plus an
+/// <see cref="ICardmarketResolver"/> wired over a real <see cref="CachedMtgApi"/> for the
+/// cardmarket-fallback path. Tests that don't need either can stick with <see cref="BaseTest"/>;
+/// tests that touch handlers or the catalog extend <see cref="ApiBaseTest"/>.
 /// </summary>
 public class CatalogFixture : IAsyncLifetime
 {
 	public IReferenceCardCatalog Catalog { get; private set; } = null!;
 	public IMtgApi Api { get; private set; } = null!;
+	public ICardmarketResolver Resolver { get; private set; } = null!;
 
 	public async Task InitializeAsync()
 	{
@@ -33,10 +34,12 @@ public class CatalogFixture : IAsyncLifetime
 		await using var fs = File.OpenRead(bundlePath);
 		Catalog = await ReferenceCardCatalog.LoadGzipAsync(fs);
 
-		// Note: Api makes live Scryfall calls for cardmarket-id resolution (the only
-		// network path still owned by IMtgApi). Tests that exercise it (CardmarketTests)
-		// remain integration-flavored. Catalog-backed paths are fully offline.
+		// Note: Api makes live Scryfall calls for catalog-miss cardmarket_ids (the only
+		// network path still owned by IMtgApi). Tests that exercise it through the resolver
+		// (CardmarketTests with the sample CSV) remain integration-flavored only when the
+		// sample ids aren't in the bundle; if they are, the resolver short-circuits.
 		Api = new CachedMtgApi();
+		Resolver = new CardmarketResolver(Catalog, Api);
 	}
 
 	public Task DisposeAsync() => Task.CompletedTask;

@@ -9,7 +9,7 @@ public class FaultToleranceTests(CatalogFixture fixture, ITestOutputHelper outpu
 	const string MoxHeader = "Count,Name,Edition,Collector Number,Foil,Condition,Language,Purchase Price";
 
 	static MemoryStream CsvStream(string csv) => new(Encoding.UTF8.GetBytes(csv));
-	MtgCardCsvHandler Handler(string format = "MOXFIELD") => new(_catalog, _api, _config, format);
+	MtgCardCsvHandler Handler(string format = "MOXFIELD") => new(_catalog, _resolver, _config, format);
 
 	[Fact]
 	public void HappyPath_AllValid_ProducesCardsAndNoIssues()

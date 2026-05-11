@@ -7,10 +7,12 @@ namespace MtgCsvHelper.Services;
 /// <summary>
 /// Network fallback for Scryfall lookups not covered by <see cref="IReferenceCardCatalog"/>:
 /// per-card resolution by cardmarket_id, cached in-process for the lifetime of the instance.
+/// Scryfall's response shape is mapped to <see cref="ReferenceCard"/> on the way out so callers
+/// see only canonical types.
 /// </summary>
 public class CachedMtgApi : IMtgApi
 {
-	readonly Dictionary<int, Card> _cardsByCardmarketId = [];
+	readonly Dictionary<int, ReferenceCard> _cardsByCardmarketId = [];
 
 	public CachedMtgApi() => Log.Debug("CachedMtgApi created");
 
@@ -35,7 +37,7 @@ public class CachedMtgApi : IMtgApi
 		PropertyNamingPolicy = JsonNamingPolicy.SnakeCaseLower,
 	};
 
-	public async Task<IReadOnlyDictionary<int, Card>> GetCardsByCardmarketIdsAsync(IEnumerable<int> cardmarketIds)
+	public async Task<IReadOnlyDictionary<int, ReferenceCard>> GetCardsByCardmarketIdsAsync(IEnumerable<int> cardmarketIds)
 	{
 		var requested = cardmarketIds.Distinct().ToList();
 		var notYetFetched = requested.Where(id => !_cardsByCardmarketId.ContainsKey(id)).ToList();
@@ -55,7 +57,7 @@ public class CachedMtgApi : IMtgApi
 				var card = JsonSerializer.Deserialize<Card>(body, ScryfallJsonOptions);
 				if (card is not null)
 				{
-					_cardsByCardmarketId[id] = card;
+					_cardsByCardmarketId[id] = MapToReferenceCard(card);
 				}
 			}
 			catch (HttpRequestException ex)
@@ -73,4 +75,26 @@ public class CachedMtgApi : IMtgApi
 			.Where(_cardsByCardmarketId.ContainsKey)
 			.ToDictionary(id => id, id => _cardsByCardmarketId[id]);
 	}
+
+	// Mirror of the same field choices made by the bundle generator (tools/MtgCsvHelper.RefreshReferenceData):
+	// strip a Scryfall printing to the fields ReferenceCard exposes, with the same defaults (Lang/Layout/Finishes).
+	// Card.CardMarketId / TcgplayerId / TcgplayerEtchedId are non-nullable ints in the Scryfall library and use 0
+	// as the "unset" sentinel; we collapse 0 -> null on the way out so consumers can distinguish "no id" from "id 0".
+	static ReferenceCard MapToReferenceCard(Card c) => new(
+		Id: c.Id,
+		OracleId: Guid.TryParse(c.OracleId, out var oid) ? oid : null,
+		Name: c.Name,
+		Set: c.Set,
+		SetName: c.SetName,
+		CollectorNumber: c.CollectorNumber,
+		Lang: string.IsNullOrEmpty(c.Language) ? "en" : c.Language,
+		Layout: string.IsNullOrEmpty(c.Layout) ? "normal" : c.Layout,
+		Finishes: c.Finishes ?? [],
+		FrameEffects: c.FrameEffects,
+		BorderColor: c.BorderColor,
+		PromoTypes: c.PromoTypes,
+		CardmarketId: c.CardMarketId > 0 ? c.CardMarketId : null,
+		TcgplayerId: c.TcgplayerId > 0 ? c.TcgplayerId : null,
+		TcgplayerEtchedId: c.TcgplayerEtchedId > 0 ? c.TcgplayerEtchedId : null,
+		MultiverseIds: c.MultiverseIds);
 }

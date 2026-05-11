@@ -1,0 +1,33 @@
+namespace MtgCsvHelper.Services;
+
+/// <summary>
+/// Default <see cref="ICardmarketResolver"/>: catalog first, batched Scryfall fallback for misses.
+/// No additional cache layer — <see cref="IMtgApi"/> already caches its network results in-process,
+/// and catalog lookups are O(1) dictionary reads, so stacking another dictionary buys nothing.
+/// </summary>
+public sealed class CardmarketResolver(IReferenceCardCatalog catalog, IMtgApi api) : ICardmarketResolver
+{
+	public async Task<IReadOnlyDictionary<int, ReferenceCard>> ResolveAsync(IEnumerable<int> cardmarketIds)
+	{
+		var resolved = new Dictionary<int, ReferenceCard>();
+		var misses = new List<int>();
+
+		foreach (var id in cardmarketIds.Distinct())
+		{
+			var hit = catalog.FindByCardmarketId(id);
+			if (hit is not null) { resolved[id] = hit; }
+			else { misses.Add(id); }
+		}
+
+		if (misses.Count > 0)
+		{
+			var fetched = await api.GetCardsByCardmarketIdsAsync(misses);
+			foreach (var (id, card) in fetched)
+			{
+				resolved[id] = card;
+			}
+		}
+
+		return resolved;
+	}
+}
