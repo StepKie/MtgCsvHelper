@@ -85,6 +85,7 @@ public class CardmarketResolverTests(CatalogFixture fixture, ITestOutputHelper o
 		var resolved = await resolver.ResolveAsync([hitId, missId]);
 
 		spy.CallsReceived.Should().BeEquivalentTo([missId], "the catalog hit must not be passed to the API");
+		resolved.Should().HaveCount(1);
 		resolved.Should().ContainKey(hitId);
 		resolved.Should().NotContainKey(missId);
 	}

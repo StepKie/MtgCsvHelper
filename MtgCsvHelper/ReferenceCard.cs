@@ -30,14 +30,7 @@ public sealed record ReferenceCard(
 	int? TcgplayerEtchedId,
 	IReadOnlyList<int>? MultiverseIds)
 {
-	/// <summary>
-	/// Builds a <see cref="ReferenceCard"/> from the canonical <see cref="ScryfallCardJson"/> wire
-	/// shape, applying the defaults in one place: <c>Lang</c> falls back to <c>"en"</c>, <c>Layout</c>
-	/// to <c>"normal"</c>, <c>Finishes</c> to an empty list. Both the bundle generator and the runtime
-	/// network fallback go through this factory, so the field list and defaulting rules can't
-	/// silently drift between them. Internal because the input <see cref="ScryfallCardJson"/> is
-	/// internal — external consumers should use the positional constructor directly.
-	/// </summary>
+	/// <summary> Single canonical factory used by the bundle generator and the runtime network path — keeps Lang/Layout/Finishes defaults from drifting between them. </summary>
 	internal static ReferenceCard CreateFromScryfall(ScryfallCardJson c) => new(
 		Id: c.Id,
 		OracleId: c.OracleId,

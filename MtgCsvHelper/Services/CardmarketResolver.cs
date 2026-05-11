@@ -12,7 +12,8 @@ public sealed class CardmarketResolver(IReferenceCardCatalog catalog, IMtgApi ap
 		var resolved = new Dictionary<int, ReferenceCard>();
 		var misses = new List<int>();
 
-		foreach (var id in cardmarketIds.Distinct())
+		// No Distinct here: handler dedupes before calling; CachedMtgApi dedupes again at the network boundary.
+		foreach (var id in cardmarketIds)
 		{
 			var hit = catalog.FindByCardmarketId(id);
 			if (hit is not null) { resolved[id] = hit; }
