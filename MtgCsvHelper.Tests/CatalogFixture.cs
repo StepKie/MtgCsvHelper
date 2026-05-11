@@ -12,7 +12,7 @@ namespace MtgCsvHelper.Tests;
 public class CatalogFixture : IAsyncLifetime
 {
 	public IReferenceCardCatalog Catalog { get; private set; } = null!;
-	public IMtgApi Api { get; private set; } = null!;
+	IMtgApi Api { get; set; } = null!;
 	public ICardmarketResolver Resolver { get; private set; } = null!;
 
 	public async Task InitializeAsync()

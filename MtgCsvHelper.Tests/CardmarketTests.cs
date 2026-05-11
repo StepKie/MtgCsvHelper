@@ -13,7 +13,7 @@ public class CardmarketTests(CatalogFixture fixture, ITestOutputHelper output) :
 	MtgCardCsvHandler Handler() => new(_catalog, _resolver, _config, "CARDMARKET");
 
 	[Fact]
-	public async Task ParseSample_ResolvesAllFiveCardsViaScryfall()
+	public async Task ParseSample_ResolvesAllFiveCardsFromCatalog()
 	{
 		var result = await Handler().ParseCollectionCsvAsync(SamplePath);
 

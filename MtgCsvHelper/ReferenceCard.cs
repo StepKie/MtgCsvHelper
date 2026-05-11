@@ -28,4 +28,30 @@ public sealed record ReferenceCard(
 	int? CardmarketId,
 	int? TcgplayerId,
 	int? TcgplayerEtchedId,
-	IReadOnlyList<int>? MultiverseIds);
+	IReadOnlyList<int>? MultiverseIds)
+{
+	/// <summary>
+	/// Builds a <see cref="ReferenceCard"/> from the canonical <see cref="ScryfallCardJson"/> wire
+	/// shape, applying the defaults in one place: <c>Lang</c> falls back to <c>"en"</c>, <c>Layout</c>
+	/// to <c>"normal"</c>, <c>Finishes</c> to an empty list. Both the bundle generator and the runtime
+	/// network fallback go through this factory, so the field list and defaulting rules can't
+	/// silently drift between them.
+	/// </summary>
+	public static ReferenceCard CreateFromScryfall(ScryfallCardJson c) => new(
+		Id: c.Id,
+		OracleId: c.OracleId,
+		Name: c.Name,
+		Set: c.Set,
+		SetName: c.SetName,
+		CollectorNumber: c.CollectorNumber,
+		Lang: string.IsNullOrEmpty(c.Lang) ? "en" : c.Lang,
+		Layout: string.IsNullOrEmpty(c.Layout) ? "normal" : c.Layout,
+		Finishes: c.Finishes ?? [],
+		FrameEffects: c.FrameEffects,
+		BorderColor: c.BorderColor,
+		PromoTypes: c.PromoTypes,
+		CardmarketId: c.CardmarketId,
+		TcgplayerId: c.TcgplayerId,
+		TcgplayerEtchedId: c.TcgplayerEtchedId,
+		MultiverseIds: c.MultiverseIds);
+}
