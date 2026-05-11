@@ -1,3 +1,4 @@
+using System.Collections.Concurrent;
 using System.Text.Json;
 using ScryfallApi.Client;
 
@@ -12,8 +13,8 @@ namespace MtgCsvHelper.Services;
 /// </summary>
 public class CachedMtgApi : IMtgApi
 {
-	// Single-threaded use only (sequential calls per parse); swap to ConcurrentDictionary if that ever changes.
-	readonly Dictionary<int, ReferenceCard> _cardsByCardmarketId = [];
+	// ConcurrentDictionary because CachedMtgApi is registered as a DI singleton — protects against future ASP.NET-style concurrent callers.
+	readonly ConcurrentDictionary<int, ReferenceCard> _cardsByCardmarketId = new();
 
 	public CachedMtgApi() => Log.Debug("CachedMtgApi created");
 
