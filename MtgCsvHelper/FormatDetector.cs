@@ -91,6 +91,10 @@ public sealed class FormatDetector
 	static bool IsSepMarker(string? line) =>
 		line is not null && line.TrimStart('"').StartsWith("sep=", StringComparison.OrdinalIgnoreCase);
 
+	// Hand-maintained whitelist of header-bearing fields on FormatConfig. Must be kept in
+	// sync with the record's properties — adding a new header field there without listing it
+	// here silently weakens detection accuracy for that format (no compile error). FormatConfig
+	// is short and rarely edited, so the manual coupling is acceptable; revisit if it grows.
 	static IEnumerable<string> HeadersOf(FormatConfig f)
 	{
 		yield return f.Quantity;

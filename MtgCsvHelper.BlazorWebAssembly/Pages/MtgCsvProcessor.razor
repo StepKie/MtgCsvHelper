@@ -440,7 +440,16 @@
 			{
 				outputFileName = $"{_selectedInputFormat}-to-{_selectedOutputFormat}_{DateTime.Now:yyyy-MM-dd_HH-mm-ss}.csv";
 				outputStream = new MemoryStream();
-				writer.WriteCollectionCsv(records, outputStream);
+				try
+				{
+					writer.WriteCollectionCsv(records, outputStream);
+				}
+				catch
+				{
+					// Don't orphan the stream if the write fails before it's handed to _result.
+					outputStream.Dispose();
+					throw;
+				}
 			}
 
 			_result = new ConversionResult

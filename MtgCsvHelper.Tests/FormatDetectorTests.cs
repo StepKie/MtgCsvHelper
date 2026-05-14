@@ -65,4 +65,14 @@ public class FormatDetectorTests(ITestOutputHelper output) : BaseTest(output)
 		using var stream = File.OpenRead(path);
 		NewDetector().Detect(stream).Should().Be(expectedFormat);
 	}
+
+	// DetectAsync goes through ReadHeaderAsync, a separate code path from ReadHeader — exercise
+	// it on the fixture with the trickiest header (quoted "sep=," marker + commas in the line).
+	[Fact]
+	public async Task DetectAsync_AgreesWithSyncOverload()
+	{
+		var path = Path.Combine("Resources", "SampleCsvs", "Collection", "dragonshield-collection.csv");
+		await using var stream = File.OpenRead(path);
+		(await NewDetector().DetectAsync(stream)).Should().Be("DRAGONSHIELD");
+	}
 }

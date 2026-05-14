@@ -9,7 +9,7 @@ namespace MtgCsvHelper.Models;
 /// <param name="UniqueCount">Number of distinct rows (each row is one printing).</param>
 /// <param name="FoilCount">Sum of <see cref="PhysicalMtgCard.Count"/> for rows where <see cref="PhysicalMtgCard.Foil"/> is true.</param>
 /// <param name="TotalValue">Sum of <c>PriceBought × Count</c> across all priced rows, or null if no prices or currencies are mixed.</param>
-/// <param name="MostExpensive">The single most expensive row, or null if no prices.</param>
+/// <param name="MostExpensive">The row with the highest <em>unit</em> price (regardless of Count), or null if no prices.</param>
 public sealed record CollectionSummary(
 	int TotalCount,
 	int UniqueCount,
