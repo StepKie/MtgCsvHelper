@@ -41,7 +41,7 @@ catch (Exception ex)
 		StartupInterop.ShowStartupError(
 			"Couldn't load card data",
 			"The reference card bundle failed to load, so the app can't start. Check your connection and try again.",
-			$"{ex.GetType().Name}: {ex.Message}");
+			ex.ToString());
 	}
 	catch (Exception jsEx)
 	{

@@ -5,10 +5,15 @@ root = true
 indent_style = space
 indent_size = 2
 
-# Web assets (HTML/JS/CSS/JSON) — 4 spaces, matches existing wwwroot files.
-[*.{html,htm,js,mjs,css,json}]
+# Web assets (HTML/JS/CSS) — 4 spaces, matches existing wwwroot files.
+[*.{html,htm,js,mjs,css}]
 indent_style = space
 indent_size = 4
+
+# JSON (incl. appsettings, launchSettings, .vs/, .claude/) — 2 spaces, matches existing repo files.
+[*.json]
+indent_style = space
+indent_size = 2
 
 # C# files
 [*.{cs,vb}]
