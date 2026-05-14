@@ -1,99 +1,33 @@
-﻿using System.Text.Json;
+using System.Collections.Concurrent;
+using System.Text.Json;
 using ScryfallApi.Client;
-using ScryfallApi.Client.Models;
 
 namespace MtgCsvHelper.Services;
 
 /// <summary>
-/// On creation, loads queried data via Task.Run into static properties.
-/// These can only be successfully queried after a short delay, if necessary, await LoadData()
+/// Network fallback for Scryfall lookups not covered by <see cref="IReferenceCardCatalog"/>:
+/// per-card resolution by cardmarket_id, cached in-process for the lifetime of the instance.
+/// Scryfall's response is deserialized into the shared <see cref="ScryfallCardJson"/> DTO and
+/// then run through <see cref="ReferenceCard.CreateFromScryfall"/>, the same factory the bundle
+/// generator uses — keeping the wire-format mapping in a single, canonical place.
 /// </summary>
 public class CachedMtgApi : IMtgApi
 {
-	readonly IScryfallApiClient _api;
-	List<string> _doubleFacedCardNames;
-	List<string> _tokenCardNames;
-	List<Set> _sets;
-	readonly Dictionary<int, Card> _cardsByCardmarketId = [];
+	// ConcurrentDictionary because CachedMtgApi is a DI singleton — keeps the cache consistent under concurrent callers (duplicate fetches of the same id are still possible but idempotent).
+	readonly ConcurrentDictionary<int, ReferenceCard> _cardsByCardmarketId = new();
 
-	public CachedMtgApi(ScryfallApiClient api)
-	{
-		_api = api;
-		Log.Debug("CachedMtgApi created");
-	}
+	public CachedMtgApi() => Log.Debug("CachedMtgApi created");
 
-	/// <summary> Shared client for Scryfall API. Since 09/2024, required UserAgent and Accept headers to be set </summary>
-	public static readonly HttpClient DEFAULT_CLIENT = new()
+	// Scryfall requires UserAgent and Accept headers since 09/2024.
+	static readonly HttpClient ScryfallHttpClient = new()
 	{
 		BaseAddress = ScryfallApiClientConfig.GetDefault().ScryfallApiBaseAddress,
 		DefaultRequestHeaders =
 				{
-					{"User-Agent", "MtgCsvHelper/1.0.0"},
+					{"User-Agent", AppInfo.UserAgent},
 					{"Accept", "application/json"}
 				}
 	};
-
-	public async Task LoadData()
-	{
-		Log.Debug($"Scryfall - Syncing data...");
-		_sets ??= (await GetSetsAsync()).ToList();
-
-		_doubleFacedCardNames ??= await GetDoubleFacedCardNamesAsync();
-		Log.Debug($"Scryfall - Loaded {_doubleFacedCardNames.Count} double-faced cards.");
-
-		_tokenCardNames ??= (await GetTokenCardNamesAsync()).Select(c => c.Name).Distinct().ToList();
-
-		Log.Debug($"Scryfall - Loaded {_tokenCardNames.Count} tokens.");
-		Log.Debug($"Scryfall - Sync complete.");
-	}
-
-	public async Task<List<string>> GetDoubleFacedCardNamesAsync()
-	{
-		var cards = await _api.Catalogs.ListCardNames();
-		var names = cards.Where(name => name.Contains(" // ")).ToList();
-
-		return names;
-	}
-
-	public async Task<IEnumerable<Card>> GetTokenCardNamesAsync()
-	{
-		// Unfortunately, the IScryfallApiClient has an issue with encoding the query string, so we use our own HttpClient
-		var httpClient = DEFAULT_CLIENT;
-		Uri query = new("https://api.scryfall.com/cards/search?q=set_type=Token&include_extras=true");
-		var hasMore = true;
-		List<Card> allCards = [];
-
-		while (hasMore)
-		{
-			try
-			{
-				var response = await httpClient.GetAsync(query);
-				response.EnsureSuccessStatusCode();
-				var content = await response.Content.ReadAsStringAsync();
-				var cards = JsonSerializer.Deserialize<ResultList<Card>>(content)
-					?? throw new InvalidOperationException("Unexpected null response from Scryfall API");
-				allCards.AddRange(cards.Data);
-
-				query = cards.NextPage;
-				hasMore = cards.HasMore;
-			}
-			catch (Exception ex)
-			{
-				Log.Error(ex, "Failed to load token cards from Scryfall");
-				throw;
-			}
-		}
-
-		return allCards.Where(c => c.TypeLine.StartsWith("Token"));
-	}
-
-	/// <summary> Returns all sets from Scryfall </summary>
-	public async Task<IEnumerable<Set>> GetSetsAsync() => (await _api.Sets.Get()).Data;
-
-	public IEnumerable<Set> GetSets() => _sets;
-	public List<string> GetDoubleFacedCardNames() => _doubleFacedCardNames;
-
-	public List<string> GetTokenCardNames() => _tokenCardNames;
 
 	// Scryfall's batch /cards/collection endpoint does NOT accept cardmarket_id as an identifier (only id,
 	// mtgo_id, multiverse_id, oracle_id, illustration_id, name, name+set, set+collector_number). So we use
@@ -105,7 +39,7 @@ public class CachedMtgApi : IMtgApi
 		PropertyNamingPolicy = JsonNamingPolicy.SnakeCaseLower,
 	};
 
-	public async Task<IReadOnlyDictionary<int, Card>> GetCardsByCardmarketIdsAsync(IEnumerable<int> cardmarketIds)
+	public async Task<IReadOnlyDictionary<int, ReferenceCard>> GetCardsByCardmarketIdsAsync(IEnumerable<int> cardmarketIds, CancellationToken ct = default)
 	{
 		var requested = cardmarketIds.Distinct().ToList();
 		var notYetFetched = requested.Where(id => !_cardsByCardmarketId.ContainsKey(id)).ToList();
@@ -115,17 +49,17 @@ public class CachedMtgApi : IMtgApi
 			var id = notYetFetched[i];
 			try
 			{
-				var response = await DEFAULT_CLIENT.GetAsync(new Uri($"https://api.scryfall.com/cards/cardmarket/{id}"));
+				var response = await ScryfallHttpClient.GetAsync(new Uri($"https://api.scryfall.com/cards/cardmarket/{id}"), ct);
 				if (response.StatusCode == System.Net.HttpStatusCode.NotFound)
 				{
 					continue; // not found — caller will see this id absent from the returned dictionary
 				}
 				response.EnsureSuccessStatusCode();
-				var body = await response.Content.ReadAsStringAsync();
-				var card = JsonSerializer.Deserialize<Card>(body, ScryfallJsonOptions);
+				var body = await response.Content.ReadAsStringAsync(ct);
+				var card = JsonSerializer.Deserialize<ScryfallCardJson>(body, ScryfallJsonOptions);
 				if (card is not null)
 				{
-					_cardsByCardmarketId[id] = card;
+					_cardsByCardmarketId[id] = ReferenceCard.CreateFromScryfall(card);
 				}
 			}
 			catch (HttpRequestException ex)
@@ -135,7 +69,7 @@ public class CachedMtgApi : IMtgApi
 
 			if (i + 1 < notYetFetched.Count)
 			{
-				await Task.Delay(InterRequestDelayMs);
+				await Task.Delay(InterRequestDelayMs, ct);
 			}
 		}
 

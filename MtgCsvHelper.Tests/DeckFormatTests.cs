@@ -2,8 +2,8 @@ using ScryfallApi.Client.Models;
 
 namespace MtgCsvHelper.Tests;
 
-[Collection(MtgApiCollection.Name)]
-public class DeckFormatTests(MtgApiFixture fixture, ITestOutputHelper output) : ApiBaseTest(fixture, output)
+[Collection(CatalogCollection.Name)]
+public class DeckFormatTests(CatalogFixture fixture, ITestOutputHelper output) : ApiBaseTest(fixture, output)
 {
 	[Theory]
 	[InlineData("DRAGONSHIELD")]
@@ -15,7 +15,7 @@ public class DeckFormatTests(MtgApiFixture fixture, ITestOutputHelper output) : 
 	[InlineData("TCGPLAYER")]
 	public void GenerateReadMap_ForBidirectionalFormats_Succeeds(string deckFormatName)
 	{
-		var map = new CardMapFactory(_config, _api).GenerateReadMap(deckFormatName);
+		var map = new CardMapFactory(_config, _catalog).GenerateReadMap(deckFormatName);
 		map.Should().NotBeNull();
 	}
 
@@ -30,14 +30,14 @@ public class DeckFormatTests(MtgApiFixture fixture, ITestOutputHelper output) : 
 	[InlineData("CARDKINGDOM")]
 	public void GenerateWriteMap_ForAllSupportedFormats_Succeeds(string deckFormatName)
 	{
-		var map = new CardMapFactory(_config, _api).GenerateWriteMap(deckFormatName);
+		var map = new CardMapFactory(_config, _catalog).GenerateWriteMap(deckFormatName);
 		map.Should().NotBeNull();
 	}
 
 	[Fact]
 	public void GenerateReadMap_ForCardKingdom_Throws()
 	{
-		var factory = new CardMapFactory(_config, _api);
+		var factory = new CardMapFactory(_config, _catalog);
 		var act = () => factory.GenerateReadMap("CARDKINGDOM");
 		act.Should().Throw<InvalidOperationException>().WithMessage("*write-only*");
 	}
@@ -47,7 +47,7 @@ public class DeckFormatTests(MtgApiFixture fixture, ITestOutputHelper output) : 
 	[InlineData("")]
 	public void GenerateReadMap_ForUnknownFormat_ThrowsWithLoadedList(string deckFormatName)
 	{
-		var factory = new CardMapFactory(_config, _api);
+		var factory = new CardMapFactory(_config, _catalog);
 		var act = () => factory.GenerateReadMap(deckFormatName);
 		act.Should().Throw<ArgumentException>()
 			.WithMessage("*MOXFIELD*"); // loaded formats appear in the message
@@ -58,7 +58,7 @@ public class DeckFormatTests(MtgApiFixture fixture, ITestOutputHelper output) : 
 	{
 		// Empty configuration — simulates appsettings.json failing to load.
 		var emptyConfig = new Microsoft.Extensions.Configuration.ConfigurationBuilder().Build();
-		var factory = new CardMapFactory(emptyConfig, _api);
+		var factory = new CardMapFactory(emptyConfig, _catalog);
 
 		var act = () => factory.GenerateReadMap("MOXFIELD");
 
@@ -70,7 +70,7 @@ public class DeckFormatTests(MtgApiFixture fixture, ITestOutputHelper output) : 
 	[InlineData("UNKNOWN_FORMAT")]
 	public void GenerateWriteMap_ForUnknownFormat_ThrowsWithSupportedList(string deckFormatName)
 	{
-		var factory = new CardMapFactory(_config, _api);
+		var factory = new CardMapFactory(_config, _catalog);
 		var act = () => factory.GenerateWriteMap(deckFormatName);
 		act.Should().Throw<ArgumentException>()
 			.WithMessage("*MOXFIELD*");
@@ -84,7 +84,7 @@ public class DeckFormatTests(MtgApiFixture fixture, ITestOutputHelper output) : 
 	[InlineData("DECKBOX")]
 	public void StreamRoundTripTest(string deckFormatName)
 	{
-		var handler = new MtgCardCsvHandler(_api, _config, deckFormatName);
+		var handler = new MtgCardCsvHandler(_catalog, _resolver, _config, deckFormatName);
 		var original = new List<PhysicalMtgCard>
 		{
 			new() { Count = 2, Printing = new Card { Name = "Lightning Bolt", Set = "M11", SetName = "Magic 2011", CollectorNumber = "149" } }
@@ -104,7 +104,7 @@ public class DeckFormatTests(MtgApiFixture fixture, ITestOutputHelper output) : 
 	[Fact]
 	public void ParseCollectionCsv_WithCardKingdomAsInput_Throws()
 	{
-		var handler = new MtgCardCsvHandler(_api, _config, "CARDKINGDOM");
+		var handler = new MtgCardCsvHandler(_catalog, _resolver, _config, "CARDKINGDOM");
 		var act = () => handler.ParseCollectionCsv(new MemoryStream("a,b,c\n"u8.ToArray()));
 		act.Should().Throw<InvalidOperationException>().WithMessage("*write-only*");
 	}

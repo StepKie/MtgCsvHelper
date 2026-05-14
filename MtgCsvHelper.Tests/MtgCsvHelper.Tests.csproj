@@ -28,4 +28,11 @@
     <ProjectReference Include="..\MtgCsvHelper\MtgCsvHelper.csproj" />
   </ItemGroup>
 
+  <!-- The reference-card bundle that `CatalogFixture` loads. Same source as the Blazor/Console copies. -->
+  <ItemGroup>
+    <None Include="..\MtgCsvHelper.BlazorWebAssembly\wwwroot\data\cards.min.json.gz"
+          Link="data\cards.min.json.gz"
+          CopyToOutputDirectory="PreserveNewest" />
+  </ItemGroup>
+
 </Project>

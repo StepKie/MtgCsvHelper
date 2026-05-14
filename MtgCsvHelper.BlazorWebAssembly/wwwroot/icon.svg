@@ -1,0 +1,98 @@
+<!-- Icon: two CSV documents with conversion arrow between them.
+     Color scheme: blue + green (Simic guild colors); MtG flavor accents from W/B/R sparkles. -->
+<svg viewBox="0 0 256 256" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="MtG CsvHelper">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#1c1530"/>
+      <stop offset="1" stop-color="#0a0518"/>
+    </linearGradient>
+    <linearGradient id="docBlue" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#3b82f6"/>
+      <stop offset="1" stop-color="#1e40af"/>
+    </linearGradient>
+    <linearGradient id="docBlueFold" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#1e3a8a"/>
+      <stop offset="1" stop-color="#0f1d4a"/>
+    </linearGradient>
+    <linearGradient id="docGreen" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#22c55e"/>
+      <stop offset="1" stop-color="#15803d"/>
+    </linearGradient>
+    <linearGradient id="docGreenFold" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#166534"/>
+      <stop offset="1" stop-color="#0a3d1f"/>
+    </linearGradient>
+    <linearGradient id="arrowGloss" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#ffffff"/>
+      <stop offset="1" stop-color="#d4d4d8"/>
+    </linearGradient>
+    <filter id="drop" x="-30%" y="-20%" width="160%" height="160%">
+      <feDropShadow dx="0" dy="6" stdDeviation="6" flood-color="#000" flood-opacity="0.55"/>
+    </filter>
+  </defs>
+
+  <rect width="256" height="256" rx="56" fill="url(#bg)"/>
+
+  <!-- Left document (blue, CSV-style) with folded top-right corner -->
+  <g filter="url(#drop)" transform="translate(64 130) rotate(-6)">
+    <!-- Body — paper with corner cut off -->
+    <path d="M -42,-62 L 30,-62 L 42,-50 L 42,62 L -42,62 z"
+          fill="url(#docBlue)" stroke="#ffffff" stroke-width="2" stroke-opacity="0.2"/>
+    <!-- Folded corner triangle -->
+    <path d="M 30,-62 L 42,-50 L 30,-50 z" fill="url(#docBlueFold)"/>
+    <!-- "CSV" header bar -->
+    <rect x="-30" y="-40" width="50" height="14" rx="2" fill="#ffffff" fill-opacity="0.9"/>
+    <text x="-5" y="-29" text-anchor="middle" font-family="system-ui,Arial,sans-serif"
+          font-size="12" font-weight="700" fill="#1e40af">CSV</text>
+    <!-- U (blue) mana symbol — mana-font path, MIT — fills the body area -->
+    <svg x="-26" y="-18" width="52" height="52" viewBox="0 0 32 32">
+      <path fill="#ffffff" fill-opacity="0.95" d="M23.11 29.095c-1.903 1.937-4.248 2.905-7.033 2.905-3.126 0-5.605-1.070-7.439-3.21-1.733-2.038-2.599-4.637-2.599-7.795 0-3.397 1.478-7.271 4.433-11.62 2.411-3.566 5.248-6.692 8.509-9.375-0.476 2.175-0.713 3.72-0.713 4.637 0 2.107 0.662 4.162 1.986 6.166 1.631 2.378 2.87 4.145 3.72 5.299 1.325 2.005 1.987 3.958 1.987 5.859 0.001 2.82-0.951 5.198-2.852 7.133zM23.058 18.216c-0.509-1.138-1.104-1.893-1.784-2.268 0.102 0.204 0.153 0.493 0.153 0.867 0 0.714-0.204 1.732-0.612 3.057l-0.662 2.038c0 1.189 0.593 1.784 1.783 1.784 1.256 0 1.885-0.833 1.885-2.497 0-0.848-0.254-1.842-0.764-2.981z"/>
+    </svg>
+  </g>
+
+  <!-- Right document (green, CSV-style) -->
+  <g filter="url(#drop)" transform="translate(192 130) rotate(6)">
+    <path d="M -42,-62 L 30,-62 L 42,-50 L 42,62 L -42,62 z"
+          fill="url(#docGreen)" stroke="#ffffff" stroke-width="2" stroke-opacity="0.2"/>
+    <path d="M 30,-62 L 42,-50 L 30,-50 z" fill="url(#docGreenFold)"/>
+    <rect x="-30" y="-40" width="50" height="14" rx="2" fill="#ffffff" fill-opacity="0.9"/>
+    <text x="-5" y="-29" text-anchor="middle" font-family="system-ui,Arial,sans-serif"
+          font-size="12" font-weight="700" fill="#15803d">CSV</text>
+    <!-- G (green) mana symbol — mana-font path, MIT -->
+    <svg x="-26" y="-18" width="52" height="52" viewBox="0 0 32 32">
+      <path fill="#ffffff" fill-opacity="0.95" d="M31.729 17.957c0 0.601-0.232 1.14-0.698 1.621s-0.998 0.72-1.598 0.72c-0.959 0-1.666-0.45-2.115-1.35l-2.115-0.090c-0.451 0-1.336 0.196-2.656 0.585-1.41 0.39-2.221 0.705-2.431 0.945-0.33 0.36-0.599 1.2-0.81 2.521-0.181 1.080-0.27 1.875-0.27 2.386 0 0.809 0.127 1.403 0.382 1.778s0.78 0.69 1.575 0.945c0.794 0.255 1.283 0.398 1.463 0.428 0.12 0 0.314-0.015 0.585-0.045h0.54c0.389 0 0.794 0.061 1.215 0.18 0.6 0.18 0.856 0.42 0.766 0.721-0.421-0.060-1.155 0.030-2.205 0.27l1.26 0.63c0 0.36-0.51 0.54-1.53 0.54-0.271 0-0.638-0.060-1.104-0.179-0.465-0.121-0.773-0.18-0.922-0.18h-0.585c-0.030 0.3-0.12 0.749-0.27 1.35-0.511-0.030-1.11-0.331-1.8-0.9s-1.125-0.855-1.305-0.855c-0.181 0-0.436 0.286-0.766 0.855-0.331 0.569-0.495 0.96-0.495 1.17-0.39-0.21-0.719-0.601-0.991-1.17-0.12-0.391-0.255-0.78-0.404-1.17-0.3 0.030-0.856 0.661-1.665 1.891h-0.226c-0.060-0.091-0.286-0.721-0.675-1.891-0.93-0.3-1.8-0.45-2.611-0.45-0.39 0-0.99 0.090-1.8 0.27l-1.26-0.089c0.179-0.18 0.704-0.525 1.575-1.035 1.020-0.6 1.8-0.901 2.34-0.901 0.089 0 0.208 0.015 0.36 0.045 0.149 0.031 0.27 0.045 0.36 0.045 0.208 0 0.547-0.112 1.012-0.338 0.465-0.224 0.735-0.427 0.809-0.607 0.076-0.182 0.114-0.646 0.114-1.396 0-1.71-0.45-2.985-1.351-3.825-0.781-0.75-2.070-1.29-3.871-1.621-0.48 1.71-1.83 2.566-4.050 2.566-0.721 0-1.441-0.435-2.16-1.305s-1.079-1.666-1.079-2.386c0-1.11 0.464-2.025 1.394-2.747-0.749-0.779-1.125-1.574-1.125-2.384 0-0.751 0.232-1.41 0.698-1.982 0.465-0.569 1.073-0.899 1.823-0.99-0.060-0.959 0.255-1.62 0.945-1.98-0.33-0.329-0.495-0.914-0.495-1.754 0-0.99 0.33-1.816 0.99-2.476s1.485-0.991 2.475-0.991c1.081 0 1.966 0.377 2.656 1.126 0.87-2.97 2.746-4.456 5.625-4.456 1.5 0 2.82 0.6 3.961 1.801 0.42 0.45 0.63 0.69 0.63 0.719-0.36 0-0.179-0.068 0.54-0.202s1.244-0.203 1.576-0.203c1.169 0 2.205 0.435 3.105 1.305 0.78 0.78 1.32 1.77 1.621 2.97 0.209 0.030 0.54 0.12 0.99 0.269 0.659 0.332 0.99 0.9 0.99 1.711 0 0.151-0.121 0.436-0.36 0.855 1.92 1.080 2.88 2.58 2.88 4.501 0 0.54-0.21 1.291-0.63 2.251 0.78 0.449 1.17 1.11 1.17 1.98zM13.186 19.937v-0.585c0-0.69-0.337-1.32-1.012-1.89s-1.358-0.855-2.048-0.855c-0.841 0-1.62 0.195-2.341 0.584 1.59-0.089 3.391 0.826 5.4 2.746zM12.377 14.357c-0.45-0.511-0.84-1.036-1.171-1.576-1.26 0.33-1.89 0.705-1.89 1.124 0.36-0.029 0.885 0.038 1.575 0.203s1.186 0.248 1.486 0.248zM15.123 12.961v-1.98c-0.721-0.12-1.157-0.18-1.305-0.18v0.675l1.305 1.486zM20.973 11.701c-0.36-0.15-1.036-0.45-2.025-0.9v3.87c1.41-0.811 2.084-1.801 2.025-2.97zM23.447 17.012l-0.989-1.215c-0.6 0.42-1.208 0.848-1.823 1.283s-1.148 0.923-1.597 1.463c1.35-0.721 2.821-1.23 4.41-1.531z"/>
+    </svg>
+  </g>
+
+  <!-- Bold central conversion arrow — overlays the two documents -->
+  <g filter="url(#drop)">
+    <path d="M 96,114
+             L 142,114
+             L 142,98
+             L 174,128
+             L 142,158
+             L 142,142
+             L 96,142 z"
+          fill="url(#arrowGloss)" stroke="#1c1530" stroke-width="3" stroke-linejoin="round"/>
+  </g>
+
+  <!-- MtG flavor: 4-pointed sparkles in W / B / R mana colors -->
+  <g opacity="0.85">
+    <!-- Top-left sparkle (W — pale gold) -->
+    <g transform="translate(40 38)" fill="#fde68a">
+      <path d="M 0,-8 L 1.5,-1.5 L 8,0 L 1.5,1.5 L 0,8 L -1.5,1.5 L -8,0 L -1.5,-1.5 z"/>
+    </g>
+    <!-- Top-right sparkle (R — red) -->
+    <g transform="translate(220 50)" fill="#ef4444">
+      <path d="M 0,-7 L 1.3,-1.3 L 7,0 L 1.3,1.3 L 0,7 L -1.3,1.3 L -7,0 L -1.3,-1.3 z"/>
+    </g>
+    <!-- Bottom-left sparkle (B — soft purple-violet, fits with theme) -->
+    <g transform="translate(48 218)" fill="#b388ff">
+      <path d="M 0,-7 L 1.3,-1.3 L 7,0 L 1.3,1.3 L 0,7 L -1.3,1.3 L -7,0 L -1.3,-1.3 z"/>
+    </g>
+    <!-- Mid-bottom sparkle (smaller, near the arrow tip) -->
+    <g transform="translate(196 214)" fill="#fde68a">
+      <path d="M 0,-5 L 1,-1 L 5,0 L 1,1 L 0,5 L -1,1 L -5,0 L -1,-1 z"/>
+    </g>
+  </g>
+</svg>

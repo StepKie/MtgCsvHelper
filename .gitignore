@@ -14,6 +14,10 @@
 # Filename shape: {format-lowercase}-output-{yyyy-MM-dd_HH-mm-ss}.csv
 *-output-*.csv
 
+# Generated reference-card bundle (refreshed via tools/MtgCsvHelper.RefreshReferenceData,
+# regenerated on each release; committing it bloats the git history with binary diffs).
+MtgCsvHelper.BlazorWebAssembly/wwwroot/data/cards.min.json.gz
+
 # User-specific files (MonoDevelop/Xamarin Studio)
 *.userprefs
 
@@ -370,5 +374,6 @@ MtgCsvHelper.BlazorWebAssembly/wwwroot/README.md
 # VS Code workspace file
 *.code-workspace
 
-# Claude Code local settings
+# Claude Code local settings + runtime files
 .claude/settings.local.json
+.claude/scheduled_tasks.lock

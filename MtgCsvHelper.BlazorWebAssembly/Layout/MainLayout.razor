@@ -1,27 +1,102 @@
-﻿@inherits LayoutComponentBase
+@inherits LayoutComponentBase
 @using System.Reflection
+@inject ICatalogLoader CatalogLoader
+@inject ISnackbar Snackbar
+@implements IDisposable
 
-<div class="page">
-	<div class="sidebar">
-		<NavMenu />
-	</div>
+<MudThemeProvider @ref="_themeProvider" @bind-IsDarkMode="_isDarkMode" Theme="_theme" />
+<MudPopoverProvider />
+<MudDialogProvider />
+<MudSnackbarProvider />
 
-	<main>
-		<div class="top-row px-4">
-			<text>Version @version (@commit)</text>
-			<a href="https://github.com/StepKie/MtgCsvHelper/issues/new/choose" target="_blank">Report a Bug</a>
-			<a href="https://github.com/StepKie/MtgCsvHelper/" target="_blank">Project Home</a>
-		</div>
-		
-		<article class="content px-4">
+<MudLayout>
+	<MudAppBar Elevation="1" Dense="true">
+		<MudLink Href="" Underline="Underline.None" Color="Color.Inherit">
+			<MudStack Row="true" AlignItems="AlignItems.Center" Spacing="2">
+				<img src="icon.svg" width="40" height="40" alt="" />
+				<MudText Typo="Typo.h6">MtG CsvHelper</MudText>
+			</MudStack>
+		</MudLink>
+		<MudSpacer />
+		<MudButton Href="about" Variant="Variant.Text" Color="Color.Inherit" StartIcon="@Icons.Material.Filled.Info">About</MudButton>
+		<MudText Typo="Typo.caption" Class="d-none d-sm-flex mx-3">v@_version · @_commit</MudText>
+		<MudTooltip Text="@(_isDarkMode ? "Switch to light mode" : "Switch to dark mode")">
+			<MudIconButton Icon="@(_isDarkMode ? Icons.Material.Filled.LightMode : Icons.Material.Filled.DarkMode)"
+			               Color="Color.Inherit" OnClick="ToggleTheme" />
+		</MudTooltip>
+		<MudTooltip Text="Submit feedback / ideas">
+			<MudIconButton Icon="@Icons.Material.Filled.Chat" Color="Color.Inherit"
+			               Href="https://github.com/StepKie/MtgCsvHelper/discussions" Target="_blank" />
+		</MudTooltip>
+		<MudTooltip Text="Report a bug">
+			<MudIconButton Icon="@Icons.Material.Filled.BugReport" Color="Color.Inherit"
+			               Href="https://github.com/StepKie/MtgCsvHelper/issues/new/choose" Target="_blank" />
+		</MudTooltip>
+		<MudTooltip Text="Project on GitHub">
+			<MudIconButton Icon="@Icons.Custom.Brands.GitHub" Color="Color.Inherit"
+			               Href="https://github.com/StepKie/MtgCsvHelper/" Target="_blank" />
+		</MudTooltip>
+	</MudAppBar>
+	<MudMainContent>
+		<MudContainer MaxWidth="MaxWidth.Large" Class="py-6">
 			@Body
-		</article>
-	</main>
-</div>
+		</MudContainer>
+	</MudMainContent>
+</MudLayout>
 
 @code {
-	private static string versionFull = Assembly.GetExecutingAssembly().GetCustomAttribute<AssemblyInformationalVersionAttribute>()!.InformationalVersion;
-	private string version = versionFull.Split("+")[0];
-	private string commit = versionFull.Split("+")[1].Remove(7);
+	static readonly string versionFull = Assembly.GetExecutingAssembly().GetCustomAttribute<AssemblyInformationalVersionAttribute>()!.InformationalVersion;
+	static readonly string[] _parts = versionFull.Split("+");
+	readonly string _version = _parts[0];
+	// CI-published builds suffix the commit hash with '+abc1234…'; local debug builds may not.
+	readonly string _commit = _parts.Length > 1 ? _parts[1][..Math.Min(7, _parts[1].Length)] : "dev";
 
+	MudThemeProvider _themeProvider = null!;
+	bool _isDarkMode = true;
+
+	readonly MudTheme _theme = new()
+	{
+		PaletteLight = new PaletteLight
+		{
+			Primary = "#7c4dff",
+			Secondary = "#ff5252",
+		},
+		PaletteDark = new PaletteDark
+		{
+			Primary = "#b388ff",
+			Secondary = "#ff5252",
+			Background = "#121212",
+			Surface = "#1e1e1e",
+			AppbarBackground = "#1a1a1a",
+			DrawerBackground = "#1a1a1a",
+		},
+		LayoutProperties = new LayoutProperties
+		{
+			DefaultBorderRadius = "8px",
+		},
+	};
+
+	void ToggleTheme() => _isDarkMode = !_isDarkMode;
+
+	protected override async Task OnInitializedAsync()
+	{
+		CatalogLoader.StateChanged += OnCatalogStateChanged;
+		// Fire-and-forget: the loader is idempotent and we don't want to block the shell render.
+		_ = CatalogLoader.LoadAsync();
+		await base.OnInitializedAsync();
+	}
+
+	void OnCatalogStateChanged()
+	{
+		if (CatalogLoader.Progress.Phase == CatalogLoadPhase.Ready)
+		{
+			Snackbar.Add("Card data loaded.", Severity.Success);
+		}
+		else if (CatalogLoader.Progress.Phase == CatalogLoadPhase.Failed)
+		{
+			Snackbar.Add($"Couldn't load card data: {CatalogLoader.Error?.Message}", Severity.Error);
+		}
+	}
+
+	public void Dispose() => CatalogLoader.StateChanged -= OnCatalogStateChanged;
 }

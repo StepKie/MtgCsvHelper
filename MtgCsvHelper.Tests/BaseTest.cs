@@ -15,8 +15,9 @@ public class BaseTest
 	}
 }
 
-public class ApiBaseTest(MtgApiFixture fixture, ITestOutputHelper output, LogEventLevel level = LogEventLevel.Debug)
+public class ApiBaseTest(CatalogFixture fixture, ITestOutputHelper output, LogEventLevel level = LogEventLevel.Debug)
 	: BaseTest(output, level)
 {
-	protected readonly MtgCsvHelper.Services.IMtgApi _api = fixture.Api;
+	protected readonly IReferenceCardCatalog _catalog = fixture.Catalog;
+	protected readonly MtgCsvHelper.Services.ICardmarketResolver _resolver = fixture.Resolver;
 }

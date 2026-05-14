@@ -37,4 +37,9 @@
     </None>
   </ItemGroup>
 
+  <ItemGroup>
+    <InternalsVisibleTo Include="MtgCsvHelper.RefreshReferenceData" />
+    <InternalsVisibleTo Include="MtgCsvHelper.Tests" />
+  </ItemGroup>
+
 </Project>

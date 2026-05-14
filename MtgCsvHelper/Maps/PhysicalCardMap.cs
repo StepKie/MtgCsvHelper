@@ -2,7 +2,6 @@ using System.Linq.Expressions;
 using CsvHelper.Configuration;
 using CsvHelper.TypeConversion;
 using MtgCsvHelper.Converters;
-using MtgCsvHelper.Services;
 
 namespace MtgCsvHelper.Maps;
 
@@ -11,7 +10,7 @@ namespace MtgCsvHelper.Maps;
 // so the body reads as a flat list of mappings rather than a forest of null checks.
 public class PhysicalCardMap : ClassMap<PhysicalMtgCard>
 {
-	public PhysicalCardMap(FormatConfig cfg, IMtgApi api)
+	public PhysicalCardMap(FormatConfig cfg, IReferenceCardCatalog catalog)
 	{
 		Map(c => c.Count).Name(cfg.Quantity).Index(1);
 
@@ -20,7 +19,7 @@ public class PhysicalCardMap : ClassMap<PhysicalMtgCard>
 		if (cfg.CardName is not null)
 		{
 			Map(c => c.Printing.Name)
-				.TypeConverter(new CardNameConverter(cfg.CardName, api))
+				.TypeConverter(new CardNameConverter(cfg.CardName, catalog))
 				.Name(cfg.CardName.HeaderName).Index(0);
 		}
 		if (cfg.CardmarketId is not null)

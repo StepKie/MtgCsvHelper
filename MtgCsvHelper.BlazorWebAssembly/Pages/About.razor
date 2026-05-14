@@ -1,22 +1,93 @@
-﻿@page "/about"
+@page "/about"
 
-@inject HttpClient HttpClient
-@using Markdig
-@using System.Net.Http
+<PageTitle>About — MtG CsvHelper</PageTitle>
 
-<div>
-	@((MarkupString)HTMLContent)
-</div>
+<MudText Typo="Typo.h4" Class="mb-2">About</MudText>
+<MudText Typo="Typo.body2" Class="mud-text-secondary mb-6">
+	A free, browser-side converter for Magic: The Gathering collection CSVs. Your file never leaves your machine.
+</MudText>
 
+<MudGrid Spacing="4">
+	<MudItem xs="12" md="7">
+		<MudPaper Elevation="1" Class="pa-5">
+			<MudText Typo="Typo.h6" Class="mb-3">How to use</MudText>
+			<MudList T="string" Dense="true">
+				<MudListItem T="string" Icon="@Icons.Material.Filled.LooksOne" IconColor="Color.Primary">
+					<MudText Typo="Typo.body2"><strong>Choose a CSV file</strong> exported from one of the supported sites.</MudText>
+				</MudListItem>
+				<MudListItem T="string" Icon="@Icons.Material.Filled.LooksTwo" IconColor="Color.Primary">
+					<MudText Typo="Typo.body2"><strong>Pick the output format</strong>. The input format is auto-detected from the CSV headers; toggle off to override.</MudText>
+				</MudListItem>
+				<MudListItem T="string" Icon="@Icons.Material.Filled.Looks3" IconColor="Color.Primary">
+					<MudText Typo="Typo.body2"><strong>Convert and download.</strong> Results show counts, value totals, and any per-row issues. Hover a card name to preview its Scryfall image.</MudText>
+				</MudListItem>
+			</MudList>
 
-@code {
+			<MudDivider Class="my-5" />
 
-	private string MarkdownContent = "";
-	private string HTMLContent = "";
+			<MudText Typo="Typo.h6" Class="mb-3">Supported formats</MudText>
+			<MudText Typo="Typo.body2" Class="mud-text-secondary mb-2">Both import and export, unless noted:</MudText>
+			<MudSimpleTable Dense="true" Hover="false" Bordered="false" Striped="false" Style="background:transparent;">
+				<tbody>
+					<tr><td>Moxfield</td><td>Dragon Shield</td><td>Manabox</td></tr>
+					<tr><td>Topdecked</td><td>Deckbox</td><td>MTG Goldfish</td></tr>
+					<tr><td>TCGplayer</td><td>Cardmarket (import only)</td><td>Card Kingdom (export only)</td></tr>
+				</tbody>
+			</MudSimpleTable>
 
-	protected override async Task OnInitializedAsync()
-	{
-		MarkdownContent = await HttpClient.GetStringAsync("README.md");
-		HTMLContent = Markdig.Markdown.ToHtml(MarkdownContent);
-	}
-}
+			<MudDivider Class="my-5" />
+
+			<MudText Typo="Typo.h6" Class="mb-3">Known limitations</MudText>
+			<MudList T="string" Dense="true">
+				<MudListItem T="string" Icon="@Icons.Material.Filled.WarningAmber" IconColor="Color.Warning">
+					<MudText Typo="Typo.body2">Compilation / promo / borderless printings are inconsistent across sites; matching is best-effort.</MudText>
+				</MudListItem>
+				<MudListItem T="string" Icon="@Icons.Material.Filled.WarningAmber" IconColor="Color.Warning">
+					<MudText Typo="Typo.body2">Card data is bundled from <MudLink Href="https://scryfall.com" Target="_blank" Color="Color.Primary">Scryfall</MudLink> and refreshed on each release. New sets may take a few days to appear.</MudText>
+				</MudListItem>
+				<MudListItem T="string" Icon="@Icons.Material.Filled.WarningAmber" IconColor="Color.Warning">
+					<MudText Typo="Typo.body2">Currency conversion isn't done — totals only when all rows share a currency.</MudText>
+				</MudListItem>
+			</MudList>
+		</MudPaper>
+	</MudItem>
+
+	<MudItem xs="12" md="5">
+		<MudPaper Elevation="1" Class="pa-5 mb-4">
+			<MudText Typo="Typo.h6" Class="mb-3">Get involved</MudText>
+			<MudStack Spacing="2">
+				<MudButton FullWidth="true" Variant="Variant.Filled" Color="Color.Primary"
+				           StartIcon="@Icons.Material.Filled.Chat"
+				           Href="https://github.com/StepKie/MtgCsvHelper/discussions" Target="_blank" rel="noopener">
+					Submit feedback / ideas
+				</MudButton>
+				<MudButton FullWidth="true" Variant="Variant.Outlined" Color="Color.Default"
+				           StartIcon="@Icons.Material.Filled.BugReport"
+				           Href="https://github.com/StepKie/MtgCsvHelper/issues/new/choose" Target="_blank" rel="noopener">
+					Report a bug
+				</MudButton>
+				<MudButton FullWidth="true" Variant="Variant.Text" Color="Color.Default"
+				           StartIcon="@Icons.Custom.Brands.GitHub"
+				           Href="https://github.com/StepKie/MtgCsvHelper" Target="_blank" rel="noopener">
+					Source on GitHub
+				</MudButton>
+			</MudStack>
+		</MudPaper>
+
+		<MudPaper Elevation="1" Class="pa-5">
+			<MudText Typo="Typo.h6" Class="mb-3">Tech</MudText>
+			<MudText Typo="Typo.body2" Class="mb-1">
+				Blazor WebAssembly, AOT-compiled. <MudLink Href="https://mudblazor.com" Target="_blank" Color="Color.Primary">MudBlazor</MudLink> for UI.
+			</MudText>
+			<MudText Typo="Typo.body2" Class="mb-1">
+				Card data and images by <MudLink Href="https://scryfall.com" Target="_blank" Color="Color.Primary">Scryfall</MudLink>.
+			</MudText>
+			<MudText Typo="Typo.body2" Class="mb-1">
+				Mana symbols by <MudLink Href="https://mana.andrewgioia.com" Target="_blank" Color="Color.Primary">Andrew Gioia's mana-font</MudLink> (MIT).
+			</MudText>
+			<MudText Typo="Typo.caption" Class="mud-text-secondary mt-3 d-block">
+				Not affiliated with or endorsed by Wizards of the Coast. <em>Magic: The Gathering</em> is © Wizards of the Coast LLC.
+			</MudText>
+		</MudPaper>
+	</MudItem>
+</MudGrid>

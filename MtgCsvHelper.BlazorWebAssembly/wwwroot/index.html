@@ -8,11 +8,14 @@
     <base href="/" />
     <link rel="stylesheet" href="css/bootstrap/bootstrap.min.css" />
     <link rel="stylesheet" href="css/app.css" />
-    <link rel="icon" type="image/png" href="favicon.png" />
-    <link href="MtgCsvHelper.BlazorWebAssembly.styles.css" rel="stylesheet" />
+    <link rel="icon" type="image/svg+xml" href="favicon.svg" />
     <link href="manifest.webmanifest" rel="manifest" />
-    <link rel="apple-touch-icon" sizes="512x512" href="icon-512.png" />
-    <link rel="apple-touch-icon" sizes="192x192" href="icon-192.png" />
+    <!-- Apple ignores SVG for apple-touch-icon and falls back to a screenshot. Better to
+         omit the link than to point at an SVG that won't render on iOS home screens.
+         Follow-up: provide a 180×180 PNG via the bundle generator (or a build step) and
+         restore `<link rel="apple-touch-icon" ...>`. -->
+    <link href="https://fonts.googleapis.com/css?family=Roboto:300,400,500,700&display=swap" rel="stylesheet" />
+    <link href="_content/MudBlazor/MudBlazor.min.css" rel="stylesheet" />
 </head>
 
 <body>
@@ -22,11 +25,11 @@
             <circle r="40%" cx="50%" cy="50%" />
         </svg>
         <div class="loading-progress-text"></div>
-        <p id="loading-status" style="text-align:center; color:#666; display:none;">Initializing runtime&hellip;</p>
+        <p style="text-align:center; color:#666;">Loading app&hellip;</p>
     </div>
 
     <div id="blazor-error-ui">
-        An unhandled error has occurred.
+        An unexpected error occurred. Open DevTools (F12) → Console for details.
         <a href="" class="reload">Reload</a>
         <a class="dismiss">🗙</a>
     </div>
@@ -38,34 +41,24 @@
     </div>
 
     <script src="_framework/blazor.webassembly.js"></script>
-	<script>
-		window.downloadFileFromStream = async (fileName, contentStreamReference) => {
-			const arrayBuffer = await contentStreamReference.arrayBuffer();
-			const blob = new Blob([arrayBuffer]);
-			const url = URL.createObjectURL(blob);
-			const anchorElement = document.createElement('a');
-			anchorElement.href = url;
-			anchorElement.download = fileName ?? '';
-			anchorElement.click();
-			anchorElement.remove();
-			URL.revokeObjectURL(url);
-		}
-	</script>
+    <script src="_content/MudBlazor/MudBlazor.min.js"></script>
     <script>
-        // Once the download circle hits 100%, show a status message below it
-        // so users know the runtime is still starting up (not frozen)
-        (function () {
-            var watcher = setInterval(function () {
-                var pct = getComputedStyle(document.documentElement)
-                    .getPropertyValue('--blazor-load-percentage').trim();
-                if (pct === '100%') {
-                    clearInterval(watcher);
-                    document.getElementById('loading-status').style.display = 'block';
-                }
-            }, 100);
-        })();
+        window.downloadFileFromStream = async (fileName, contentStreamReference) => {
+            const arrayBuffer = await contentStreamReference.arrayBuffer();
+            const blob = new Blob([arrayBuffer]);
+            const url = URL.createObjectURL(blob);
+            const anchorElement = document.createElement('a');
+            anchorElement.href = url;
+            anchorElement.download = fileName ?? '';
+            anchorElement.click();
+            anchorElement.remove();
+            URL.revokeObjectURL(url);
+        }
 
-        navigator.serviceWorker.register('service-worker.js');
+        // Skip SW registration on localhost — dev rebuilds caused a controllerchange
+        // reload loop (new SW installs each build → page reloads → app boots into the
+        // same situation). The PWA / offline behavior only matters in production anyway.
+        const _isLocalDev = ['localhost', '127.0.0.1', '[::1]'].includes(location.hostname);
 
         // Show a reload banner when a new version of the app is available
         let _pendingWorker = null;
@@ -79,7 +72,8 @@
             if (_pendingWorker) _pendingWorker.postMessage({ type: 'SKIP_WAITING' });
         }
 
-        if ('serviceWorker' in navigator) {
+        if ('serviceWorker' in navigator && !_isLocalDev) {
+            navigator.serviceWorker.register('service-worker.js');
             navigator.serviceWorker.ready.then(reg => {
                 if (reg.waiting) showUpdateBanner(reg.waiting);
                 reg.addEventListener('updatefound', () => {
@@ -90,8 +84,18 @@
                     });
                 });
             });
-            // Reload once the new SW takes control so the fresh version is served
-            navigator.serviceWorker.addEventListener('controllerchange', () => location.reload());
+            // Reload once when the new SW takes control. Guard against loops in case
+            // a build keeps producing a new SW hash (controllerchange would fire again
+            // after the reload).
+            let _refreshing = false;
+            navigator.serviceWorker.addEventListener('controllerchange', () => {
+                if (_refreshing) return;
+                _refreshing = true;
+                location.reload();
+            });
+        } else if (_isLocalDev && 'serviceWorker' in navigator) {
+            // Make sure no stale SW from prior runs keeps controlling the localhost dev page.
+            navigator.serviceWorker.getRegistrations().then(regs => regs.forEach(r => r.unregister()));
         }
     </script>
     <!-- Cloudflare Web Analytics -->

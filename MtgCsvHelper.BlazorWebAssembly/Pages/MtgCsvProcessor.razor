@@ -1,172 +1,479 @@
 @page "/"
 @inject IConfiguration Config
-@inject IMtgApi Api
+@inject ICardmarketResolver Resolver
+@inject ICatalogLoader CatalogLoader
 @inject IJSRuntime JS
 @using Serilog
 @using System.Text
 @using CsvHelper
 @implements IDisposable
 
-<h3 class="mb-4">Convert your MtG collection .csv file</h3>
+<PageTitle>MtG CSV Helper</PageTitle>
 
-<div class="container">
-	<div class="form-group row mb-3">
-		<div class="col-md-3 text-end">
-			<label for="fileUpload">Upload CSV File:</label>
-		</div>
-		<div class="col-md-9">
-			<!-- TODO Add "multiple  after OnChange to support uploading multiple files -->
-			<InputFile id="fileUpload" OnChange="@HandleFileUpload" disabled="@_isApiLoading" />
-		</div>
-	</div>
-
-	<div class="form-group row mb-3">
-		<div class="col-md-3 text-end">
-			<label for="inputFormat">Select Input Format:</label>
-		</div>
-		<div class="col-md-9">
-			<InputSelect id="inputFormat" @bind-Value="_selectedInputFormat">
-				@foreach (var deckFormat in _supportedFormats)
+<MudCard Elevation="2" Class="mb-6">
+	<MudCardContent>
+		<MudStack Spacing="4">
+			<MudStack Spacing="2" AlignItems="AlignItems.Start">
+				<InputFile id="fileUpload" OnChange="HandleFileChange" accept=".csv" style="display:none" />
+				<MudButton HtmlTag="label" for="fileUpload" Variant="Variant.Filled" Color="Color.Primary"
+				           StartIcon="@Icons.Material.Filled.CloudUpload" Size="Size.Large">
+					Choose CSV file
+				</MudButton>
+				@if (_csvFile is not null)
 				{
-					<option>@deckFormat</option>
-				}
-			</InputSelect>
-		</div>
-	</div>
-
-	<div class="form-group row mb-3">
-		<div class="col-md-3 text-end">
-			<label for="outputFormat">Select Output Format:</label>
-		</div>
-		<div class="col-md-9">
-			<InputSelect id="outputFormat" @bind-Value="_selectedOutputFormat">
-				@foreach (var deckFormat in _supportedFormats)
-				{
-					<option>@deckFormat</option>
-				}
-			</InputSelect>
-		</div>
-	</div>
-
-	<div class="form-group row">
-		<div class="col-md-3 text-end">
-			<button @onclick="Convert" disabled="@(_csvFile is null || _isApiLoading)" class="btn btn-primary">
-				@if (_isConverting)
-				{
-					<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>
-					<span class="visually-hidden">Processing...</span>
-					<text>Converting...</text>
+					<MudStack Row="true" AlignItems="AlignItems.Center" Spacing="2">
+						<MudIcon Icon="@Icons.Material.Filled.InsertDriveFile" Size="Size.Small" />
+						<MudTooltip Text="@_csvFile.Name" Placement="Placement.Top">
+							<MudText Typo="Typo.body2" Style="display:inline-block;line-height:1;max-width:360px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">
+								@_csvFile.Name<span style="color:var(--mud-palette-text-secondary);font-size:0.8em;margin-left:8px;">@FormatBytes(_csvFile.Size)</span>
+							</MudText>
+						</MudTooltip>
+					</MudStack>
 				}
 				else
 				{
-					<text>Convert</text>
+					<MudText Typo="Typo.caption" Class="mud-text-secondary">Up to @(MaxFileSize / 1024 / 1024) MB</MudText>
 				}
-			</button>
-		</div>
-		<div class="col-md-9">
-			@if (!_isConverting && _processedRecords.Any())
-			{
-				<button class="btn btn-success" @onclick="DownloadResult">Download Converted .csv</button>
-			}
-			@if (!_isConverting && _issues.Any(i => i.Severity == IssueSeverity.Error))
-			{
-				<button class="btn btn-warning ms-2" @onclick="DownloadErrorCsv">Download Error Report .csv</button>
-			}
-		</div>
-	</div>
-</div>
+			</MudStack>
 
-@if (_isApiLoading)
-{
-	<div class="alert alert-info mt-3" role="alert">
-		<span class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>
-		Loading card data from Scryfall...
-	</div>
-}
+			@if (CatalogLoader.Progress.Phase is CatalogLoadPhase.Downloading or CatalogLoadPhase.Parsing)
+			{
+				var prog = CatalogLoader.Progress;
+				<div>
+					<MudProgressLinear Color="Color.Primary" Value="@prog.Percent" Max="100" Class="my-1" />
+					<MudStack Row="true" AlignItems="AlignItems.Center" Spacing="2">
+						<MudIcon Icon="@Icons.Material.Filled.HourglassTop" Size="Size.Small" Class="mud-text-secondary" />
+						<MudText Typo="Typo.caption" Class="mud-text-secondary">
+							@(prog.Phase == CatalogLoadPhase.Parsing
+								? "Parsing card data…"
+								: $"Loading card data… {prog.Percent}%")
+						</MudText>
+						<MudSpacer />
+						<MudText Typo="Typo.caption" Class="mud-text-secondary">Convert will enable once loaded.</MudText>
+					</MudStack>
+				</div>
+			}
+			else if (CatalogLoader.Progress.Phase == CatalogLoadPhase.Failed)
+			{
+				<MudAlert Severity="Severity.Error" Variant="Variant.Outlined" Dense="true" ShowCloseIcon="false">
+					<MudStack Row="true" AlignItems="AlignItems.Center" Spacing="2">
+						<MudText Typo="Typo.body2">Card data failed to load: @CatalogLoader.Error?.Message</MudText>
+						<MudSpacer />
+						<MudButton Size="Size.Small" Color="Color.Inherit" Variant="Variant.Text"
+						           OnClick="RetryCatalogLoad" StartIcon="@Icons.Material.Filled.Refresh">Retry</MudButton>
+					</MudStack>
+				</MudAlert>
+			}
+
+			<MudGrid Spacing="3" Justify="Justify.Center">
+				<MudItem xs="12" sm="5">
+					<MudSelect T="string" Value="_selectedInputFormat" ValueChanged="OnInputFormatChanged" Label="Input format" Variant="Variant.Outlined" Dense="true" Disabled="@(_autoDetect && !_autoDetectFailed)">
+						@foreach (var fmt in _supportedFormats)
+						{
+							<MudSelectItem Value="@fmt">@FormatDisplay.For(fmt)</MudSelectItem>
+						}
+					</MudSelect>
+				</MudItem>
+				<MudItem xs="12" sm="2" Style="display:flex;align-items:center;justify-content:center;">
+					<MudIcon Icon="@Icons.Material.Filled.ArrowForward" Size="Size.Large" Class="mud-text-secondary" />
+				</MudItem>
+				<MudItem xs="12" sm="5">
+					<MudSelect T="string" Value="_selectedOutputFormat" ValueChanged="OnOutputFormatChanged" Label="Output format" Variant="Variant.Outlined" Dense="true">
+						@foreach (var fmt in _supportedFormats)
+						{
+							<MudSelectItem Value="@fmt">@FormatDisplay.For(fmt)</MudSelectItem>
+						}
+					</MudSelect>
+				</MudItem>
+			</MudGrid>
+			<MudStack Row="true" AlignItems="AlignItems.Center" Spacing="1">
+				<MudSwitch T="bool" Value="_autoDetect" ValueChanged="OnAutoDetectChanged" Color="Color.Primary" Size="Size.Small" />
+				<MudText Typo="Typo.caption">Auto-detect</MudText>
+				@if (_autoDetect && _autoDetectResult is not null)
+				{
+					<MudTooltip Text="Format detected from CSV headers">
+						<MudIcon Icon="@Icons.Material.Filled.CheckCircle" Color="Color.Success" Size="Size.Small" />
+					</MudTooltip>
+				}
+				else if (_autoDetect && _autoDetectFailed)
+				{
+					<MudTooltip Text="Couldn't detect format — pick manually">
+						<MudIcon Icon="@Icons.Material.Filled.Cancel" Color="Color.Error" Size="Size.Small" />
+					</MudTooltip>
+				}
+			</MudStack>
+		</MudStack>
+	</MudCardContent>
+	<MudCardActions Class="d-flex justify-content-center px-4 pb-4">
+		<MudButton Variant="Variant.Filled" Color="Color.Primary" Size="Size.Large" OnClick="Convert"
+		           Disabled="@(_csvFile is null || _isConverting || CatalogLoader.Catalog is null)"
+		           StartIcon="@(_isConverting ? null : Icons.Material.Filled.PlayArrow)">
+			@if (_isConverting)
+			{
+				<MudProgressCircular Class="mr-2" Size="Size.Small" Indeterminate="true" />
+				<text>Converting…</text>
+			}
+			else
+			{
+				<text>Convert</text>
+			}
+		</MudButton>
+	</MudCardActions>
+</MudCard>
 
 @if (!string.IsNullOrEmpty(_headerError))
 {
-	<div class="alert alert-danger mt-3" role="alert">
+	<MudAlert Severity="Severity.Error" Class="mb-4" ShowCloseIcon="true" CloseIconClicked="@(() => _headerError = null)">
 		@_headerError
-	</div>
+	</MudAlert>
 }
 
-@if (!string.IsNullOrEmpty(_summary))
+@if (_result is { } r)
 {
-	<p style="white-space: pre-line">@_summary</p>
-}
-
-@if (_issues.Any())
-{
-	var errorCount = _issues.Count(i => i.Severity == IssueSeverity.Error);
-	var warningCount = _issues.Count(i => i.Severity == IssueSeverity.Warning);
-	<h4>Import Issues — @errorCount errors, @warningCount warnings</h4>
-	<ul>
-		@foreach (var issue in _issues)
+	var summary = r.Summary;
+	<MudStack Row="true" AlignItems="AlignItems.Center" Class="mb-4 flex-wrap" Spacing="2">
+		<div>
+			<MudText Typo="Typo.h5">Imported @FormatDisplay.For(r.InputFormat) → @FormatDisplay.For(r.OutputFormat)</MudText>
+			<MudText Typo="Typo.caption" Class="mud-text-secondary">@r.ImportedAt.ToString("yyyy-MM-dd HH:mm")</MudText>
+		</div>
+		<MudSpacer />
+		@if (r.OutputStream is not null)
 		{
-			var label = issue.Severity == IssueSeverity.Error ? "text-danger" : "text-warning";
-			<li class="@label">
-				<strong>[@issue.Severity]</strong> row @issue.RowNumber@(issue.CardName is not null ? $" ({issue.CardName})" : ""): @issue.Reason
-			</li>
+			<MudButton Variant="Variant.Filled" Color="Color.Success"
+			           StartIcon="@Icons.Material.Filled.Download" OnClick="DownloadResult">
+				Download CSV
+			</MudButton>
 		}
-	</ul>
-}
-
-@if (_processedRecords.Any())
-{
-	<h4>Processed Records</h4>
-	<ul>
-		@foreach (var record in _processedRecords)
+		@if (r.Issues.Any(i => i.Severity == IssueSeverity.Error))
 		{
-			<li>@record</li>
+			<MudButton Variant="Variant.Outlined" Color="Color.Warning"
+			           StartIcon="@Icons.Material.Filled.ReportProblem" OnClick="DownloadErrorCsv">
+				Error report
+			</MudButton>
+			<MudTooltip Text="Downloads the error CSV and opens a pre-filled GitHub issue. Drag the downloaded file into the issue to attach.">
+				<MudButton Variant="Variant.Outlined" Color="Color.Default"
+				           StartIcon="@Icons.Custom.Brands.GitHub" OnClick="ReportErrorsOnGitHub">
+					Report to GitHub
+				</MudButton>
+			</MudTooltip>
 		}
-	</ul>
+	</MudStack>
+
+	<MudCard Elevation="1" Class="mb-4 cm-totals-strip">
+		<MudCardContent Class="py-2">
+			<MudStack Row="true" AlignItems="AlignItems.Center" Class="flex-wrap" Spacing="6">
+				<MudStack Row="true" AlignItems="AlignItems.Center" Spacing="1">
+					<MudIcon Icon="@Icons.Material.Filled.Style" Size="Size.Small" />
+					<MudText Typo="Typo.body2"><strong>@summary.TotalCount</strong> cards</MudText>
+				</MudStack>
+				<MudStack Row="true" AlignItems="AlignItems.Center" Spacing="1">
+					<MudIcon Icon="@Icons.Material.Filled.AutoAwesome" Size="Size.Small" />
+					<MudText Typo="Typo.body2"><strong>@summary.UniqueCount</strong> unique</MudText>
+				</MudStack>
+				@if (summary.FoilCount > 0)
+				{
+					<MudStack Row="true" AlignItems="AlignItems.Center" Spacing="1">
+						<MudIcon Icon="@Icons.Material.Filled.Diamond" Size="Size.Small" Color="Color.Warning" />
+						<MudText Typo="Typo.body2"><strong>@summary.FoilCount</strong> foil</MudText>
+					</MudStack>
+				}
+				@if (summary.TotalValue is not null)
+				{
+					<MudStack Row="true" AlignItems="AlignItems.Center" Spacing="1">
+						<MudIcon Icon="@Icons.Material.Filled.Sell" Size="Size.Small" />
+						<MudText Typo="Typo.body2"><strong>@summary.TotalValue.Print()</strong></MudText>
+					</MudStack>
+				}
+				@if (summary.MostExpensive is not null)
+				{
+					<MudText Typo="Typo.caption" Class="mud-text-secondary">
+						Top: @summary.MostExpensive.Printing.Name (@summary.MostExpensive.PriceBought!.Print())
+					</MudText>
+				}
+			</MudStack>
+		</MudCardContent>
+	</MudCard>
+
+	@if (r.Issues.Count > 0)
+	{
+		var errorCount = r.Issues.Count(i => i.Severity == IssueSeverity.Error);
+		var warningCount = r.Issues.Count(i => i.Severity == IssueSeverity.Warning);
+		<MudExpansionPanels Class="mb-4" Elevation="1">
+			<MudExpansionPanel Expanded="@(r.Issues.Count <= 20)">
+				<TitleContent>
+					<MudStack Row="true" AlignItems="AlignItems.Center" Spacing="2" Class="flex-wrap">
+						<MudIcon Icon="@Icons.Material.Filled.Warning" Color="@(errorCount > 0 ? Color.Error : Color.Warning)" />
+						<MudText>Import issues</MudText>
+						@if (errorCount > 0)
+						{
+							<MudChip T="string" Size="Size.Small" Color="Color.Error" Variant="Variant.Filled">@errorCount @(errorCount == 1 ? "row" : "rows") skipped</MudChip>
+						}
+						@if (warningCount > 0)
+						{
+							<MudChip T="string" Size="Size.Small" Color="Color.Warning" Variant="Variant.Filled">@warningCount @(warningCount == 1 ? "row" : "rows") imported with warnings</MudChip>
+						}
+					</MudStack>
+				</TitleContent>
+				<ChildContent>
+					@if (errorCount > 0)
+					{
+						<MudStack Row="true" AlignItems="AlignItems.Center" Spacing="2" Class="mb-3 mud-text-secondary">
+							<MudIcon Icon="@Icons.Material.Outlined.Info" Size="Size.Small" />
+							<MudText Typo="Typo.body2">
+								Source CSV formats are defined by third-party sites and can change without notice.
+								If you think the failure is on our side and not just bad source data,
+								please use <strong>Report to GitHub</strong> above.
+							</MudText>
+						</MudStack>
+					}
+					@{
+						var grouped = r.Issues
+							.GroupBy(i => (i.Severity, i.Reason))
+							.OrderByDescending(g => g.Key.Severity == IssueSeverity.Error)
+							.ThenByDescending(g => g.Count())
+							.ToList();
+					}
+					<MudList T="object" Dense="true">
+						@foreach (var g in grouped)
+						{
+							var (severity, reason) = g.Key;
+							var rows = g.Select(i => i.RowNumber).OrderBy(rowNum => rowNum).ToList();
+							var preview = string.Join(", ", rows.Take(8));
+							if (rows.Count > 8) preview += $", … (+{rows.Count - 8} more)";
+							<MudListItem T="object" Icon="@(severity == IssueSeverity.Error ? Icons.Material.Filled.Error : Icons.Material.Filled.Warning)"
+							             IconColor="@(severity == IssueSeverity.Error ? Color.Error : Color.Warning)">
+								<MudStack Row="true" AlignItems="AlignItems.Center" Spacing="2">
+									<MudText Typo="Typo.body2"><strong>@reason</strong></MudText>
+									<MudChip T="string" Size="Size.Small" Variant="Variant.Outlined">@g.Count() row@(g.Count() == 1 ? "" : "s")</MudChip>
+								</MudStack>
+								<MudText Typo="Typo.caption" Class="mud-text-secondary">@(rows.Count == 1 ? "row" : "rows"): @preview</MudText>
+							</MudListItem>
+						}
+					</MudList>
+				</ChildContent>
+			</MudExpansionPanel>
+		</MudExpansionPanels>
+	}
+
+	@if (r.Records.Count > 0)
+	{
+		<MudCard Elevation="1">
+			<MudCardContent>
+				<MudTable Items="r.Records" Filter="FilterRecord" Hover="true" Dense="true" Striped="true"
+				          Breakpoint="Breakpoint.Sm" SortLabel="Sort by">
+					<ToolBarContent>
+						<MudText Typo="Typo.h6">Processed records</MudText>
+						<MudChip T="string" Size="Size.Small" Class="ml-2">@r.Records.Count</MudChip>
+						<MudSpacer />
+						<MudTextField @bind-Value="_searchString" Placeholder="Search name or set" Adornment="Adornment.Start"
+						              AdornmentIcon="@Icons.Material.Filled.Search" IconSize="Size.Small" Clearable="true"
+						              Variant="Variant.Outlined" Margin="Margin.Dense" Class="mt-0" />
+					</ToolBarContent>
+					<HeaderContent>
+						<MudTh><MudTableSortLabel SortBy="@(new Func<PhysicalMtgCard, object>(c => c.Count))">Qty</MudTableSortLabel></MudTh>
+						<MudTh><MudTableSortLabel InitialDirection="SortDirection.Ascending" SortBy="@(new Func<PhysicalMtgCard, object>(c => c.Printing.Name))">Name</MudTableSortLabel></MudTh>
+						<MudTh><MudTableSortLabel SortBy="@(new Func<PhysicalMtgCard, object>(c => c.Printing.SetName))">Set</MudTableSortLabel></MudTh>
+						<MudTh>Foil</MudTh>
+						<MudTh><MudTableSortLabel SortBy="@(new Func<PhysicalMtgCard, object>(c => c.Condition))">Condition</MudTableSortLabel></MudTh>
+						<MudTh><MudTableSortLabel SortBy="@(new Func<PhysicalMtgCard, object>(c => c.Language ?? ""))">Lang</MudTableSortLabel></MudTh>
+						<MudTh><MudTableSortLabel SortBy="@(new Func<PhysicalMtgCard, object>(c => c.PriceBought?.Value ?? 0m))">Price</MudTableSortLabel></MudTh>
+					</HeaderContent>
+					<RowTemplate Context="card">
+						@{
+							var refCard = ResolveRef(card);
+							var imageUrl = refCard is not null ? ScryfallImage.Url(refCard.Id) : null;
+							var cardPageUrl = refCard is not null ? ScryfallImage.CardPageUrl(refCard.Set, refCard.CollectorNumber) : null;
+							var setPageUrl = refCard is not null ? ScryfallImage.SetPageUrl(refCard.Set) : null;
+						}
+						<MudTd DataLabel="Qty">@card.Count</MudTd>
+						<MudTd DataLabel="Name">
+							@if (imageUrl is not null)
+							{
+								<MudTooltip Placement="Placement.Right" Arrow="false" Color="Color.Transparent"
+								            Delay="250" Duration="50" RootClass="cardart-tooltip">
+									<TooltipContent>
+										<img src="@imageUrl" alt="@card.Printing.Name"
+										     width="244" height="340"
+										     style="display:block;border-radius:8px;box-shadow:0 8px 24px rgba(0,0,0,0.4);"
+										     loading="lazy" />
+									</TooltipContent>
+									<ChildContent>
+										<a href="@cardPageUrl" target="_blank" rel="noopener" class="cm-card-link">@card.Printing.Name</a>
+										@if (!string.IsNullOrEmpty(card.Printing.CollectorNumber))
+										{
+											<span class="mud-text-secondary ml-1">#@card.Printing.CollectorNumber</span>
+										}
+									</ChildContent>
+								</MudTooltip>
+							}
+							else
+							{
+								<span>@card.Printing.Name</span>
+								@if (!string.IsNullOrEmpty(card.Printing.CollectorNumber))
+								{
+									<span class="mud-text-secondary ml-1">#@card.Printing.CollectorNumber</span>
+								}
+							}
+						</MudTd>
+						<MudTd DataLabel="Set">
+							@if (setPageUrl is not null)
+							{
+								<a href="@setPageUrl" target="_blank" rel="noopener" class="cm-card-link">@card.Printing.SetName</a>
+							}
+							else
+							{
+								<span>@card.Printing.SetName</span>
+							}
+						</MudTd>
+						<MudTd DataLabel="Foil">
+							@if (card.Foil is true)
+							{
+								<MudChip T="string" Size="Size.Small" Color="Color.Warning" Variant="Variant.Filled">F</MudChip>
+							}
+						</MudTd>
+						<MudTd DataLabel="Condition">@(card.Condition == CardCondition.UNKNOWN ? "" : card.Condition.ToString())</MudTd>
+						<MudTd DataLabel="Lang">@(card.Language ?? "")</MudTd>
+						<MudTd DataLabel="Price">@(card.PriceBought?.Print() ?? "")</MudTd>
+					</RowTemplate>
+					<PagerContent>
+						<MudTablePager PageSizeOptions="new[] { 25, 50, 100, 250 }" />
+					</PagerContent>
+				</MudTable>
+			</MudCardContent>
+		</MudCard>
+	}
 }
 
 @code {
-	private const int MaxFileSize = 5 * 1024 * 1024; // 5MB
-	private static readonly IReadOnlyList<string> _supportedFormats = CardMapFactory.Supported;
+	const int MaxFileSize = 5 * 1024 * 1024;
+	static readonly IReadOnlyList<string> _supportedFormats = CardMapFactory.Supported;
 
-	private string _selectedInputFormat = _supportedFormats[0];
-	private string _selectedOutputFormat = _supportedFormats[1];
+	string _selectedInputFormat = _supportedFormats[0];
+	string _selectedOutputFormat = _supportedFormats[1];
 
-	private List<string> _processedRecords = [];
-	private List<ImportIssue> _issues = [];
-	private IBrowserFile? _csvFile;
+	IBrowserFile? _csvFile;
+	ConversionResult? _result;
+	string _searchString = "";
+	string? _headerError;
+	bool _isConverting;
+	bool _autoDetect = true;
+	string? _autoDetectResult;  // non-null = last detection produced a format
+	bool _autoDetectFailed;     // true = last detection ran against a file and returned null
+	FormatDetector? _detector;
 
-	private string? _summary;
-	private string? _headerError;
-	private bool _isConverting;
-	private bool _isApiLoading = true;
-	private string? _resultFileName;
-	private MemoryStream? _resultStream;
+	readonly CancellationTokenSource _cts = new();
 
-	protected override async Task OnAfterRenderAsync(bool firstRender)
+	protected override void OnInitialized() => CatalogLoader.StateChanged += StateHasChanged;
+
+	async Task RetryCatalogLoad()
 	{
-		if (!firstRender) return;
-		await Api.LoadData();
-		_isApiLoading = false;
-		StateHasChanged();
+		await CatalogLoader.LoadAsync();
 	}
 
-	private async Task HandleFileUpload(InputFileChangeEventArgs e)
+	async Task HandleFileChange(InputFileChangeEventArgs e)
 	{
-		// TODO GetMultipleFiles() support
 		_csvFile = e.File;
+		await TryAutoDetectAsync();
 	}
 
-	private async Task Convert()
+	async Task OnAutoDetectChanged(bool value)
+	{
+		_autoDetect = value;
+		_autoDetectResult = null;
+		_autoDetectFailed = false;
+		if (_autoDetect) await TryAutoDetectAsync();
+	}
+
+	async Task TryAutoDetectAsync()
+	{
+		_autoDetectResult = null;
+		_autoDetectFailed = false;
+		if (!_autoDetect || _csvFile is null) return;
+
+		_detector ??= new FormatDetector([.. CardMapFactory.From(Config)]);
+		try
+		{
+			// maxAllowedSize is a *whole-file* size cap, not a read window — must be at
+			// least as large as anything we'd accept for conversion, or OpenReadStream
+			// throws and detection silently fails for big files.
+			await using var stream = _csvFile.OpenReadStream(maxAllowedSize: MaxFileSize);
+			var detected = await _detector.DetectAsync(stream);
+			if (detected is not null)
+			{
+				_autoDetectResult = detected;
+				OnInputFormatChanged(detected);
+			}
+			else
+			{
+				_autoDetectFailed = true;
+			}
+		}
+		catch (Exception ex)
+		{
+			Log.Warning(ex, "Auto-detect failed");
+			_autoDetectFailed = true;
+		}
+	}
+
+	// Keep input ≠ output. When the user picks a value that matches the other select, snap
+	// the other one to the first format in the list that isn't the new value.
+	void OnInputFormatChanged(string value)
+	{
+		_selectedInputFormat = value;
+		if (_selectedOutputFormat == value)
+			_selectedOutputFormat = _supportedFormats.First(f => f != value);
+		// A manual pick clears any prior auto-detect failure so the warning chip goes away.
+		_autoDetectFailed = false;
+	}
+
+	void OnOutputFormatChanged(string value)
+	{
+		_selectedOutputFormat = value;
+		if (_selectedInputFormat == value)
+			_selectedInputFormat = _supportedFormats.First(f => f != value);
+	}
+
+	// Imported PhysicalMtgCard objects don't carry the Scryfall Id (the CSV parse only fills
+	// Set/CollectorNumber/Name). We look up the reference printing here to source the image
+	// URL and the canonical Scryfall page link. Returns null for stub rows that don't match
+	// a real printing (e.g. unresolved Cardmarket imports).
+	ReferenceCard? ResolveRef(PhysicalMtgCard card)
+	{
+		if (string.IsNullOrEmpty(card.Printing.Set) || string.IsNullOrEmpty(card.Printing.CollectorNumber))
+			return null;
+		return CatalogLoader.Catalog?.FindBySetAndCollectorNumber(card.Printing.Set.ToLowerInvariant(), card.Printing.CollectorNumber);
+	}
+
+	bool FilterRecord(PhysicalMtgCard card)
+	{
+		if (string.IsNullOrWhiteSpace(_searchString)) return true;
+		var s = _searchString.Trim();
+		return card.Printing.Name.Contains(s, StringComparison.OrdinalIgnoreCase)
+		    || card.Printing.SetName.Contains(s, StringComparison.OrdinalIgnoreCase)
+		    || card.Printing.Set.Contains(s, StringComparison.OrdinalIgnoreCase);
+	}
+
+	void Reset()
+	{
+		_result?.Dispose();
+		_result = null;
+		_headerError = null;
+		_searchString = "";
+	}
+
+	static string FormatBytes(long bytes) => bytes switch
+	{
+		< 1024 => $"{bytes} B",
+		< 1024 * 1024 => $"{bytes / 1024.0:0.#} KB",
+		_ => $"{bytes / 1024.0 / 1024.0:0.#} MB",
+	};
+
+	async Task Convert()
 	{
 		try
 		{
 			_isConverting = true;
-			_summary = null;
-			_headerError = null;
-			_issues = [];
-			_processedRecords = [];
-			_resultStream?.Dispose();
-			_resultStream = null;
-			_resultFileName = null;
+			Reset();
 			StateHasChanged();
 			await Task.Delay(1);
 
@@ -174,31 +481,57 @@
 			await _csvFile!.OpenReadStream(maxAllowedSize: MaxFileSize).CopyToAsync(csvStream);
 			csvStream.Position = 0;
 
-			var reader = new MtgCardCsvHandler(Api, Config, _selectedInputFormat);
-			var writer = new MtgCardCsvHandler(Api, Config, _selectedOutputFormat);
+			// Convert button is disabled while Catalog is null, so this null-forgiving is safe.
+			var catalog = CatalogLoader.Catalog!;
+			var reader = new MtgCardCsvHandler(catalog, Resolver, Config, _selectedInputFormat);
+			var writer = new MtgCardCsvHandler(catalog, Resolver, Config, _selectedOutputFormat);
 
-			var result = await reader.ParseCollectionCsvAsync(csvStream);
-			_summary = result.Collection.GenerateSummary();
-			_issues = result.Issues.ToList();
+			var parsed = await reader.ParseCollectionCsvAsync(csvStream, _cts.Token);
+			var records = parsed.Collection.Cards;
+			var summary = CollectionSummary.From(records);
 
-			var cards = result.Collection.Cards;
-			_processedRecords = cards.Select(c => c.Printing.Name).ToList();
-
-			if (cards.Count > 0)
+			MemoryStream? outputStream = null;
+			string? outputFileName = null;
+			if (records.Count > 0)
 			{
-				_resultFileName = $"{_selectedInputFormat}-to-{_selectedOutputFormat}_{DateTime.Now:yyyy-MM-dd_HH-mm-ss}.csv";
-				_resultStream = new MemoryStream();
-				writer.WriteCollectionCsv(cards, _resultStream);
+				outputFileName = $"{_selectedInputFormat}-to-{_selectedOutputFormat}_{DateTime.Now:yyyy-MM-dd_HH-mm-ss}.csv";
+				outputStream = new MemoryStream();
+				try
+				{
+					writer.WriteCollectionCsv(records, outputStream);
+				}
+				catch
+				{
+					// Don't orphan the stream if the write fails before it's handed to _result.
+					outputStream.Dispose();
+					throw;
+				}
 			}
+
+			_result = new ConversionResult
+			{
+				InputFormat = _selectedInputFormat,
+				OutputFormat = _selectedOutputFormat,
+				ImportedAt = DateTime.Now,
+				Records = records,
+				Issues = parsed.Issues,
+				Summary = summary,
+				OutputStream = outputStream,
+				OutputFileName = outputFileName,
+			};
 		}
 		catch (HeaderValidationException hex)
 		{
 			var missing = hex.InvalidHeaders.SelectMany(h => h.Names).Distinct().ToList();
-			_headerError = $"This doesn't look like a valid {_selectedInputFormat} CSV — missing required column(s): {string.Join(", ", missing)}. Did you select the correct input format?";
+			_headerError = $"This doesn't look like a valid {FormatDisplay.For(_selectedInputFormat)} CSV — missing required column(s): {string.Join(", ", missing)}. Did you select the correct input format?";
+		}
+		catch (OperationCanceledException)
+		{
+			return;
 		}
 		catch (Exception ex)
 		{
-			_summary = $"Unexpected error converting file: {ex.Message}";
+			_headerError = $"Unexpected error converting file: {ex.Message}";
 		}
 		finally
 		{
@@ -207,22 +540,23 @@
 		}
 	}
 
-	private async Task DownloadResult()
+	async Task DownloadResult()
 	{
-		if (_resultStream is null || string.IsNullOrEmpty(_resultFileName))
+		if (_result is not { OutputStream: { } stream, OutputFileName: { Length: > 0 } name })
 		{
 			Log.Warning("No result available, this should not happen");
 			return;
 		}
 
-		_resultStream.Position = 0;
-		using var streamRef = new DotNetStreamReference(stream: _resultStream, leaveOpen: true);
-		await JS.InvokeVoidAsync("downloadFileFromStream", _resultFileName, streamRef);
+		stream.Position = 0;
+		using var streamRef = new DotNetStreamReference(stream, leaveOpen: true);
+		await JS.InvokeVoidAsync("downloadFileFromStream", name, streamRef);
 	}
 
-	private async Task DownloadErrorCsv()
+	async Task DownloadErrorCsv()
 	{
-		var errors = _issues.Where(i => i.Severity == IssueSeverity.Error).ToList();
+		if (_result is null) return;
+		var errors = _result.Issues.Where(i => i.Severity == IssueSeverity.Error).ToList();
 		if (errors.Count == 0) return;
 
 		var sb = new StringBuilder();
@@ -235,13 +569,55 @@
 		var bytes = Encoding.UTF8.GetBytes(sb.ToString());
 		using var stream = new MemoryStream(bytes);
 		using var streamRef = new DotNetStreamReference(stream, leaveOpen: false);
-		await JS.InvokeVoidAsync("downloadFileFromStream", $"{_selectedInputFormat}-import-errors-{DateTime.Now:yyyy-MM-dd_HH-mm-ss}.csv", streamRef);
+		await JS.InvokeVoidAsync("downloadFileFromStream", $"{_result.InputFormat}-import-errors-{DateTime.Now:yyyy-MM-dd_HH-mm-ss}.csv", streamRef);
 
 		static string Csv(string? value) => value is null ? "" : $"\"{value.Replace("\"", "\"\"")}\"";
 	}
 
+	async Task ReportErrorsOnGitHub()
+	{
+		if (_result is null) return;
+		var errors = _result.Issues.Where(i => i.Severity == IssueSeverity.Error).ToList();
+		if (errors.Count == 0) return;
+
+		// Download the error CSV so the user can drag it into the issue.
+		await DownloadErrorCsv();
+
+		// Top 5 distinct error reasons by frequency, for an at-a-glance summary in the body.
+		var topReasons = errors
+			.GroupBy(e => e.Reason)
+			.OrderByDescending(g => g.Count())
+			.Take(5)
+			.Select(g => $"- {g.Count()}× {g.Key}");
+
+		var warningCount = _result.Issues.Count(i => i.Severity == IssueSeverity.Warning);
+		var body = $"## Import errors\n\n" +
+			$"- **Input format**: {_result.InputFormat}\n" +
+			$"- **Output format**: {_result.OutputFormat}\n" +
+			$"- **When**: {_result.ImportedAt:yyyy-MM-dd HH:mm}\n" +
+			$"- **Rows imported successfully**: {_result.Summary.UniqueCount}\n" +
+			$"- **Errors (rows skipped)**: {errors.Count}\n" +
+			$"- **Warnings (imported with notes)**: {warningCount}\n\n" +
+			$"### Top error reasons\n\n{string.Join("\n", topReasons)}\n\n" +
+			$"### Attached CSV\n\n" +
+			$"Please drag the just-downloaded `{_result.InputFormat}-import-errors-*.csv` file into this issue to attach the full error data.\n\n" +
+			$"### Additional context\n\n" +
+			$"_Describe what you were trying to do — which source CSV, anything unusual about the data._\n";
+
+		var title = $"Import errors: {FormatDisplay.For(_result.InputFormat)} → {FormatDisplay.For(_result.OutputFormat)}";
+		var url = $"https://github.com/StepKie/MtgCsvHelper/issues/new"
+			+ $"?title={Uri.EscapeDataString(title)}"
+			+ $"&labels={Uri.EscapeDataString("bug,import-error")}"
+			+ $"&body={Uri.EscapeDataString(body)}";
+
+		await JS.InvokeVoidAsync("open", url, "_blank", "noopener,noreferrer");
+	}
+
 	public void Dispose()
 	{
-		_resultStream?.Dispose();
+		CatalogLoader.StateChanged -= StateHasChanged;
+		_cts.Cancel();
+		_cts.Dispose();
+		_result?.Dispose();
 	}
 }

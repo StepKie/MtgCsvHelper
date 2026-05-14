@@ -57,8 +57,15 @@ jobs:
           # Enabled so we can debug why Claude posts nothing despite running successfully (issue: 2 consecutive PRs).
           # Safe for our review prompts: no secrets in the input. Disable once auto-review is reliably commenting.
           show_full_output: true
+          # Inject the PR number explicitly. Without this the agent intermittently can't infer
+          # which PR to review and falls back to AskUserQuestion, which terminates silently in CI.
           prompt: |
-            Please review this pull request for:
+            Review pull request #${{ github.event.pull_request.number }} on ${{ github.repository }}.
+
+            Fetch the diff with: gh pr diff ${{ github.event.pull_request.number }}
+            Fetch metadata with: gh pr view ${{ github.event.pull_request.number }}
+
+            Review for:
             - Code quality and .NET best practices
             - Potential bugs or issues
             - Security implications
