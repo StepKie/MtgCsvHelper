@@ -46,7 +46,7 @@ catch (Exception ex)
 	catch (Exception jsEx)
 	{
 		// JS interop itself failed — fall back to console only.
-		await Console.Error.WriteLineAsync($"Also failed to render error UI: {jsEx.Message}");
+		await Console.Error.WriteLineAsync($"Also failed to render error UI: {jsEx}");
 	}
 	throw;
 }
