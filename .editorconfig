@@ -5,6 +5,11 @@ root = true
 indent_style = space
 indent_size = 2
 
+# Web assets (HTML/JS/CSS/JSON) — 4 spaces, matches existing wwwroot files.
+[*.{html,htm,js,mjs,css,json}]
+indent_style = space
+indent_size = 4
+
 # C# files
 [*.{cs,vb}]
 
