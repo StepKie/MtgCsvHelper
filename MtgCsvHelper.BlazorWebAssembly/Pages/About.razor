@@ -1,22 +1,29 @@
-﻿@page "/about"
+@page "/about"
 
 @inject HttpClient HttpClient
 @using Markdig
-@using System.Net.Http
 
-<div>
-	@((MarkupString)HTMLContent)
-</div>
+<PageTitle>About — MtG CSV Helper</PageTitle>
 
+<MudPaper Elevation="0" Class="pa-6">
+	@if (_html is null)
+	{
+		<MudProgressLinear Indeterminate="true" />
+	}
+	else
+	{
+		<div class="cm-markdown">
+			@((MarkupString)_html)
+		</div>
+	}
+</MudPaper>
 
 @code {
-
-	private string MarkdownContent = "";
-	private string HTMLContent = "";
+	string? _html;
 
 	protected override async Task OnInitializedAsync()
 	{
-		MarkdownContent = await HttpClient.GetStringAsync("README.md");
-		HTMLContent = Markdig.Markdown.ToHtml(MarkdownContent);
+		var md = await HttpClient.GetStringAsync("README.md");
+		_html = Markdown.ToHtml(md);
 	}
 }

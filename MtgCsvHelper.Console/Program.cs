@@ -60,13 +60,26 @@ void RunWithOptions(CommandLineOptions opts)
 		return;
 	}
 
-	var reader = new MtgCardCsvHandler(catalog, resolver, config, opts.InputFormat);
+	var detector = new FormatDetector([.. CardMapFactory.From(config)]);
 	var writer = new MtgCardCsvHandler(catalog, resolver, config, opts.OutputFormat);
 
 	List<PhysicalMtgCard> cardsFound = [];
 
 	foreach (var fileName in filesToParse)
 	{
+		var inputFormat = opts.InputFormat ?? detector.Detect(File.OpenRead(fileName));
+		if (inputFormat is null)
+		{
+			Log.Error($"{fileName}: couldn't auto-detect format from CSV headers. Specify --in explicitly.");
+			continue;
+		}
+		// opts.InputFormat null at this point means we fell through to auto-detect.
+		if (opts.InputFormat is null)
+		{
+			Log.Information($"{fileName}: auto-detected format {inputFormat}.");
+		}
+
+		var reader = new MtgCardCsvHandler(catalog, resolver, config, inputFormat);
 		try
 		{
 			var result = reader.ParseCollectionCsv(fileName);
@@ -83,7 +96,7 @@ void RunWithOptions(CommandLineOptions opts)
 		catch (HeaderValidationException ex)
 		{
 			var missing = ex.InvalidHeaders.SelectMany(h => h.Names).Distinct().ToList();
-			Log.Error($"{fileName}: header mismatch — missing required column(s): {string.Join(", ", missing)}. Did you select the correct input format ({opts.InputFormat})?");
+			Log.Error($"{fileName}: header mismatch — missing required column(s): {string.Join(", ", missing)}. Did you select the correct input format ({inputFormat})?");
 		}
 	}
 

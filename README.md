@@ -10,7 +10,7 @@ You are welcome to try out the web app [here](https://stepkie.github.io/MtgCsvHe
 The version displayed in the upper right corner should match the last commit id displayed on the [main](https://github.com/StepKie/MtgCsvHelper/tree/main) branch.
 
 1. Upload input csv file
-2. Select input and output format
+2. Select output format (input is auto-detected from the CSV headers — toggle off to pick manually)
 3. Click "Convert". In case of a larger collection, please allow for some processing time.
 4. Download converted output csv file
 
@@ -70,8 +70,9 @@ This tool defines configurable mappings addressing the above issues in *appsetti
 
 * Run the provided MtgCsvHelper.
 	* Usage info can be found running it with the *--help* flag
+	* `--in` is optional: when omitted, the input format is auto-detected from each file's CSV header row.
+	  Pass `--in MOXFIELD` (etc.) to skip detection and force a specific format.
 * Some additional configurability for end user via appsettings.json etc.
-	*
 
 ### Refreshing the bundled card data
 
