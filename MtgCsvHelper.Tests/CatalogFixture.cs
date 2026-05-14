@@ -39,7 +39,7 @@ public class CatalogFixture : IAsyncLifetime
 		// (CardmarketTests with the sample CSV) remain integration-flavored only when the
 		// sample ids aren't in the bundle; if they are, the resolver short-circuits.
 		Api = new CachedMtgApi();
-		Resolver = new CardmarketResolver(Catalog, Api);
+		Resolver = new CardmarketResolver(() => Catalog, Api);
 	}
 
 	public Task DisposeAsync() => Task.CompletedTask;

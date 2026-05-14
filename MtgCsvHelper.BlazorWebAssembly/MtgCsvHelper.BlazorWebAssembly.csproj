@@ -6,12 +6,16 @@
     <ImplicitUsings>enable</ImplicitUsings>
     <NullabilityInfoContextSupport>true</NullabilityInfoContextSupport>
     <ServiceWorkerAssetsManifest>service-worker-assets.js</ServiceWorkerAssetsManifest>
-    <!-- Required by [JSImport] (System.Runtime.InteropServices.JavaScript). -->
-    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
     <!-- Version is set in Directory.Build.props at the repo root. -->
   </PropertyGroup>
   <PropertyGroup>
-    <BlazorWebAssemblyEnableAOT>false</BlazorWebAssemblyEnableAOT>
+    <!-- AOT compiles .NET IL → native WASM at publish time. Without it the WASM interpreter
+         is ~15× slower than the .NET runtime — for our 114k-card catalog parse + index
+         that means 30s+ instead of ~2s. ~5 MB of extra wire-payload (Brotli framework
+         doubles from ~5 MB to ~10 MB); publish goes from seconds to minutes. `dotnet run`
+         is unaffected (always uses interpreter). -->
+    <RunAOTCompilation>true</RunAOTCompilation>
+    <WasmStripILAfterAOT>true</WasmStripILAfterAOT>
   </PropertyGroup>
   <ItemGroup>
     <PackageReference Include="Markdig" Version="1.0.0" />

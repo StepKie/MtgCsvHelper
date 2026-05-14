@@ -5,10 +5,13 @@ namespace MtgCsvHelper.Services;
 /// No additional cache layer — <see cref="IMtgApi"/> already caches its network results in-process,
 /// and catalog lookups are O(1) dictionary reads, so stacking another dictionary buys nothing.
 /// </summary>
-public sealed class CardmarketResolver(IReferenceCardCatalog catalog, IMtgApi api) : ICardmarketResolver
+public sealed class CardmarketResolver(Func<IReferenceCardCatalog> catalogFactory, IMtgApi api) : ICardmarketResolver
 {
 	public async Task<IReadOnlyDictionary<int, ReferenceCard>> ResolveAsync(IEnumerable<int> cardmarketIds, CancellationToken ct = default)
 	{
+		// Factory invoked at use time, not at resolver construction — lets Blazor defer
+		// catalog availability without making this whole service Scoped or rebinding lifetimes.
+		var catalog = catalogFactory();
 		var resolved = new Dictionary<int, ReferenceCard>();
 		var misses = new List<int>();
 

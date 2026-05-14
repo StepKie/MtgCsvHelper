@@ -32,6 +32,8 @@ IHostBuilder builder = Host
 	{
 		services.ConfigureMtgCsvHelper();
 		services.AddSingleton<IReferenceCardCatalog>(catalog);
+		// Console loads the catalog eagerly above; factory returns the captured instance.
+		services.AddSingleton<Func<IReferenceCardCatalog>>(_ => () => catalog);
 	});
 
 using IHost host = builder.Build();

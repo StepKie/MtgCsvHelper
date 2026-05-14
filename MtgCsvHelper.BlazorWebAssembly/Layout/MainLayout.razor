@@ -1,5 +1,8 @@
 @inherits LayoutComponentBase
 @using System.Reflection
+@inject ICatalogLoader CatalogLoader
+@inject ISnackbar Snackbar
+@implements IDisposable
 
 <MudThemeProvider @ref="_themeProvider" @bind-IsDarkMode="_isDarkMode" Theme="_theme" />
 <MudPopoverProvider />
@@ -67,4 +70,26 @@
 	};
 
 	void ToggleTheme() => _isDarkMode = !_isDarkMode;
+
+	protected override async Task OnInitializedAsync()
+	{
+		CatalogLoader.StateChanged += OnCatalogStateChanged;
+		// Fire-and-forget: the loader is idempotent and we don't want to block the shell render.
+		_ = CatalogLoader.LoadAsync();
+		await base.OnInitializedAsync();
+	}
+
+	void OnCatalogStateChanged()
+	{
+		if (CatalogLoader.Progress.Phase == CatalogLoadPhase.Ready)
+		{
+			Snackbar.Add("Card data loaded.", Severity.Success);
+		}
+		else if (CatalogLoader.Progress.Phase == CatalogLoadPhase.Failed)
+		{
+			Snackbar.Add($"Couldn't load card data: {CatalogLoader.Error?.Message}", Severity.Error);
+		}
+	}
+
+	public void Dispose() => CatalogLoader.StateChanged -= OnCatalogStateChanged;
 }

@@ -1,7 +1,7 @@
 @page "/"
 @inject IConfiguration Config
 @inject ICardmarketResolver Resolver
-@inject IReferenceCardCatalog Catalog
+@inject ICatalogLoader CatalogLoader
 @inject IJSRuntime JS
 @using Serilog
 @using System.Text
@@ -34,6 +34,35 @@
 					<MudText Typo="Typo.caption" Class="mud-text-secondary">Up to @(MaxFileSize / 1024 / 1024) MB</MudText>
 				}
 			</MudStack>
+
+			@if (CatalogLoader.Progress.Phase is CatalogLoadPhase.Downloading or CatalogLoadPhase.Parsing)
+			{
+				var prog = CatalogLoader.Progress;
+				<div>
+					<MudProgressLinear Color="Color.Primary" Value="@prog.Percent" Max="100" Class="my-1" />
+					<MudStack Row="true" AlignItems="AlignItems.Center" Spacing="2">
+						<MudIcon Icon="@Icons.Material.Filled.HourglassTop" Size="Size.Small" Class="mud-text-secondary" />
+						<MudText Typo="Typo.caption" Class="mud-text-secondary">
+							@(prog.Phase == CatalogLoadPhase.Parsing
+								? "Parsing card data…"
+								: $"Loading card data… {prog.Percent}%")
+						</MudText>
+						<MudSpacer />
+						<MudText Typo="Typo.caption" Class="mud-text-secondary">Convert will enable once loaded.</MudText>
+					</MudStack>
+				</div>
+			}
+			else if (CatalogLoader.Progress.Phase == CatalogLoadPhase.Failed)
+			{
+				<MudAlert Severity="Severity.Error" Variant="Variant.Outlined" Dense="true" ShowCloseIcon="false">
+					<MudStack Row="true" AlignItems="AlignItems.Center" Spacing="2">
+						<MudText Typo="Typo.body2">Card data failed to load: @CatalogLoader.Error?.Message</MudText>
+						<MudSpacer />
+						<MudButton Size="Size.Small" Color="Color.Inherit" Variant="Variant.Text"
+						           OnClick="RetryCatalogLoad" StartIcon="@Icons.Material.Filled.Refresh">Retry</MudButton>
+					</MudStack>
+				</MudAlert>
+			}
 
 			<MudGrid Spacing="3" Justify="Justify.Center">
 				<MudItem xs="12" sm="5">
@@ -76,7 +105,7 @@
 	</MudCardContent>
 	<MudCardActions Class="d-flex justify-content-center px-4 pb-4">
 		<MudButton Variant="Variant.Filled" Color="Color.Primary" Size="Size.Large" OnClick="Convert"
-		           Disabled="@(_csvFile is null || _isConverting)"
+		           Disabled="@(_csvFile is null || _isConverting || CatalogLoader.Catalog is null)"
 		           StartIcon="@(_isConverting ? null : Icons.Material.Filled.PlayArrow)">
 			@if (_isConverting)
 			{
@@ -316,6 +345,13 @@
 
 	readonly CancellationTokenSource _cts = new();
 
+	protected override void OnInitialized() => CatalogLoader.StateChanged += StateHasChanged;
+
+	async Task RetryCatalogLoad()
+	{
+		await CatalogLoader.LoadAsync();
+	}
+
 	async Task HandleFileChange(InputFileChangeEventArgs e)
 	{
 		_csvFile = e.File;
@@ -387,7 +423,7 @@
 	{
 		if (string.IsNullOrEmpty(card.Printing.Set) || string.IsNullOrEmpty(card.Printing.CollectorNumber))
 			return null;
-		return Catalog.FindBySetAndCollectorNumber(card.Printing.Set.ToLowerInvariant(), card.Printing.CollectorNumber);
+		return CatalogLoader.Catalog?.FindBySetAndCollectorNumber(card.Printing.Set.ToLowerInvariant(), card.Printing.CollectorNumber);
 	}
 
 	bool FilterRecord(PhysicalMtgCard card)
@@ -427,8 +463,10 @@
 			await _csvFile!.OpenReadStream(maxAllowedSize: MaxFileSize).CopyToAsync(csvStream);
 			csvStream.Position = 0;
 
-			var reader = new MtgCardCsvHandler(Catalog, Resolver, Config, _selectedInputFormat);
-			var writer = new MtgCardCsvHandler(Catalog, Resolver, Config, _selectedOutputFormat);
+			// Convert button is disabled while Catalog is null, so this null-forgiving is safe.
+			var catalog = CatalogLoader.Catalog!;
+			var reader = new MtgCardCsvHandler(catalog, Resolver, Config, _selectedInputFormat);
+			var writer = new MtgCardCsvHandler(catalog, Resolver, Config, _selectedOutputFormat);
 
 			var parsed = await reader.ParseCollectionCsvAsync(csvStream, _cts.Token);
 			var records = parsed.Collection.Cards;
@@ -520,6 +558,7 @@
 
 	public void Dispose()
 	{
+		CatalogLoader.StateChanged -= StateHasChanged;
 		_cts.Cancel();
 		_cts.Dispose();
 		_result?.Dispose();
