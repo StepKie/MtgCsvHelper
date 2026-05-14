@@ -10,7 +10,10 @@
     <link rel="stylesheet" href="css/app.css" />
     <link rel="icon" type="image/svg+xml" href="favicon.svg" />
     <link href="manifest.webmanifest" rel="manifest" />
-    <link rel="apple-touch-icon" href="icon.svg" />
+    <!-- Apple ignores SVG for apple-touch-icon and falls back to a screenshot. Better to
+         omit the link than to point at an SVG that won't render on iOS home screens.
+         Follow-up: provide a 180×180 PNG via the bundle generator (or a build step) and
+         restore `<link rel="apple-touch-icon" ...>`. -->
     <link href="https://fonts.googleapis.com/css?family=Roboto:300,400,500,700&display=swap" rel="stylesheet" />
     <link href="_content/MudBlazor/MudBlazor.min.css" rel="stylesheet" />
 </head>

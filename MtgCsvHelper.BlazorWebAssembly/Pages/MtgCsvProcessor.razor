@@ -610,7 +610,7 @@
 			+ $"&labels={Uri.EscapeDataString("bug,import-error")}"
 			+ $"&body={Uri.EscapeDataString(body)}";
 
-		await JS.InvokeVoidAsync("open", url, "_blank", "noopener");
+		await JS.InvokeVoidAsync("open", url, "_blank", "noopener,noreferrer");
 	}
 
 	public void Dispose()

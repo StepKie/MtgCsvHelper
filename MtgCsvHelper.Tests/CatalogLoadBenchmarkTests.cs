@@ -64,15 +64,3 @@ public class CatalogLoadBenchmarkTests(ITestOutputHelper output) : BaseTest(outp
 	}
 
 }
-
-static class Skip
-{
-	public static void IfBundleMissing(ITestOutputHelper output)
-	{
-		var p = Path.Combine(AppContext.BaseDirectory, "data", "cards.min.json.gz");
-		if (!File.Exists(p))
-		{
-			output.WriteLine($"Bundle missing at {p}; skipping.");
-		}
-	}
-}

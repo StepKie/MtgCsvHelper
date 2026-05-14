@@ -88,7 +88,9 @@ public sealed class CatalogLoader(HttpClient http) : ICatalogLoader
 		}
 		catch (OperationCanceledException)
 		{
-			// Component teardown — silent.
+			// Component teardown — silent. Reset so a fresh LoadAsync can run after the
+			// cancelled one (would otherwise leave the loader permanently un-retryable).
+			Interlocked.Exchange(ref _started, 0);
 			throw;
 		}
 		catch (Exception ex)
