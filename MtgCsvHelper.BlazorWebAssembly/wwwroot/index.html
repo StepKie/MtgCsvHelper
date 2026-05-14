@@ -46,7 +46,7 @@
         window.mtgShowStartupError = function (title, message, detail) {
             const app = document.getElementById('app');
             if (!app) return;
-            app.innerHTML = '';
+            app.replaceChildren();
 
             const wrap = document.createElement('div');
             wrap.style.cssText = 'max-width:640px;margin:8vh auto;padding:1.25rem;';
