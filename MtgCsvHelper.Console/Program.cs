@@ -67,16 +67,21 @@ void RunWithOptions(CommandLineOptions opts)
 
 	foreach (var fileName in filesToParse)
 	{
-		var inputFormat = opts.InputFormat ?? detector.Detect(File.OpenRead(fileName));
+		string? inputFormat = opts.InputFormat;
 		if (inputFormat is null)
 		{
-			Log.Error($"{fileName}: couldn't auto-detect format from CSV headers. Specify --in explicitly.");
+			using var detectStream = File.OpenRead(fileName);
+			inputFormat = detector.Detect(detectStream);
+		}
+		if (inputFormat is null)
+		{
+			Log.Error("{FileName}: couldn't auto-detect format from CSV headers. Specify --in explicitly.", fileName);
 			continue;
 		}
 		// opts.InputFormat null at this point means we fell through to auto-detect.
 		if (opts.InputFormat is null)
 		{
-			Log.Information($"{fileName}: auto-detected format {inputFormat}.");
+			Log.Information("{FileName}: auto-detected format {InputFormat}.", fileName, inputFormat);
 		}
 
 		var reader = new MtgCardCsvHandler(catalog, resolver, config, inputFormat);

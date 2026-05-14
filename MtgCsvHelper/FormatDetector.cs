@@ -9,6 +9,10 @@ namespace MtgCsvHelper;
 public sealed class FormatDetector
 {
 	readonly IReadOnlyList<FormatConfig> _formats;
+	// 2 was chosen empirically: every real-world format in the bundled appsettings has at
+	// least 2 column names that no other format shares at the same casing, making accidental
+	// 2-hit collisions on unrelated CSVs unlikely. If a new format with very generic header
+	// names gets added (e.g. "Name,Set"), revisit.
 	const int MinMatchesForConfidence = 2;
 
 	public FormatDetector(IReadOnlyList<FormatConfig> formats) => _formats = formats;
