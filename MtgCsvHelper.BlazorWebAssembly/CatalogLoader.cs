@@ -35,7 +35,9 @@ public sealed class CatalogLoader(HttpClient http) : ICatalogLoader
 	const long EstimatedBundleBytes = 12_000_000;  // dev server omits Content-Length; production has it
 
 	readonly HttpClient _http = http;
-	int _started; // 0 = idle, 1 = running/done — atomic guard against double-LoadAsync
+	// 0 = idle or failed (retryable); 1 = in-flight or succeeded. Reset to 0 in the catch
+	// so RetryCatalogLoad can call LoadAsync again after a failure.
+	int _started;
 
 	public IReferenceCardCatalog? Catalog { get; private set; }
 	public CatalogLoadProgress Progress { get; private set; } = CatalogLoadProgress.Idle;

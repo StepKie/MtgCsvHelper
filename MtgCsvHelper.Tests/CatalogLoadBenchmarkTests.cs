@@ -19,8 +19,11 @@ public class CatalogLoadBenchmarkTests(ITestOutputHelper output) : BaseTest(outp
 	[Fact]
 	public async Task Phase_Breakdown_ProductionPath()
 	{
-		Skip.IfBundleMissing(output);
-		if (!File.Exists(BundlePath)) return;
+		if (!File.Exists(BundlePath))
+		{
+			output.WriteLine($"Bundle missing at {BundlePath}; benchmark skipped.");
+			return;
+		}
 
 		var bytes = await File.ReadAllBytesAsync(BundlePath);
 		output.WriteLine($"Bundle on disk: {bytes.Length:N0} bytes ({bytes.Length / 1024.0 / 1024.0:0.##} MB compressed)");

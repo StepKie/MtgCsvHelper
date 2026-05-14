@@ -1,22 +1,18 @@
 {
-  "name": "MtgCsvHelper.BlazorWebAssembly",
-  "short_name": "MtgCsvHelper.BlazorWebAssembly",
+  "name": "MtG CsvHelper",
+  "short_name": "MtG CsvHelper",
   "id": "./",
   "start_url": "./",
   "display": "standalone",
-  "background_color": "#ffffff",
-  "theme_color": "#03173d",
+  "background_color": "#121212",
+  "theme_color": "#b388ff",
   "prefer_related_applications": false,
   "icons": [
     {
-      "src": "icon-512.png",
-      "type": "image/png",
-      "sizes": "512x512"
-    },
-    {
-      "src": "icon-192.png",
-      "type": "image/png",
-      "sizes": "192x192"
+      "src": "icon.svg",
+      "type": "image/svg+xml",
+      "sizes": "any",
+      "purpose": "any maskable"
     }
   ]
 }

@@ -24,9 +24,10 @@
 					<MudStack Row="true" AlignItems="AlignItems.Center" Spacing="2">
 						<MudIcon Icon="@Icons.Material.Filled.InsertDriveFile" Size="Size.Small" />
 						<MudTooltip Text="@_csvFile.Name" Placement="Placement.Top">
-							<MudText Typo="Typo.body2" Style="max-width:360px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;display:inline-block;">@_csvFile.Name</MudText>
+							<MudText Typo="Typo.body2" Style="display:inline-block;line-height:1;max-width:360px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">
+								@_csvFile.Name<span style="color:var(--mud-palette-text-secondary);font-size:0.8em;margin-left:8px;">@FormatBytes(_csvFile.Size)</span>
+							</MudText>
 						</MudTooltip>
-						<MudText Typo="Typo.caption" Class="mud-text-secondary">@FormatBytes(_csvFile.Size)</MudText>
 					</MudStack>
 				}
 				else
@@ -149,6 +150,12 @@
 			           StartIcon="@Icons.Material.Filled.ReportProblem" OnClick="DownloadErrorCsv">
 				Error report
 			</MudButton>
+			<MudTooltip Text="Downloads the error CSV and opens a pre-filled GitHub issue. Drag the downloaded file into the issue to attach.">
+				<MudButton Variant="Variant.Outlined" Color="Color.Default"
+				           StartIcon="@Icons.Custom.Brands.GitHub" OnClick="ReportErrorsOnGitHub">
+					Report to GitHub
+				</MudButton>
+			</MudTooltip>
 		}
 	</MudStack>
 
@@ -208,6 +215,17 @@
 					</MudStack>
 				</TitleContent>
 				<ChildContent>
+					@if (errorCount > 0)
+					{
+						<MudStack Row="true" AlignItems="AlignItems.Center" Spacing="2" Class="mb-3 mud-text-secondary">
+							<MudIcon Icon="@Icons.Material.Outlined.Info" Size="Size.Small" />
+							<MudText Typo="Typo.body2">
+								Source CSV formats are defined by third-party sites and can change without notice.
+								If you think the failure is on our side and not just bad source data,
+								please use <strong>Report to GitHub</strong> above.
+							</MudText>
+						</MudStack>
+					}
 					@{
 						var grouped = r.Issues
 							.GroupBy(i => (i.Severity, i.Reason))
@@ -554,6 +572,45 @@
 		await JS.InvokeVoidAsync("downloadFileFromStream", $"{_result.InputFormat}-import-errors-{DateTime.Now:yyyy-MM-dd_HH-mm-ss}.csv", streamRef);
 
 		static string Csv(string? value) => value is null ? "" : $"\"{value.Replace("\"", "\"\"")}\"";
+	}
+
+	async Task ReportErrorsOnGitHub()
+	{
+		if (_result is null) return;
+		var errors = _result.Issues.Where(i => i.Severity == IssueSeverity.Error).ToList();
+		if (errors.Count == 0) return;
+
+		// Download the error CSV so the user can drag it into the issue.
+		await DownloadErrorCsv();
+
+		// Top 5 distinct error reasons by frequency, for an at-a-glance summary in the body.
+		var topReasons = errors
+			.GroupBy(e => e.Reason)
+			.OrderByDescending(g => g.Count())
+			.Take(5)
+			.Select(g => $"- {g.Count()}× {g.Key}");
+
+		var warningCount = _result.Issues.Count(i => i.Severity == IssueSeverity.Warning);
+		var body = $"## Import errors\n\n" +
+			$"- **Input format**: {_result.InputFormat}\n" +
+			$"- **Output format**: {_result.OutputFormat}\n" +
+			$"- **When**: {_result.ImportedAt:yyyy-MM-dd HH:mm}\n" +
+			$"- **Rows imported successfully**: {_result.Summary.UniqueCount}\n" +
+			$"- **Errors (rows skipped)**: {errors.Count}\n" +
+			$"- **Warnings (imported with notes)**: {warningCount}\n\n" +
+			$"### Top error reasons\n\n{string.Join("\n", topReasons)}\n\n" +
+			$"### Attached CSV\n\n" +
+			$"Please drag the just-downloaded `{_result.InputFormat}-import-errors-*.csv` file into this issue to attach the full error data.\n\n" +
+			$"### Additional context\n\n" +
+			$"_Describe what you were trying to do — which source CSV, anything unusual about the data._\n";
+
+		var title = $"Import errors: {FormatDisplay.For(_result.InputFormat)} → {FormatDisplay.For(_result.OutputFormat)}";
+		var url = $"https://github.com/StepKie/MtgCsvHelper/issues/new"
+			+ $"?title={Uri.EscapeDataString(title)}"
+			+ $"&labels={Uri.EscapeDataString("bug,import-error")}"
+			+ $"&body={Uri.EscapeDataString(body)}";
+
+		await JS.InvokeVoidAsync("open", url, "_blank", "noopener");
 	}
 
 	public void Dispose()
