@@ -13,6 +13,11 @@ public class FormatDetectorTests(ITestOutputHelper output) : BaseTest(output)
 	[InlineData("Quantity,Simple Name,Set Code,Set,Card Number,Printing,Condition,Language", "TCGPLAYER")]
 	[InlineData("Card,Set ID,Set Name,Quantity,Foil,Collector Number", "MTGGOLDFISH")]
 	[InlineData("idProduct;groupCount;isFoil;condition;idLanguage;price", "CARDMARKET")]
+	// CARDKINGDOM uses lowercase headers, distinct from any other format in the configured set.
+	// No matching fixture in Resources/SampleCsvs/Collection (the sample file uses Title-Case
+	// headers that don't match the configured map — see appsettings.json) — covering with
+	// an explicit InlineData until #61 fills in proper per-format fixtures.
+	[InlineData("quantity,title,edition,foil", "CARDKINGDOM")]
 	// Quoted-header variants — real exports from these sites quote some/all column names.
 	[InlineData("QUANTITY,\"NAME\",SETCODE,\"SETNAME\",\"COLLECTOR NUMBER\",FINISH,PRICE,RARITY,ID,ACQUIRED DATE,ACQUIRED PRICE,LANG,PRICE SALE,SIGNING,ALTERATION,CONDITION,NOTES,TAGS", "TOPDECKED")]
 	[InlineData("\"Count\",\"Tradelist Count\",\"Name\",\"Edition\",\"Condition\",\"Language\",\"Foil\",\"Tags\",\"Last Modified\",\"Collector Number\",\"Alter\",\"Proxy\",\"Purchase Price\"", "MOXFIELD")]

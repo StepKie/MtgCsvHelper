@@ -35,7 +35,7 @@ public sealed record CollectionSummary(
 		return new CollectionSummary(
 			TotalCount: cards.Sum(c => c.Count),
 			UniqueCount: cards.Count,
-			FoilCount: cards.Where(c => c.Foil == true).Sum(c => c.Count),
+			FoilCount: cards.Where(c => c.Foil is true).Sum(c => c.Count),
 			TotalValue: totalValue,
 			MostExpensive: priced.OrderByDescending(c => c.PriceBought!.Value).FirstOrDefault());
 	}

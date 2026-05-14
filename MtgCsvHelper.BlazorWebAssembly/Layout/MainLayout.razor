@@ -36,8 +36,10 @@
 
 @code {
 	static readonly string versionFull = Assembly.GetExecutingAssembly().GetCustomAttribute<AssemblyInformationalVersionAttribute>()!.InformationalVersion;
-	readonly string _version = versionFull.Split("+")[0];
-	readonly string _commit = versionFull.Split("+")[1].Remove(7);
+	static readonly string[] _parts = versionFull.Split("+");
+	readonly string _version = _parts[0];
+	// CI-published builds suffix the commit hash with '+abc1234…'; local debug builds may not.
+	readonly string _commit = _parts.Length > 1 ? _parts[1][..Math.Min(7, _parts[1].Length)] : "dev";
 
 	MudThemeProvider _themeProvider = null!;
 	bool _isDarkMode = true;

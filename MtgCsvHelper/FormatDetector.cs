@@ -55,7 +55,11 @@ public sealed class FormatDetector
 			var actual = headerLine.Split(fmt.Delimiter).Select(h => h.Trim().Trim('"')).ToHashSet();
 			var hits = configured.Count(h => actual.Contains(h));
 			// Strict improvement OR same score but tighter format (fewer extra unused headers
-			// would indicate a more specific match).
+			// would indicate a more specific match). Ties beyond that fall back to iteration
+			// order — if two formats end up with the same hit count *and* the same configured
+			// column count, first-in-list wins silently. The current configured formats are
+			// distinct enough that this doesn't happen; reconsider if a new format gets added
+			// whose header set is a near-duplicate of an existing one.
 			if (hits > bestScore || (hits == bestScore && configured.Count < bestConfiguredCount))
 			{
 				bestScore = hits;
