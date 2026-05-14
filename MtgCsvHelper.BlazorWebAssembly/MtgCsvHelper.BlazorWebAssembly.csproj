@@ -6,6 +6,8 @@
     <ImplicitUsings>enable</ImplicitUsings>
     <NullabilityInfoContextSupport>true</NullabilityInfoContextSupport>
     <ServiceWorkerAssetsManifest>service-worker-assets.js</ServiceWorkerAssetsManifest>
+    <!-- Required by [JSImport] (System.Runtime.InteropServices.JavaScript). -->
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
     <!-- Version is set in Directory.Build.props at the repo root. -->
   </PropertyGroup>
   <PropertyGroup>

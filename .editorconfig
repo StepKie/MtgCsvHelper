@@ -5,6 +5,14 @@ root = true
 indent_style = space
 indent_size = 2
 
+[*.{html,htm,js,mjs,css}]
+indent_style = space
+indent_size = 4
+
+[*.json]
+indent_style = space
+indent_size = 2
+
 # C# files
 [*.{cs,vb}]
 
