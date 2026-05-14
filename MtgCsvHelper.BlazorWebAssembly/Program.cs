@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Components.Web;
 using Microsoft.AspNetCore.Components.WebAssembly.Hosting;
 using MtgCsvHelper;
 using MtgCsvHelper.BlazorWebAssembly;
+using MudBlazor.Services;
 using Serilog;
 
 var builder = WebAssemblyHostBuilder.CreateDefault(args);
@@ -11,6 +12,7 @@ builder.RootComponents.Add<HeadOutlet>("head::after");
 
 builder.Services
 	.ConfigureMtgCsvHelper()
+	.AddMudServices()
 	.AddScoped(sp => new HttpClient { BaseAddress = new Uri(builder.HostEnvironment.BaseAddress) });
 
 Log.Logger = new LoggerConfiguration().ReadFrom.Configuration(builder.Configuration).CreateLogger();
