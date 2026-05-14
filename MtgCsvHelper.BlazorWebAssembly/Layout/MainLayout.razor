@@ -1,5 +1,8 @@
 @inherits LayoutComponentBase
 @using System.Reflection
+@inject ICatalogLoader CatalogLoader
+@inject ISnackbar Snackbar
+@implements IDisposable
 
 <MudThemeProvider @ref="_themeProvider" @bind-IsDarkMode="_isDarkMode" Theme="_theme" />
 <MudPopoverProvider />
@@ -9,7 +12,10 @@
 <MudLayout>
 	<MudAppBar Elevation="1" Dense="true">
 		<MudLink Href="" Underline="Underline.None" Color="Color.Inherit">
-			<MudText Typo="Typo.h6">MtG CsvHelper</MudText>
+			<MudStack Row="true" AlignItems="AlignItems.Center" Spacing="2">
+				<img src="icon.svg" width="40" height="40" alt="" />
+				<MudText Typo="Typo.h6">MtG CsvHelper</MudText>
+			</MudStack>
 		</MudLink>
 		<MudSpacer />
 		<MudButton Href="about" Variant="Variant.Text" Color="Color.Inherit" StartIcon="@Icons.Material.Filled.Info">About</MudButton>
@@ -17,6 +23,10 @@
 		<MudTooltip Text="@(_isDarkMode ? "Switch to light mode" : "Switch to dark mode")">
 			<MudIconButton Icon="@(_isDarkMode ? Icons.Material.Filled.LightMode : Icons.Material.Filled.DarkMode)"
 			               Color="Color.Inherit" OnClick="ToggleTheme" />
+		</MudTooltip>
+		<MudTooltip Text="Submit feedback / ideas">
+			<MudIconButton Icon="@Icons.Material.Filled.Chat" Color="Color.Inherit"
+			               Href="https://github.com/StepKie/MtgCsvHelper/discussions" Target="_blank" />
 		</MudTooltip>
 		<MudTooltip Text="Report a bug">
 			<MudIconButton Icon="@Icons.Material.Filled.BugReport" Color="Color.Inherit"
@@ -67,4 +77,26 @@
 	};
 
 	void ToggleTheme() => _isDarkMode = !_isDarkMode;
+
+	protected override async Task OnInitializedAsync()
+	{
+		CatalogLoader.StateChanged += OnCatalogStateChanged;
+		// Fire-and-forget: the loader is idempotent and we don't want to block the shell render.
+		_ = CatalogLoader.LoadAsync();
+		await base.OnInitializedAsync();
+	}
+
+	void OnCatalogStateChanged()
+	{
+		if (CatalogLoader.Progress.Phase == CatalogLoadPhase.Ready)
+		{
+			Snackbar.Add("Card data loaded.", Severity.Success);
+		}
+		else if (CatalogLoader.Progress.Phase == CatalogLoadPhase.Failed)
+		{
+			Snackbar.Add($"Couldn't load card data: {CatalogLoader.Error?.Message}", Severity.Error);
+		}
+	}
+
+	public void Dispose() => CatalogLoader.StateChanged -= OnCatalogStateChanged;
 }

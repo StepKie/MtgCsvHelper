@@ -10,10 +10,15 @@ public static class ServiceConfiguration
 	/// singletons.
 	/// </summary>
 	/// <remarks>
-	/// Caller must <b>also</b> register <see cref="IReferenceCardCatalog"/> before resolving
-	/// catalog-dependent services. Loading is platform-specific (file vs HTTP) and async, so
-	/// it can't live inside this synchronous extension. Typical pattern: pre-load the bundle,
-	/// then <c>services.AddSingleton&lt;IReferenceCardCatalog&gt;(catalog)</c>.
+	/// Caller must <b>also</b> register a <c>Func&lt;IReferenceCardCatalog&gt;</c> factory so
+	/// catalog-dependent services can look up the catalog at use time (rather than at
+	/// resolver-construction time). This indirection lets the Blazor app defer catalog loading
+	/// to after the shell renders without making every consumer Scoped.
+	/// Typical pattern:
+	/// <list type="bullet">
+	///   <item>Console (eager load): <c>services.AddSingleton&lt;Func&lt;IReferenceCardCatalog&gt;&gt;(_ =&gt; () =&gt; catalog)</c></item>
+	///   <item>Blazor (background load): factory returns <c>loader.Catalog ?? throw</c></item>
+	/// </list>
 	/// </remarks>
 	public static IServiceCollection ConfigureMtgCsvHelper(this IServiceCollection services)
 	{

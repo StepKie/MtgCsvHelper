@@ -8,10 +8,12 @@
     <base href="/" />
     <link rel="stylesheet" href="css/bootstrap/bootstrap.min.css" />
     <link rel="stylesheet" href="css/app.css" />
-    <link rel="icon" type="image/png" href="favicon.png" />
+    <link rel="icon" type="image/svg+xml" href="favicon.svg" />
     <link href="manifest.webmanifest" rel="manifest" />
-    <link rel="apple-touch-icon" sizes="512x512" href="icon-512.png" />
-    <link rel="apple-touch-icon" sizes="192x192" href="icon-192.png" />
+    <!-- Apple ignores SVG for apple-touch-icon and falls back to a screenshot. Better to
+         omit the link than to point at an SVG that won't render on iOS home screens.
+         Follow-up: provide a 180×180 PNG via the bundle generator (or a build step) and
+         restore `<link rel="apple-touch-icon" ...>`. -->
     <link href="https://fonts.googleapis.com/css?family=Roboto:300,400,500,700&display=swap" rel="stylesheet" />
     <link href="_content/MudBlazor/MudBlazor.min.css" rel="stylesheet" />
 </head>
@@ -23,7 +25,7 @@
             <circle r="40%" cx="50%" cy="50%" />
         </svg>
         <div class="loading-progress-text"></div>
-        <p id="loading-status" style="text-align:center; color:#666;">Loading app&hellip;</p>
+        <p style="text-align:center; color:#666;">Loading app&hellip;</p>
     </div>
 
     <div id="blazor-error-ui">
@@ -41,90 +43,6 @@
     <script src="_framework/blazor.webassembly.js"></script>
     <script src="_content/MudBlazor/MudBlazor.min.js"></script>
     <script>
-        // Renders a startup-error card in #app, replacing the boot spinner.
-        // Called from Blazor Program.cs via JSImport when the reference-card bundle
-        // fails to load (the app is non-functional without it). After this is rendered,
-        // Program.cs rethrows to halt WASM so Blazor doesn't overwrite the message.
-        window.mtgShowStartupError = function (title, message, detail) {
-            const app = document.getElementById('app');
-            if (!app) return;
-            app.replaceChildren();
-
-            const wrap = document.createElement('div');
-            wrap.style.cssText = 'max-width:640px;margin:8vh auto;padding:1.25rem;';
-
-            const card = document.createElement('div');
-            card.className = 'card border-danger shadow-sm';
-
-            const body = document.createElement('div');
-            body.className = 'card-body';
-
-            const h = document.createElement('h4');
-            h.className = 'card-title text-danger';
-            h.textContent = title || "Couldn't load card data";
-
-            const p = document.createElement('p');
-            p.className = 'card-text';
-            p.textContent = message || 'The reference card bundle could not be loaded, so the app cannot start.';
-
-            const hint = document.createElement('p');
-            hint.className = 'card-text';
-            const small = document.createElement('small');
-            small.className = 'text-muted';
-            small.textContent = 'Try reloading the page. If the problem persists, please report it.';
-            hint.appendChild(small);
-
-            const actions = document.createElement('div');
-            actions.className = 'd-flex gap-2 flex-wrap mt-3';
-
-            const reload = document.createElement('button');
-            reload.type = 'button';
-            reload.className = 'btn btn-primary';
-            reload.textContent = 'Reload';
-            reload.onclick = function () { location.reload(); };
-
-            const report = document.createElement('a');
-            report.className = 'btn btn-outline-secondary';
-            report.href = 'https://github.com/StepKie/MtgCsvHelper/issues';
-            report.target = '_blank';
-            report.rel = 'noopener noreferrer';
-            report.textContent = 'Report an issue';
-
-            actions.appendChild(reload);
-            actions.appendChild(report);
-
-            body.appendChild(h);
-            body.appendChild(p);
-            body.appendChild(hint);
-            body.appendChild(actions);
-
-            if (detail) {
-                const det = document.createElement('details');
-                det.className = 'mt-3';
-                const sum = document.createElement('summary');
-                sum.className = 'text-muted';
-                sum.style.cursor = 'pointer';
-                sum.textContent = 'Technical details';
-                const pre = document.createElement('pre');
-                pre.style.cssText = 'white-space:pre-wrap;font-size:0.85rem;color:#666;margin-top:0.5rem;';
-                pre.textContent = detail;
-                det.appendChild(sum);
-                det.appendChild(pre);
-                body.appendChild(det);
-            }
-
-            card.appendChild(body);
-            wrap.appendChild(card);
-            app.appendChild(wrap);
-        };
-
-        // Updates the loading-status text. Called from Blazor Program.cs via JSImport
-        // (e.g. "Loading card data…") so users see what phase startup is in.
-        window.mtgSetLoadingStatus = function (message) {
-            const el = document.getElementById('loading-status');
-            if (el) el.textContent = message;
-        };
-
         window.downloadFileFromStream = async (fileName, contentStreamReference) => {
             const arrayBuffer = await contentStreamReference.arrayBuffer();
             const blob = new Blob([arrayBuffer]);

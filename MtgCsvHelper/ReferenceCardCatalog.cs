@@ -96,10 +96,10 @@ public sealed class ReferenceCardCatalog : IReferenceCardCatalog
 	public bool IsTokenName(string name) => _tokenNames.Contains(name);
 
 	/// <summary> Loads a gzip-compressed JSON bundle of <see cref="ReferenceCard"/>s. </summary>
-	public static async Task<ReferenceCardCatalog> LoadGzipAsync(Stream gzipStream)
+	public static async Task<ReferenceCardCatalog> LoadGzipAsync(Stream gzipStream, CancellationToken ct = default)
 	{
 		using var gzip = new GZipStream(gzipStream, CompressionMode.Decompress);
-		var cards = await JsonSerializer.DeserializeAsync<List<ReferenceCard>>(gzip, BundleSerializerOptions)
+		var cards = await JsonSerializer.DeserializeAsync<List<ReferenceCard>>(gzip, BundleSerializerOptions, ct)
 			?? throw new InvalidDataException("Reference-card bundle is empty or malformed.");
 		return new ReferenceCardCatalog(cards);
 	}

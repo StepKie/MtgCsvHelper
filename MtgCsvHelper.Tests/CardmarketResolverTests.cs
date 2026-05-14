@@ -27,7 +27,7 @@ public class CardmarketResolverTests(CatalogFixture fixture, ITestOutputHelper o
 	{
 		// 266380 (Putrid Leech, Conflux) is present in the cardmarket sample CSV and in the bundled catalog.
 		var spy = new SpyMtgApi();
-		var resolver = new CardmarketResolver(_catalog, spy);
+		var resolver = new CardmarketResolver(() => _catalog, spy);
 
 		var resolved = await resolver.ResolveAsync([266380]);
 
@@ -62,7 +62,7 @@ public class CardmarketResolverTests(CatalogFixture fixture, ITestOutputHelper o
 		{
 			NextResponse = new Dictionary<int, ReferenceCard> { [missingId] = cannedCard }
 		};
-		var resolver = new CardmarketResolver(_catalog, spy);
+		var resolver = new CardmarketResolver(() => _catalog, spy);
 
 		var resolved = await resolver.ResolveAsync([missingId]);
 
@@ -80,7 +80,7 @@ public class CardmarketResolverTests(CatalogFixture fixture, ITestOutputHelper o
 		{
 			NextResponse = new Dictionary<int, ReferenceCard>() // miss stays unresolved
 		};
-		var resolver = new CardmarketResolver(_catalog, spy);
+		var resolver = new CardmarketResolver(() => _catalog, spy);
 
 		var resolved = await resolver.ResolveAsync([hitId, missId]);
 

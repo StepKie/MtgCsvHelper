@@ -1,0 +1,27 @@
+<!-- Simplified favicon: two CSV-style documents + bold conversion arrow.
+     No text, no sparkles, no mana symbols — optimized for 16-32 px tab use. -->
+<svg viewBox="0 0 256 256" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="MtG CsvHelper">
+  <defs>
+    <linearGradient id="favBg" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#1c1530"/>
+      <stop offset="1" stop-color="#0a0518"/>
+    </linearGradient>
+  </defs>
+  <rect width="256" height="256" rx="48" fill="url(#favBg)"/>
+
+  <!-- Left document, solid blue -->
+  <g transform="translate(64 130) rotate(-6)">
+    <path d="M -38,-62 L 28,-62 L 42,-48 L 42,62 L -38,62 z" fill="#3b82f6"/>
+    <path d="M 28,-62 L 42,-48 L 28,-48 z" fill="#1e3a8a"/>
+  </g>
+
+  <!-- Right document, solid green -->
+  <g transform="translate(192 130) rotate(6)">
+    <path d="M -42,-62 L 28,-62 L 42,-48 L 42,62 L -42,62 z" fill="#22c55e"/>
+    <path d="M 28,-62 L 42,-48 L 28,-48 z" fill="#166534"/>
+  </g>
+
+  <!-- Central bold arrow -->
+  <path d="M 90,116 L 144,116 L 144,98 L 184,128 L 144,158 L 144,140 L 90,140 z"
+        fill="#ffffff" stroke="#1c1530" stroke-width="4" stroke-linejoin="round"/>
+</svg>
