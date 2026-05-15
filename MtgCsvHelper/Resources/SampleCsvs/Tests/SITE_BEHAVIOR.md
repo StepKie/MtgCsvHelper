@@ -196,24 +196,33 @@ Status: 42 rows (May 2026). All site-blessed via Deckbox's **Manabox-format impo
 
 ---
 
-## TCGPlayer (not yet round-tripped)
+## TCGPlayer
 
-Status: draft generated, not yet imported.
+Status: 43 rows, **synthetic only** (not site-blessed). TCGPlayer's CSV import/export is paywalled — restricted to **Level 4 Seller** accounts. Round-trip blessing isn't feasible without paid seller access.
 
-**Notes:**
-- `Simple Name` is a separate column from `Name` (e.g. `Lim-Dûl's Vault` → `Lim-Duls Vault` simple name; `Aragorn, the Uniter` → `Aragorn the Uniter`).
-- `Etched: null` — same posture: draft uses `Foil` (not `etched`) for the etched DT printings.
-- No `Purchase Price` column in this format.
-- `Product ID` and `SKU` columns we don't fill in — TCGPlayer likely enriches on import.
+**Format reference**: real TCGPlayer export available at `Resources/SampleCsvs/Collection/tcgplayer-collection.csv` (500+ rows from a real seller account, different cards than our 43-row test set).
+
+**Schema** (from the real export):
+- 12 columns: `Quantity,Name,Simple Name,Set,Card Number,Set Code,Printing,Condition,Language,Rarity,Product ID,SKU`.
+- `Simple Name` is a sanitized version of `Name` (e.g. `Lim-Dûl's Vault` → `Lim-Duls Vault`, `Aragorn, the Uniter` → `Aragorn the Uniter`).
+- Set codes UPPERCASE.
+- `Product ID` and `SKU` columns — TCGPlayer-internal identifiers, enriched on import.
+- No `Purchase Price` column.
+- `Etched: null` in our appsettings — unverified without round-trip access. Synthetic draft uses `Foil` for etched DT printings.
 
 ---
 
-## MtgGoldfish (not yet round-tripped)
+## MtgGoldfish
 
-Status: draft generated, not yet imported.
+Status: 29 rows, **synthetic only** (not site-blessed). MtgGoldfish's CSV import is paywalled — `"CSV Import is only available for Premium members"`. Round-trip blessing isn't feasible without a Premium account.
 
-**Notes:**
-- No `Condition` or `Language` columns at all in the export schema → reference-collection has 28 rows instead of 41 (no enum-coverage rows for those fields).
+**Format reference**: real MtgGoldfish exports available at `Resources/SampleCsvs/Collection/mtggoldfish-collection.csv` and `mtggoldfish-from-mtgarena.csv` (different cards than our test set).
+
+**Schema notes:**
+- 8 columns: `Card,Set ID,Set Name,Quantity,Foil,Variation,Collector Number,Scryfall ID`.
+- **No `Condition` or `Language` columns** at all → reference-collection has 29 rows (synthetic) vs other formats' 42-43 (no per-condition or per-language enum coverage rows possible).
+- `Etched: "foil_etched"` in our appsettings — distinct value, unverified without round-trip access.
+- `Scryfall ID` column present — MtgGoldfish probably uses it for matching on import.
 - `Etched: "foil_etched"` (not `etched`). The draft uses `foil_etched` for DT STA + CMM.
 - `Variation` column purpose unclear; left empty.
 - `Scryfall ID` column present but unfilled in the draft.
