@@ -21,10 +21,12 @@ The version displayed in the upper right corner should match the last commit id 
   * Topdecked
   * Deckbox
   * Mtggoldfish
+  * TcgPlayer
+  * Archidekt
+  * Cardmarket (read-only, by cardmarket_id)
   * Cardkingdom (Low info, only 4 columns - Export only)
 
 * Potentially added by demand
-  * TcgPlayer
   * ???
 
 ## Limitations / Known Issues

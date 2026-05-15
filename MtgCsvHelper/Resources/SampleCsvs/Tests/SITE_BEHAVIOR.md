@@ -229,6 +229,35 @@ Status: 29 rows, **synthetic only** (not site-blessed). MtgGoldfish's CSV import
 
 ---
 
+## Archidekt
+
+Status: 43/43 rows round-trip cleanly (May 2026). Full parity with Moxfield. Closes #41.
+
+**Schema:**
+- 13 columns: `Quantity,Name,Finish,Condition,Date Added,Language,Purchase Price,Tags,Edition Name,Edition Code,Multiverse Id,Scryfall ID,Collector Number`.
+- Set codes lowercase (`ltr`, `mid`, `tmh2`).
+- DFCs use full `A // B` names.
+- ISO date format (`2026-05-15`).
+
+**Enriches on import:**
+- `Multiverse Id` (Scryfall's wizards-of-the-coast ID — `617022` etc.) — `0` when the printing has no multiverse ID (foils, alternate art, tokens).
+- `Scryfall ID` (the UUID) populated for every row.
+
+**Foil values**: `Normal` / `Foil` / `Etched` — supports all three Scryfall finishes cleanly.
+
+**Condition vocabulary**: only 6 strings (`M, NM, LP, MP, HP, D`) — no separate Excellent value. Our 7-enum model collapses `Excellent` → `NM` on writes (same pattern as Moxfield).
+
+**Language vocabulary** uses Archidekt-specific 2-letter codes that diverge from common conventions for some entries:
+- `EN, DE, FR, IT, ES, PT, RU` (standard ISO)
+- `JP` not `JA` (Japanese)
+- `KR` not `KO` (Korean)
+- `CS` for Chinese Simplified (not `zhs` or `zh-CN`)
+- `CT` for Chinese Traditional (not `zht` or `zh-TW`)
+
+**No native finish or set-name aliasing quirks** observed — Archidekt accepted everything from the 42-row Manabox source plus normalized its own additions cleanly. Cross-format diversity (Demonic Tutor across 8 sets, variant-finish cards, accent + apostrophe names) all imported without errors or normalization.
+
+---
+
 ## Cardmarket (read-only, by `idProduct`)
 
 Status: not approached — different shape from the per-format pattern.

@@ -13,6 +13,7 @@ public class DeckFormatTests(CatalogFixture fixture, ITestOutputHelper output) :
 	[InlineData("DECKBOX")]
 	[InlineData("MTGGOLDFISH")]
 	[InlineData("TCGPLAYER")]
+	[InlineData("ARCHIDEKT")]
 	public void GenerateReadMap_ForBidirectionalFormats_Succeeds(string deckFormatName)
 	{
 		var map = new CardMapFactory(_config, _catalog).GenerateReadMap(deckFormatName);
@@ -28,6 +29,7 @@ public class DeckFormatTests(CatalogFixture fixture, ITestOutputHelper output) :
 	[InlineData("MTGGOLDFISH")]
 	[InlineData("TCGPLAYER")]
 	[InlineData("CARDKINGDOM")]
+	[InlineData("ARCHIDEKT")]
 	public void GenerateWriteMap_ForAllSupportedFormats_Succeeds(string deckFormatName)
 	{
 		var map = new CardMapFactory(_config, _catalog).GenerateWriteMap(deckFormatName);
