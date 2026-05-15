@@ -155,15 +155,44 @@ Status: 43/43 rows round-trip cleanly (May 2026). Full parity with Moxfield.
 
 ---
 
-## Deckbox (not yet round-tripped)
+## Deckbox
 
-Status: draft generated, not yet imported.
+Status: 42 rows (May 2026). All site-blessed via Deckbox's **Manabox-format import** (1 row short of Moxfield's 43 because Manabox-source had already lost `Damaged`). Deckbox's native CSV import path is stricter (see below) — the Manabox-format path was the way to import a richer card set.
 
-**Notes:**
+**Schema:**
 - `Edition` is full name, `Edition Code` is the abbreviation — split across two columns.
-- Token printings live in `Extras: <set name>` set names (per the existing sample), not the main set. The draft uses the canonical Scryfall set name (`Modern Horizons 2 Tokens`); Deckbox may normalize this.
-- `Etched: "etched"` is configured. Draft uses `etched` for DT STA + CMM.
-- `CurrencySymbol: Start` — prices like `$0.20`.
+- Set codes lowercase (`ltr`, `mid`, `sld`).
+- Tokens use `Extras: <set>` prefix on the Edition name with a Deckbox-internal `ex_NNN` set code (e.g. `Clue` token in Modern Horizons 2 → `Extras: Modern Horizons 2` / `ex_127` / `14`). The `ex_NNN` codes are Deckbox-internal — not derivable from Scryfall.
+- `CurrencySymbol: Start` — prices like `$12.00` (dollar prefix).
+- 19 columns including misc binary flags (`Signed`, `Artist Proof`, `Altered Art`, `Misprint`, `Promo`, `Textless`) we don't model.
+
+**Enriches on import:**
+- `Printing Id` (Deckbox-internal numeric ID).
+- `Cost` (mana cost like `{R}{G}{W}{U}`).
+- `Rarity` (corrected against Deckbox's database).
+- `Price` (current market price).
+- `TcgPlayer ID`, `Scryfall ID`.
+
+**Normalizes:**
+- **Collapses etched → foil** on storage. Deckbox doesn't track etched as a separate finish; `Demonic Tutor STA #27 etched` becomes `Demonic Tutor STA #27 foil` in the export. Our `bool? Foil` model matches this collapse on the write side.
+- **Strips letter prefixes from collector numbers**: `puma U8` stored as `puma 8`. Lossy — `U8` and `8` would technically be different printings per Scryfall but Deckbox treats them as the same; importing both stacks the quantity.
+- **Uses Deckbox-canonical Edition names** that diverge from Scryfall for some sets:
+  - Scryfall `Secret Lair Drop` → Deckbox `Secret Lair Drop Series`
+  - Scryfall `Ultimate Box Topper` → Deckbox `Ultimate Masters: Box Toppers`
+  - Scryfall `<X> Tokens` → Deckbox `Extras: <X>` (with the `Tokens` suffix dropped)
+
+**Native CSV import vs Manabox-format import** (Deckbox supports both):
+- **Native CSV import is strict** — Edition name and Edition Code must match Deckbox's canonical pairing for the card to resolve to a real printing. If they don't match, Deckbox may either (a) reject the row, (b) accept it as "Unspecified Edition" (loses the printing context). Empirically determined:
+  - Blank Edition + lowercase Scryfall set code: **auto-resolves only for some sets** (`sld`, `puma`, `tmh2`, `tclb` work — Deckbox has internal code-to-name mapping for these). For other codes (`sta`, `cmm`) the rows land as "Unspecified Edition" — bad outcome.
+  - Wrong Edition name + correct code: rejected (we proved this with `Modern Horizons 2 Tokens` for the token set instead of the Deckbox-canonical `Extras: Modern Horizons 2`).
+  - `etched` value in the `Foil` column: **rejected** by native import. Must use `foil` (or leave blank).
+- **Manabox-format import is more permissive** — accepts everything in our 42-row fixture, including the cards above that failed native import. Likely uses richer matching (Scryfall ID or similar).
+
+**Writer-modeling implications** for `MtgCsvHelper`'s `DECKBOX` writer (follow-up issue):
+1. Emit lowercase set codes (already mostly handled — depends on source).
+2. Emit `foil` for etched cards (already handled by `bool? Foil` collapse in `FinishConverter.ConvertToString`).
+3. **Need Set Name aliasing** for divergent sets (Secret Lair, Box Toppers, token sets) — leaving Edition blank only auto-resolves for some codes; missing the alias leaves cards in "Unspecified Edition". Small hand-curated mapping table.
+4. Letter-prefix collector numbers (`U8`) pass through cleanly; Deckbox normalizes server-side. No need to strip in our writer.
 
 ---
 
