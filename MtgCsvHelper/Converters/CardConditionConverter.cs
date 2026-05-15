@@ -9,6 +9,8 @@ public class CardConditionConverter(ConditionConfiguration configuration) : ITyp
 
 	public object? ConvertFromString(string? text, IReaderRow row, MemberMapData memberMapData)
 	{
+		// TODO: tighten to reject unmapped values once appsettings supports per-enum aliases —
+		// real Moxfield exports use both "Near Mint" (binder export) and "NM" (collection export).
 #pragma warning disable format
 			return text switch
 			{

@@ -10,6 +10,8 @@ public class LanguageConverter(LanguageConfiguration configuration) : ITypeConve
 
     public object? ConvertFromString(string? text, IReaderRow row, MemberMapData memberMapData)
     {
+        if (string.IsNullOrEmpty(text)) { return null; }
+
         return text switch
         {
             _ when _mappings.en.Equals(text) => nameof(LanguageMappings.en),
@@ -23,8 +25,7 @@ public class LanguageConverter(LanguageConfiguration configuration) : ITypeConve
             _ when _mappings.ru.Equals(text) => nameof(LanguageMappings.ru),
             _ when _mappings.zht.Equals(text) => nameof(LanguageMappings.zht),
             _ when _mappings.zhs.Equals(text) => nameof(LanguageMappings.zhs),
-            _ => null,
-
+            _ => throw new TypeConverterException(this, memberMapData, text, row.Context, $"Unrecognized Language value '{text}'"),
         };
     }
 
