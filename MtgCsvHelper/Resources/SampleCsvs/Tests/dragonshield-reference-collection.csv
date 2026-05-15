@@ -1,44 +1,44 @@
 "sep=,"
-Folder Name,Quantity,Trade Quantity,Card Name,Set Code,Set Name,Card Number,Condition,Printing,Language,Price Bought,Date Bought,AVG,LOW,TREND
-Test,1,1,"Aragorn, the Uniter",LTR,The Lord of the Rings: Tales of Middle-earth,192,NearMint,Normal,English,12.00,,,,
-Test,1,1,Brazen Borrower,ELD,Throne of Eldraine,39,NearMint,Normal,English,1.50,,,,
-Test,1,1,Clue Token,TMH2,Modern Horizons 2 Tokens,14,NearMint,Normal,English,0.10,,,,
-Test,1,1,Delver of Secrets,ISD,Innistrad,51,NearMint,Normal,English,0.75,,,,
-Test,1,1,Demonic Tutor,LEA,Limited Edition Alpha,104,NearMint,Normal,English,8000.00,,,,
-Test,1,1,Demonic Tutor,UMA,Ultimate Masters,93,NearMint,Normal,English,30.00,,,,
-Test,1,1,Demonic Tutor,STA,Strixhaven Mystical Archive,27,NearMint,Foil,English,45.00,,,,
-Test,1,1,Demonic Tutor,CMM,Commander Masters,509,NearMint,Foil,English,40.00,,,,
-Test,1,1,Demonic Tutor,PLST,The List,DDC-49,NearMint,Normal,English,25.00,,,,
-Test,1,1,Demonic Tutor,SLD,Secret Lair Drop,1856,NearMint,Foil,English,60.00,,,,
-Test,1,1,Demonic Tutor,30A,30th Anniversary Edition,101,NearMint,Normal,English,200.00,,,,
-Test,1,1,Demonic Tutor,PUMA,Ultimate Box Topper,U8,NearMint,Foil,English,150.00,,,,
-Test,1,1,Fire,APC,Apocalypse,128,NearMint,Normal,English,2.00,,,,
-Test,1,1,"Jace, the Mind Sculptor",WWK,Worldwake,31,NearMint,Normal,English,55.00,,,,
-Test,1,1,Jhoira's Familiar,DOM,Dominaria,220,NearMint,Normal,English,0.50,,,,
-Test,1,1,Lightning Bolt,M11,Magic 2011,149,Mint,Normal,English,0.50,,,,
-Test,1,1,Lightning Bolt,M11,Magic 2011,149,NearMint,Foil,English,2.00,,,,
-Test,1,1,Lightning Bolt,M11,Magic 2011,149,Excellent,Normal,English,0.45,,,,
-Test,1,1,Lightning Bolt,M11,Magic 2011,149,Good,Normal,English,0.30,,,,
-Test,1,1,Lightning Bolt,M11,Magic 2011,149,LightPlayed,Normal,English,0.25,,,,
-Test,1,1,Lightning Bolt,M11,Magic 2011,149,Played,Normal,English,0.20,,,,
-Test,1,1,Lightning Bolt,M11,Magic 2011,149,Poor,Normal,English,0.10,,,,
-Test,1,1,Lightning Bolt,M11,Magic 2011,149,NearMint,Normal,Spanish,0.40,,,,
-Test,1,1,Lightning Bolt,M11,Magic 2011,149,NearMint,Normal,French,0.40,,,,
-Test,1,1,Lightning Bolt,M11,Magic 2011,149,NearMint,Normal,German,0.40,,,,
-Test,1,1,Lightning Bolt,M11,Magic 2011,149,NearMint,Normal,Italian,0.40,,,,
-Test,1,1,Lightning Bolt,M11,Magic 2011,149,NearMint,Normal,Portuguese,0.40,,,,
-Test,1,1,Lightning Bolt,M11,Magic 2011,149,NearMint,Normal,Japanese,0.50,,,,
-Test,1,1,Lightning Bolt,M11,Magic 2011,149,NearMint,Normal,Korean,0.50,,,,
-Test,1,1,Lightning Bolt,M11,Magic 2011,149,NearMint,Normal,Russian,0.50,,,,
-Test,1,1,Lightning Bolt,M11,Magic 2011,149,NearMint,Normal,Chinese,0.50,,,,
-Test,1,1,Lightning Bolt,M11,Magic 2011,149,NearMint,Normal,Traditional Chinese,0.50,,,,
-Test,1,1,Lightning Bolt,SLD,Secret Lair Drop,83,NearMint,Foil,English,8.00,,,,
-Test,1,1,Lim-Dûl's Vault,ALL,Alliances,107,NearMint,Normal,English,2.00,,,,
-Test,1,1,Plains,M21,Core Set 2021,260,NearMint,Normal,English,0.05,,,,
-Test,1,1,Plains,M21,Core Set 2021,261,NearMint,Normal,English,0.05,,,,
-Test,1,1,Plains,M21,Core Set 2021,262,NearMint,Normal,English,0.05,,,,
-Test,1,1,Plains,M21,Core Set 2021,309,NearMint,Normal,English,0.05,,,,
-Test,1,1,Plains,LTR,The Lord of the Rings: Tales of Middle-earth,262,NearMint,Normal,English,0.10,,,,
-Test,1,1,Recruiter of the Guard,PLST,The List,CN2-22,NearMint,Normal,Japanese,,,,,
-Test,1,1,Treasure Token,TCLB,Commander Legends: Battle for Baldur's Gate Tokens,17,NearMint,Normal,English,0.10,,,,
-Test,1,1,"Valki, God of Lies",KHM,Kaldheim,114,NearMint,Normal,English,3.00,,,,
+Folder Name,Quantity,Trade Quantity,Card Name,Set Code,Set Name,Card Number,Condition,Printing,Language,Price Bought,Date Bought,LOW,MID,MARKET
+Test,1,1,"Aragorn, the Uniter",LTR,The Lord of the Rings: Tales of Middle-earth,741z,NearMint,Double Rainbow Foil,English,0.00,2026-05-15,,,
+Test,1,1,"Aragorn, the Uniter",LTR,The Lord of the Rings: Tales of Middle-earth,192,NearMint,Normal,English,0.00,2026-05-15,3.75,5.93,5.37
+Test,1,1,Brazen Borrower // Petty Theft,ELD,Throne of Eldraine,39,NearMint,Normal,English,0.00,2026-05-15,1.99,4.11,3.94
+Test,1,1,Clue Token,TMH2,Modern Horizons 2 Tokens,14,NearMint,Normal,English,0.00,2026-05-15,0.01,0.21,0.19
+Test,1,1,Delver of Secrets,ISD,Innistrad,51,NearMint,Normal,English,0.00,2026-05-15,0.10,0.40,0.36
+Test,1,1,Demonic Tutor,CMM,Commander Masters,509,NearMint,Foil,English,0.00,2026-05-15,80.00,128.55,79.03
+Test,1,1,Demonic Tutor,LEA,Limited Edition Alpha,104,NearMint,Normal,English,0.00,2026-05-15,1079.99,1699.00,
+Test,1,1,Demonic Tutor,SLD,Secret Lair Drop,1856,NearMint,Rainbow Foil,English,0.00,2026-05-15,134.90,149.99,134.90
+Test,1,1,Demonic Tutor,PUMA,Ultimate Box Topper,U8,NearMint,Foil,English,0.00,2026-05-15,89.99,103.96,95.86
+Test,1,1,Demonic Tutor,30A,30th Anniversary Edition,101,NearMint,Normal,English,0.00,2026-05-15,79.40,87.72,74.95
+Test,1,1,Demonic Tutor,DVD,Duel Decks Anthology: Divine vs. Demonic,49,NearMint,Normal,English,0.00,2026-05-15,70.00,104.47,69.08
+Test,1,1,Demonic Tutor,UMA,Ultimate Masters,93,NearMint,Normal,English,0.00,2026-05-15,59.99,67.90,65.73
+Test,1,1,Demonic Tutor,STA,Strixhaven Mystical Archive,27,NearMint,Foil,English,0.00,2026-05-15,190.00,302.60,112.59
+Test,1,1,Disciplined Duelist,SNC,Streets of New Capenna,369,NearMint,Gilded Foil,English,0.00,2026-05-15,0.09,0.40,0.32
+Test,1,1,Fire // Ice,APC,Apocalypse,128,NearMint,Normal,English,0.00,2026-05-15,0.75,1.84,1.78
+Test,1,1,"Jace, the Mind Sculptor",WWK,Worldwake,31,NearMint,Normal,English,0.00,2026-05-15,17.99,24.64,24.64
+Test,1,1,"Jhoira's Familiar",DOM,Dominaria,220,NearMint,Normal,English,0.00,2026-05-15,0.50,1.73,1.67
+Test,1,1,Lightning Bolt,M11,Magic 2011,149,NearMint,Normal,German,0.00,2026-05-15,0.97,1.55,1.50
+Test,1,1,Lightning Bolt,SLD,Secret Lair Drop,83,NearMint,Foil,English,0.00,2026-05-15,3.42,5.12,4.56
+Test,1,1,Lightning Bolt,M11,Magic 2011,149,NearMint,Normal,French,0.00,2026-05-15,0.97,1.55,1.50
+Test,1,1,Lightning Bolt,M11,Magic 2011,149,NearMint,Normal,Traditional Chinese,0.00,2026-05-15,0.97,1.55,1.50
+Test,1,1,Lightning Bolt,M11,Magic 2011,149,NearMint,Normal,Italian,0.00,2026-05-15,0.97,1.55,1.50
+Test,1,1,Lightning Bolt,M11,Magic 2011,149,NearMint,Normal,Spanish,0.00,2026-05-15,0.97,1.55,1.50
+Test,1,1,Lightning Bolt,M11,Magic 2011,149,NearMint,Normal,English,0.00,2026-05-15,0.97,1.55,1.50
+Test,1,1,Lightning Bolt,M11,Magic 2011,149,Played,Normal,English,0.00,2026-05-15,0.97,1.55,1.50
+Test,1,1,Lightning Bolt,M11,Magic 2011,149,NearMint,Normal,Korean,0.00,2026-05-15,0.97,1.55,1.50
+Test,1,1,Lightning Bolt,M11,Magic 2011,149,Poor,Normal,English,0.00,2026-05-15,0.97,1.55,1.50
+Test,1,1,Lightning Bolt,M11,Magic 2011,149,NearMint,Normal,Russian,0.00,2026-05-15,0.97,1.55,1.50
+Test,1,1,Lightning Bolt,M11,Magic 2011,149,NearMint,Foil,English,0.00,2026-05-15,4.00,5.65,2.87
+Test,1,1,Lightning Bolt,M11,Magic 2011,149,NearMint,Normal,Portuguese,0.00,2026-05-15,0.97,1.55,1.50
+Test,1,1,Lightning Bolt,M11,Magic 2011,149,Good,Normal,English,0.00,2026-05-15,0.97,1.55,1.50
+Test,1,1,Lightning Bolt,M11,Magic 2011,149,NearMint,Normal,Japanese,0.00,2026-05-15,0.97,1.55,1.50
+Test,1,1,Lightning Bolt,M11,Magic 2011,149,Mint,Normal,English,0.00,2026-05-15,0.97,1.55,1.50
+Test,1,1,"Lim-Dûl's Vault",ALL,Alliances,107,NearMint,Normal,English,0.00,2026-05-15,2.89,5.00,5.06
+Test,1,1,Plains,M21,Core Set 2021,261,NearMint,Normal,English,0.00,2026-05-15,0.01,0.20,0.13
+Test,1,1,Plains,LTR,The Lord of the Rings: Tales of Middle-earth,262,NearMint,Normal,English,0.00,2026-05-15,0.01,0.20,0.15
+Test,1,1,Plains,M21,Core Set 2021,262,NearMint,Normal,English,0.00,2026-05-15,0.01,0.22,0.20
+Test,1,1,Plains,M21,Core Set 2021,260,NearMint,Normal,English,0.00,2026-05-15,0.02,0.22,0.13
+Test,1,1,Plains,M21,Core Set 2021,309,NearMint,Normal,English,0.00,2026-05-15,0.06,0.44,0.31
+Test,1,1,Recruiter of the Guard,CN2,Conspiracy: Take the Crown,22,NearMint,Normal,Japanese,0.00,2026-05-15,5.00,6.50,5.56
+Test,1,1,Treasure Token,TCLB,"Battle for Baldur's Gate Tokens",17,NearMint,Normal,English,0.00,2026-05-15,0.01,0.25,0.22
+Test,1,1,"Valki, God of Lies",KHM,Kaldheim,114,NearMint,Normal,English,0.00,2026-05-15,1.33,3.49,3.22

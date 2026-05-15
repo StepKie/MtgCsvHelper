@@ -1,26 +1,26 @@
 Name,Set code,Set name,Collector number,Foil,Rarity,Quantity,ManaBox ID,Scryfall ID,Purchase price,Misprint,Altered,Condition,Language,Purchase price currency
+"Aragorn, the Uniter",LTR,The Lord of the Rings: Tales of Middle-earth,741z,foil,mythic,1,89216,9d481911-48a9-4cd7-a3b4-14c058dcac19,4599.99,false,false,near_mint,en,USD
 "Aragorn, the Uniter",LTR,The Lord of the Rings: Tales of Middle-earth,192,normal,mythic,1,83611,e98d5321-ec09-456c-a9ea-c8ca2cfc6205,12.0,false,false,near_mint,en,USD
 Brazen Borrower // Petty Theft,ELD,Throne of Eldraine,39,normal,mythic,1,46299,c2089ec9-0665-448f-bfe9-d181de127814,1.5,false,false,near_mint,en,USD
 Clue,TMH2,Modern Horizons 2 Tokens,14,normal,common,1,59974,cfcf6efe-9f94-4a55-9994-701e596691ad,0.1,false,false,near_mint,en,USD
 Delver of Secrets // Insectile Aberration,ISD,Innistrad,51,normal,common,1,18847,11bf83bb-c95b-4b4f-9a56-ce7a1816307a,0.75,false,false,near_mint,en,USD
-Demonic Tutor,LEA,Limited Edition Alpha,104,normal,uncommon,1,43022,711d4d54-5520-4de8-9b93-79902ed8e562,8000.0,false,false,near_mint,en,USD
-Demonic Tutor,UMA,Ultimate Masters,93,normal,rare,1,43216,3bdbc231-5316-4abd-9d8d-d87cff2c9847,30.0,false,false,near_mint,en,USD
-Demonic Tutor,STA,Strixhaven Mystical Archive,27,etched,mythic,1,58047,3009ba46-c9f8-46dc-8ffc-2aa4cef7b17c,45.0,false,false,near_mint,en,USD
-Demonic Tutor,CMM,Commander Masters,509,etched,mythic,1,84587,89153e75-2333-42e8-bc28-1b3d1e4726dd,40.0,false,false,near_mint,en,USD
-Demonic Tutor,PLST,The List,DDC-49,normal,uncommon,1,48734,77be13ed-5ef5-4452-a16f-ccd3599d8555,25.0,false,false,near_mint,en,USD
 Demonic Tutor,SLD,Secret Lair Drop,1856,foil,mythic,1,109017,9ab384fe-1935-4e6e-a3a2-aed932ed6643,60.0,false,false,near_mint,en,USD
+Demonic Tutor,CMM,Commander Masters,509,etched,mythic,1,84587,89153e75-2333-42e8-bc28-1b3d1e4726dd,40.0,false,false,near_mint,en,USD
 Demonic Tutor,30A,30th Anniversary Edition,101,normal,uncommon,1,73860,c46ba8df-834e-47f0-981b-a296e79a2288,200.0,false,false,near_mint,en,USD
+Demonic Tutor,STA,Strixhaven Mystical Archive,27,etched,mythic,1,58047,3009ba46-c9f8-46dc-8ffc-2aa4cef7b17c,45.0,false,false,near_mint,en,USD
+Demonic Tutor,UMA,Ultimate Masters,93,normal,rare,1,43216,3bdbc231-5316-4abd-9d8d-d87cff2c9847,30.0,false,false,near_mint,en,USD
 Demonic Tutor,PUMA,Ultimate Box Topper,U8,foil,mythic,1,43175,2d957ecf-93e7-4a32-88bc-4d10feaab4ea,150.0,false,false,near_mint,en,USD
+Demonic Tutor,LEA,Limited Edition Alpha,104,normal,uncommon,1,43022,711d4d54-5520-4de8-9b93-79902ed8e562,8000.0,false,false,near_mint,en,USD
+Demonic Tutor,PLST,The List,DDC-49,normal,uncommon,1,48734,77be13ed-5ef5-4452-a16f-ccd3599d8555,25.0,false,false,near_mint,en,USD
+Disciplined Duelist,SNC,Streets of New Capenna,369,foil,uncommon,1,68041,de77ba1d-9e88-49db-b4e4-63824a0fe490,0.32,false,false,near_mint,en,USD
 Fire // Ice,APC,Apocalypse,128,normal,uncommon,1,32328,f98f4538-5b5b-475d-b98f-49d01dae6f04,2.0,false,false,near_mint,en,USD
 "Jace, the Mind Sculptor",WWK,Worldwake,31,normal,mythic,1,22160,0e606072-a3aa-4300-ba90-ec92a721fa76,55.0,false,false,near_mint,en,USD
 Jhoira's Familiar,DOM,Dominaria,220,normal,uncommon,1,2056,3718761f-feb1-46c4-aaa3-7e07a3fa72fa,0.5,false,false,near_mint,en,USD
-Lightning Bolt,M11,Magic 2011,149,normal,common,1,21240,e768c957-3a1f-42f5-853a-96942f645df5,0.5,false,false,mint,en,USD
 Lightning Bolt,M11,Magic 2011,149,foil,common,1,21240,e768c957-3a1f-42f5-853a-96942f645df5,2.0,false,false,near_mint,en,USD
-Lightning Bolt,M11,Magic 2011,149,normal,common,1,21240,e768c957-3a1f-42f5-853a-96942f645df5,0.45,false,false,excellent,en,USD
-Lightning Bolt,M11,Magic 2011,149,normal,common,1,21240,e768c957-3a1f-42f5-853a-96942f645df5,0.3,false,false,good,en,USD
-Lightning Bolt,M11,Magic 2011,149,normal,common,1,21240,e768c957-3a1f-42f5-853a-96942f645df5,0.25,false,false,light_played,en,USD
+Lightning Bolt,M11,Magic 2011,149,normal,common,1,21240,e768c957-3a1f-42f5-853a-96942f645df5,0.3,false,false,excellent,en,USD
 Lightning Bolt,M11,Magic 2011,149,normal,common,1,21240,e768c957-3a1f-42f5-853a-96942f645df5,0.2,false,false,played,en,USD
-Lightning Bolt,M11,Magic 2011,149,normal,common,1,21240,e768c957-3a1f-42f5-853a-96942f645df5,0.1,false,false,poor,en,USD
+Lightning Bolt,M11,Magic 2011,149,normal,common,1,21240,e768c957-3a1f-42f5-853a-96942f645df5,0.15,false,false,played,en,USD
+Lightning Bolt,M11,Magic 2011,149,normal,common,1,21240,e768c957-3a1f-42f5-853a-96942f645df5,0.5,false,false,mint,en,USD
 Lightning Bolt,M11,Magic 2011,149,normal,common,1,21240,e768c957-3a1f-42f5-853a-96942f645df5,0.4,false,false,near_mint,es,USD
 Lightning Bolt,M11,Magic 2011,149,normal,common,1,21240,e768c957-3a1f-42f5-853a-96942f645df5,0.4,false,false,near_mint,fr,USD
 Lightning Bolt,M11,Magic 2011,149,normal,common,1,21240,e768c957-3a1f-42f5-853a-96942f645df5,0.4,false,false,near_mint,de,USD
@@ -33,11 +33,11 @@ Lightning Bolt,M11,Magic 2011,149,normal,common,1,21240,e768c957-3a1f-42f5-853a-
 Lightning Bolt,M11,Magic 2011,149,normal,common,1,21240,e768c957-3a1f-42f5-853a-96942f645df5,0.5,false,false,near_mint,zh_TW,USD
 Lightning Bolt,SLD,Secret Lair Drop,83,foil,rare,1,50462,45184cd7-b037-4a85-a063-e622ca928d17,8.0,false,false,near_mint,en,USD
 Lim-Dûl's Vault,ALL,Alliances,107,normal,uncommon,1,38700,f9b0164c-2d4e-48ab-addd-322d9b504739,2.0,false,false,near_mint,en,USD
-Plains,M21,Core Set 2021,260,normal,common,1,50800,4be96696-aff8-4ef9-97dc-8221ef745de9,0.05,false,false,near_mint,en,USD
-Plains,M21,Core Set 2021,261,normal,common,1,50707,0d4e5bc1-f0c3-4ea7-a549-c36d932103b1,0.05,false,false,near_mint,en,USD
-Plains,M21,Core Set 2021,262,normal,common,1,50888,8a299a1e-1ce9-4668-a5f5-c587081acf6b,0.05,false,false,near_mint,en,USD
 Plains,M21,Core Set 2021,309,normal,common,1,50751,2f6778ff-6c1c-498a-bbfa-46c35b77a72a,0.05,false,false,near_mint,en,USD
+Plains,M21,Core Set 2021,260,normal,common,1,50800,4be96696-aff8-4ef9-97dc-8221ef745de9,0.05,false,false,near_mint,en,USD
+Plains,M21,Core Set 2021,262,normal,common,1,50888,8a299a1e-1ce9-4668-a5f5-c587081acf6b,0.05,false,false,near_mint,en,USD
 Plains,LTR,The Lord of the Rings: Tales of Middle-earth,262,normal,common,1,83656,f724ae86-b968-4f49-8267-c2c34c22f1b6,0.1,false,false,near_mint,en,USD
+Plains,M21,Core Set 2021,261,normal,common,1,50707,0d4e5bc1-f0c3-4ea7-a549-c36d932103b1,0.05,false,false,near_mint,en,USD
 Recruiter of the Guard,PLST,The List,CN2-22,normal,rare,1,49148,3cb635bb-def8-43f9-aad1-dd298dcc730b,5.68,false,false,near_mint,ja,USD
 Treasure,TCLB,Battle for Baldur's Gate Tokens,17,normal,common,1,69564,770b988d-4f31-4746-8c23-4ed8d9a6b393,0.1,false,false,near_mint,en,USD
-"Valki, God of Lies // Tibalt, Cosmic Impostor",KHM,Kaldheim,114,normal,mythic,1,,,3.0,false,false,near_mint,en,USD
+"Valki, God of Lies // Tibalt, Cosmic Impostor",KHM,Kaldheim,114,normal,mythic,1,57134,ea7e4c65-b4c4-4795-9475-3cba71c50ea5,3.0,false,false,near_mint,en,USD
