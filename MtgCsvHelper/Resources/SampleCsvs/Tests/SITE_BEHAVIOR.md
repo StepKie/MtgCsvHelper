@@ -120,15 +120,38 @@ So DragonShield's Moxfield-importer maps only 4 of Moxfield's 6 conditions, with
 
 ---
 
-## TopDecked (not yet round-tripped)
+## TopDecked
 
-Status: draft generated, not yet imported.
+Status: 43/43 rows round-trip cleanly (May 2026). Full parity with Moxfield.
 
-**Notes:**
-- Header uses ALL-CAPS-with-quotes (`QUANTITY,"NAME",SETCODE,"SETNAME",...`). Some columns quoted, others not.
-- Set codes lowercase (`mid`, `tmh2`).
-- `Etched: null` — same posture as DragonShield: draft uses `foil` for the etched DT printings until proven otherwise.
-- Lots of columns we don't currently model (`RARITY`, `ID` (Scryfall UUID), `ACQUIRED DATE`, `SIGNING`, `ALTERATION`, `NOTES`, `TAGS`) — present in the draft as empty cells.
+**Schema:**
+- Header uses ALL-CAPS-with-selectively-quoted columns: `QUANTITY,"NAME",SETCODE,"SETNAME","COLLECTOR NUMBER",FINISH,PRICE,RARITY,ID,ACQUIRED DATE,ACQUIRED PRICE,LANG,PRICE SALE,SIGNING,ALTERATION,CONDITION,NOTES,TAGS`.
+- Set codes lowercase (`ltr`, `m11`, `tmh2`).
+- Set names with embedded colons quoted (`"The Lord of the Rings: Tales of Middle-earth"`).
+- Date format: `Fri May 15 2026 16:43:29 GMT+0200 (Central European Summer Time)` — verbose locale-specific timestamp.
+- Has `ID` column = Scryfall UUID (filled by TopDecked on import).
+- Rich extra columns (`SIGNING`, `ALTERATION`, `NOTES`, `TAGS`) we don't currently model — present as empty cells.
+
+**Import path that worked:**
+- **Direct content paste** via TopDecked's "paste data" feature succeeded after some encoding troubleshooting (see Quirks).
+
+**Enriches on import:**
+- `ID` (Scryfall UUID) filled in for every recognized printing.
+- `PRICE` filled in with current EUR market price (e.g. `€2521.66` for serialized Aragorn).
+- `RARITY` corrected against Scryfall (submitted Disciplined Duelist as `rare` → re-exported as `uncommon`, the actual SNC rarity).
+- `ACQUIRED DATE` set to import-time timestamp.
+
+**Normalizes:**
+- **Auto-corrects invalid finish/printing combos**: submitted `Demonic Tutor CMM #509 foil` → corrected to `etched` because CMM has that printing as etched-only. Per-row diagnostic shown: `"Printing does not exist for the requested finish: 'foil'. Changed to 'etched'"`.
+- For printings with multiple finishes available (e.g. STA #27 has `{nonfoil, foil, etched}`), TopDecked respects the user's chosen finish without correction (`foil` stayed `foil`).
+
+**Validation quirks:**
+- `Finish` column is binary-ish: `nonfoil`/`foil`/`etched`. **Does not track Rainbow Foil / Double Rainbow Foil / Gilded Foil** distinctions that DragonShield emits — variant foils all collapse to `foil`. Our `bool? Foil` model matches.
+- Gap fixed during this work: `appsettings.json` had `Etched: null` for TOPDECKED — set to `"etched"` after the round-trip proved TopDecked emits it.
+- Per-row import diagnostics are richer than DragonShield's silent failures — clear messages like "Printing does not exist for the requested finish" or "No matching cards found".
+
+**Encoding quirk:**
+- TopDecked's **paste-and-import** UI clobbers UTF-8 → reads as Latin-1, mangling `û` → `Ã»` and adding garbage prefix bytes if a BOM is present. **Workaround**: use "Direct content paste" feature (whatever that means in TopDecked's UI — Stephan found it). File upload would presumably also work; not tested.
 
 ---
 
