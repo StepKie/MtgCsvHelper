@@ -247,7 +247,7 @@ Status: 43/43 rows round-trip cleanly (May 2026). Full parity with Moxfield. Clo
 
 **Foil values**: `Normal` / `Foil` / `Etched` — supports all three Scryfall finishes cleanly.
 
-**Condition vocabulary**: TCGPlayer-standard 5 strings (`NM, LP, MP, HP, D`) — no Mint, no Excellent. Our 7-enum model collapses both `Mint` and `Excellent` to `"NM"` on writes (same pattern as Moxfield's Excellent collapse). The map is one-way: internal `Mint` or `Excellent` written as `"NM"` round-trips back as `NearMint`, since `CardConditionConverter` resolves `"NM"` to the first match (`NearMint`).
+**Condition vocabulary**: TCGPlayer-standard 5 strings (`NM, LP, MP, HP, D`) — no Mint, no Excellent. Our 7-enum model collapses both `Mint` and `Excellent` to `"NM"` on writes via the null-alias mechanism: `appsettings.json` declares Archidekt's `Mint` and `Excellent` as `null`, and `CardConditionConverter.ConvertToString` falls back to the NearMint string for both. The read path doesn't match a null config entry, so `"NM"` cleanly resolves to `NEAR_MINT` regardless of switch arm order. Covered by `CardConditionConverterTests`.
 
 **Archidekt's moxfield-format importer is lossy on conditions** (mirroring DragonShield's pattern). Importing our 6 distinct moxfield condition strings, Archidekt re-emits only 4:
 

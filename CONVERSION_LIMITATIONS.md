@@ -35,18 +35,20 @@ Our internal model has 7 conditions: `Mint, NearMint, Excellent, Good, LightlyPl
 
 | Internal model    | Moxfield                | Manabox          | DragonShield  | TopDecked          | Deckbox                 | TCGPlayer          | Archidekt | Cardmarket | MtgGoldfish |
 | ----------------- | ----------------------- | ---------------- | ------------- | ------------------ | ----------------------- | ------------------ | --------- | ---------- | ----------- |
-| **Mint**          | `Mint`                  | `mint`           | `Mint`        | `mint`             | `Mint`                  | `Mint`             | **`NM`**  | `1`        | —           |
+| **Mint**          | `Mint`                  | `mint`           | `Mint`        | `mint`             | `Mint`                  | `Mint`             | **`NM`**¹ | `1`        | —           |
 | **NearMint**      | `Near Mint`             | `near_mint`      | `NearMint`    | `near mint`        | `Near Mint`             | `Near Mint`        | `NM`      | `2`        | —           |
-| **Excellent**     | **`Near Mint`**         | `excellent`      | `Excellent`   | **`near mint`**    | **`Near Mint`**         | **`Near Mint`**    | **`NM`**  | `3`        | —           |
-| **Good**          | `Good (Lightly Played)` | `good`           | `Good`        | `slightly played`  | `Good (Lightly Played)` | `Lightly Played`   | `LP`      | `4`        | —           |
+| **Excellent**     | **`Near Mint`**¹        | `excellent`      | `Excellent`   | **`near mint`**¹   | **`Near Mint`**¹        | **`Lightly Played`**²| **`NM`**¹| `3`        | —           |
+| **Good**          | `Good (Lightly Played)` | `good`           | `Good`        | `slightly played`  | `Good (Lightly Played)` | `Lightly Played`²  | `LP`      | `4`        | —           |
 | **LightlyPlayed** | `Played`                | `light_played`   | `LightPlayed` | `moderately played`| `Heavily Played`        | `Moderately Played`| `MP`      | `5`        | —           |
 | **Played**        | `Heavily Played`        | `played`         | `Played`      | `heavily played`   | `Played`                | `Heavily Played`   | `HP`      | `6`        | —           |
 | **Poor**          | `Damaged`               | `poor`           | `Poor`        | `damaged`          | `Poor`                  | `Damaged`          | `D`       | `7`        | —           |
 
-**Read-direction collapses to watch for:**
+¹ **Cleanly-collapsed write/read alias.** The format's `appsettings.json` declares this entry as `null`; `CardConditionConverter.ConvertToString` falls back to the NearMint string, and the read path doesn't match (so reading the NearMint string back resolves to `NearMint`, not Mint or Excellent). Switch arm order is irrelevant — the collision is resolved at the config level. Covered by `CardConditionConverterTests.AmbiguousString_ResolvesToNearMint_NotMintOrExcellent`.
 
-- **Archidekt → internal**: `NM` resolves to `NearMint` (first-match wins). A card originally written as `Mint` or `Excellent` re-reads as `NearMint`.
-- **Moxfield / Deckbox / TopDecked / TCGPlayer → internal**: similarly resolves the shared `Near Mint` to `NearMint`; an originally-Excellent card is indistinguishable from NearMint after a Moxfield round-trip.
+² **Pre-existing unresolved collision (TCGPlayer).** Both Excellent and Good write to `"Lightly Played"`. Unlike the NearMint-collapse formats, neither side can cleanly fall back to NearMint without changing write semantics. Reading `"Lightly Played"` back currently resolves to `Excellent` (first-match in the switch). Round-tripping a TCGPlayer "Lightly Played" Good card returns an Excellent — a real bug, but TCGPlayer's CSV import/export is paywalled (Level 4 Seller), so verifying the right fix requires paid seller access. Filed as a follow-up; not addressed in this PR.
+
+**Read-direction collapses for the MtgGoldfish gap:**
+
 - **MtgGoldfish**: no Condition column at all. **Every card reads back as `UNKNOWN`.**
 
 ### 3. Language: MtgGoldfish drops it entirely
