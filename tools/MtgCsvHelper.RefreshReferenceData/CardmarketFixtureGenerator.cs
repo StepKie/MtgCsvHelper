@@ -30,6 +30,21 @@ internal static class CardmarketFixtureGenerator
 		["zht"] = "11",
 	};
 
+	// Cardmarket condition values in the "Manage Stock" CSV. Natural ordering of the REST API's
+	// string codes (MT/NM/EX/GD/LP/PL/PO); see SITE_BEHAVIOR.md > Cardmarket for verification.
+	// Kept explicit (rather than relying on CardCondition.Id matching by coincidence) so the
+	// generator survives any future renumbering of the enum.
+	static readonly Dictionary<string, string> ConditionToId = new()
+	{
+		["Mint"] = "1",
+		["NearMint"] = "2",
+		["Excellent"] = "3",
+		["Good"] = "4",
+		["LightlyPlayed"] = "5",
+		["Played"] = "6",
+		["Poor"] = "7",
+	};
+
 	public static async Task RunAsync()
 	{
 		var repoRoot = FindRepoRoot();
@@ -80,9 +95,12 @@ internal static class CardmarketFixtureGenerator
 				idLanguage = "1"; // safe fallback to English; flagged in the summary
 			}
 
-			// CardCondition.Id matches Cardmarket's integer condition encoding exactly
-			// (1=Mint, 2=NearMint, …, 7=Poor — natural ordering of the MT/NM/EX/GD/LP/PL/PO codes).
-			var condition = ((int)card.Condition.Id).ToString(CultureInfo.InvariantCulture);
+			if (!ConditionToId.TryGetValue(card.Condition.Name, out var condition))
+			{
+				Console.WriteLine($"  skip: unmapped condition '{card.Condition.Name}' for {card.Printing.Name} ({setCode} #{collectorNumber})");
+				skipped++;
+				continue;
+			}
 			var isFoil = card.Foil == true ? "1" : "";
 			var groupCount = card.Count.ToString(CultureInfo.InvariantCulture);
 			var price = card.PriceBought is { Value: > 0 } money
