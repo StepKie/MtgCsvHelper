@@ -245,7 +245,7 @@ Status: 43/43 rows round-trip cleanly (May 2026). Full parity with Moxfield. Clo
 
 **Foil values**: `Normal` / `Foil` / `Etched` — supports all three Scryfall finishes cleanly.
 
-**Condition vocabulary**: only 6 strings (`M, NM, LP, MP, HP, D`) — no separate Excellent value. Our 7-enum model collapses `Excellent` → `NM` on writes (same pattern as Moxfield).
+**Condition vocabulary**: only 6 strings (`M, NM, LP, MP, HP, D`) — no separate Excellent value. Our 7-enum model collapses `Excellent` → `NM` on writes (same pattern as Moxfield). The map is one-way: an internal `Excellent` written as `"NM"` round-trips back as `NearMint`, since `CardConditionConverter` resolves `"NM"` to the first match (`NearMint`). Intentional — Archidekt has no Excellent tier, and `appsettings.json` Archidekt > Condition encodes both `NearMint` and `Excellent` as `"NM"` deliberately.
 
 **Language vocabulary** uses Archidekt-specific 2-letter codes that diverge from common conventions for some entries:
 - `EN, DE, FR, IT, ES, PT, RU` (standard ISO)
