@@ -11,17 +11,18 @@ public class FinishConverter(FinishConfiguration configuration) : ITypeConverter
 	// in the repo emits these strings; widening this list silently re-routes other formats'
 	// values, so per-format config aliases are the right long-term fix (tracked as a follow-up
 	// to the tri-state Foil enum below).
-	static readonly string[] FoilVariants = ["Rainbow Foil", "Double Rainbow Foil", "Gilded Foil"];
+	static readonly HashSet<string> FoilVariants = new(StringComparer.OrdinalIgnoreCase)
+		{ "Rainbow Foil", "Double Rainbow Foil", "Gilded Foil" };
 
 	public object? ConvertFromString(string? text, IReaderRow row, MemberMapData memberMapData)
 	{
-		if (string.IsNullOrEmpty(text)) { return false; }
+		if (string.IsNullOrWhiteSpace(text)) { return false; }
 		if (text.MatchesConfig(_finishConfig.Foil)) { return true; }
 		// Etched collapses to foil=true: the current `bool? Foil` model can't represent it.
 		// Tri-state Foil enum is the planned follow-up; see ConvertToString for the matching write-side data loss.
 		if (text.MatchesConfig(_finishConfig.Etched)) { return true; }
 		if (text.MatchesConfig(_finishConfig.Normal)) { return false; }
-		if (FoilVariants.Contains(text, StringComparer.OrdinalIgnoreCase)) { return true; }
+		if (FoilVariants.Contains(text)) { return true; }
 
 		throw new TypeConverterException(this, memberMapData, text, row.Context, $"Unrecognized Foil value '{text}'");
 	}

@@ -12,8 +12,8 @@ public class LanguageConverter(LanguageConfiguration configuration) : ITypeConve
     {
         if (string.IsNullOrEmpty(text)) { return null; }
 
-        // Flipping the operand order (text vs config) so a null config entry safely returns false
-        // rather than throwing NRE — latent bug noted in PR #66 review.
+        // Operand order: text.MatchesConfig(mapping) returns false if either operand is null,
+        // so a format whose appsettings.json omits a language entry doesn't NRE on read.
         return text switch
         {
             _ when text.MatchesConfig(_mappings.en) => nameof(LanguageMappings.en),

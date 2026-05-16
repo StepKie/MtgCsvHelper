@@ -8,8 +8,8 @@ public class CardMapFactory(IConfiguration config, IReferenceCardCatalog catalog
 {
 	readonly List<FormatConfig> _formatConfigs = From(config).ToList();
 
-	public static List<string> Supported { get; } = ["MOXFIELD", "DRAGONSHIELD", "MANABOX", "TOPDECKED", "DECKBOX", "CARDKINGDOM", "MTGGOLDFISH", "TCGPLAYER", "CARDMARKET", "ARCHIDEKT"];
-	public static List<string> NotYetFullySupported { get; } = ["URZAGATHERER"];
+	public static IReadOnlyList<string> Supported { get; } = ["MOXFIELD", "DRAGONSHIELD", "MANABOX", "TOPDECKED", "DECKBOX", "CARDKINGDOM", "MTGGOLDFISH", "TCGPLAYER", "CARDMARKET", "ARCHIDEKT"];
+	public static IReadOnlyList<string> NotYetFullySupported { get; } = ["URZAGATHERER"];
 
 	// Formats whose CSV doesn't carry enough info to populate a complete card without external lookups,
 	// or that don't make sense as targets for our writers.

@@ -11,11 +11,16 @@ public class CardConditionConverter(ConditionConfiguration configuration) : ITyp
 	{
 		// TODO: tighten to reject unmapped values once appsettings supports per-enum aliases —
 		// real Moxfield exports use both "Near Mint" (binder export) and "NM" (collection export).
+		//
+		// Arm order matters: when a format collapses Mint or Excellent to the same string as
+		// NearMint (Archidekt "NM"; Moxfield/Deckbox/TopDecked/TCGPlayer "Near Mint"),
+		// NearMint must be matched FIRST so the ambiguous read resolves to NEAR_MINT rather
+		// than MINT/EXCELLENT. Otherwise a card stored as NearMint round-trips back as Mint.
 #pragma warning disable format
 			return text switch
 			{
-				_ when text.MatchesConfig(_conditionConfig.Mint)			=> CardCondition.MINT,
 				_ when text.MatchesConfig(_conditionConfig.NearMint)		=> CardCondition.NEAR_MINT,
+				_ when text.MatchesConfig(_conditionConfig.Mint)			=> CardCondition.MINT,
 				_ when text.MatchesConfig(_conditionConfig.Excellent)		=> CardCondition.EXCELLENT,
 				_ when text.MatchesConfig(_conditionConfig.Good)			=> CardCondition.GOOD,
 				_ when text.MatchesConfig(_conditionConfig.LightlyPlayed)	=> CardCondition.LIGHTLY_PLAYED,
