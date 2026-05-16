@@ -113,12 +113,12 @@
       "url": "_framework\/Microsoft.JSInterop.ifnm5tv8of.wasm.br"
     },
     {
-      "hash": "sha256-fVDhWX+UF7xyPkLuyHvKFNbxZ6kfqJvmka0YCNldvP8=",
-      "url": "_framework\/MtgCsvHelper.BlazorWebAssembly.mcztbokc0d.wasm.br"
+      "hash": "sha256-yEh6eLbgEa8eTkWRmgR3Js1EHhtW\/ciStIySCP3EwkM=",
+      "url": "_framework\/MtgCsvHelper.BlazorWebAssembly.04f0cw3xrg.wasm.br"
     },
     {
-      "hash": "sha256-8MLI0RPnYm5wctUuaiqPZxqdxVxi0nfyEPfDdTSmCPU=",
-      "url": "_framework\/MtgCsvHelper.s89ytdp4ym.wasm.br"
+      "hash": "sha256-i3S9ge0jyp\/\/cDyYKqc\/eexTKhdFPoV6m84TXYcwJZA=",
+      "url": "_framework\/MtgCsvHelper.hf7uo19w6v.wasm.br"
     },
     {
       "hash": "sha256-z6OLFhcTK2xMFnoNusgUIMKqwxEUNj6eq5siwwrfODI=",
@@ -321,16 +321,16 @@
       "url": "_framework\/blazor.webassembly.js"
     },
     {
-      "hash": "sha256-INdB+xtz8LAnG3zEChiUFkeBsVUzm7r2ViLrEbDpyV0=",
+      "hash": "sha256-pKFZbUSJTM6M20AoP+kf2nPHWRbpa14Sv2M9zLLxBlA=",
       "url": "_framework\/dotnet.js"
-    },
-    {
-      "hash": "sha256-aMf3EBhShO84EH7XE7bhzWPxZgaTUgg1oFkyd6elfOk=",
-      "url": "_framework\/dotnet.native.3feidqqh85.wasm.br"
     },
     {
       "hash": "sha256-okFXds2vNJzYKB55NsSY9eGKjd1yoW0B+oOqjV6Bwlk=",
       "url": "_framework\/dotnet.native.at4snspvvz.js"
+    },
+    {
+      "hash": "sha256-gYUgGBvLodrOWWIOUGmq3YvtEwnUNWnoU\/cQeyHc6+k=",
+      "url": "_framework\/dotnet.native.wuxzhi45to.wasm.br"
     },
     {
       "hash": "sha256-YyudibIWETMKrLb+nAZdJ+xDY7HY6BWf6s32UAdcvCU=",
@@ -353,10 +353,6 @@
       "url": "_framework\/netstandard.p1rwiy4jsy.wasm.br"
     },
     {
-      "hash": "sha256-YPIE1jZvlqLaxW9Wq5ib7HYmXDLkodyhNgJbkJpgIX4=",
-      "url": "appsettings.json"
-    },
-    {
       "hash": "sha256-YsJTr77VHFWbxjKiYf96yFUuOn16bvhMeXXuUDjjKBw=",
       "url": "css\/app.css"
     },
@@ -369,7 +365,7 @@
       "url": "css\/bootstrap\/bootstrap.min.css.map"
     },
     {
-      "hash": "sha256-Sv7r7PZNM9ckRd7eMHNg8blN\/Hirmbge48sGz0+H1i0=",
+      "hash": "sha256-Wi\/0vsJYH7kZkz4hYsIf5sFF\/CgxnNyc0ytws4dejGo=",
       "url": "data\/cards.min.json.gz"
     },
     {
@@ -397,5 +393,5 @@
       "url": "brotliloader.min.js"
     }
   ],
-  "version": "OV1wDe\/P"
+  "version": "lEJ7ugc4"
 };
