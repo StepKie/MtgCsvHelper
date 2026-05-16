@@ -70,7 +70,6 @@ internal static class CardmarketFixtureGenerator
 		var sb = new StringBuilder();
 		sb.AppendLine("idProduct;groupCount;price;idLanguage;condition;isFoil;isSigned;isAltered;isPlayset;isReverseHolo;isFirstEd;isFullArt;isUberRare;isWithDie");
 		int emitted = 0, skipped = 0;
-		var unmappedLanguages = new HashSet<string>();
 
 		foreach (var card in result.Collection.Cards)
 		{
@@ -91,8 +90,12 @@ internal static class CardmarketFixtureGenerator
 			var languageKey = card.Language ?? "en";
 			if (!LanguageToId.TryGetValue(languageKey, out var idLanguage))
 			{
-				unmappedLanguages.Add(languageKey);
-				idLanguage = "1"; // safe fallback to English; flagged in the summary
+				// Skip rather than emit a row claiming the card is English — silent miscoding
+				// would survive the fixture's parse-cleanly invariant and only surface as a
+				// test asserting wrong field values downstream.
+				Console.WriteLine($"  skip: unmapped language '{languageKey}' for {card.Printing.Name} ({setCode} #{collectorNumber})");
+				skipped++;
+				continue;
 			}
 
 			if (!ConditionToId.TryGetValue(card.Condition.Name, out var condition))
@@ -121,11 +124,7 @@ internal static class CardmarketFixtureGenerator
 
 		Console.WriteLine();
 		Console.WriteLine($"Wrote {emitted} rows to {outputPath}");
-		Console.WriteLine($"Skipped {skipped} cards with no cardmarket_id.");
-		if (unmappedLanguages.Count > 0)
-		{
-			Console.WriteLine($"Warning: unmapped languages defaulted to English: {string.Join(", ", unmappedLanguages)}");
-		}
+		Console.WriteLine($"Skipped {skipped} cards (missing cardmarket_id, unmapped language, or unmapped condition).");
 	}
 
 	// Walks up from the tool's bin/ output directory to find the repo root (identified by .slnx).
