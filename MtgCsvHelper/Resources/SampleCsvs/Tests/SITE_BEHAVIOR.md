@@ -2,6 +2,8 @@
 
 How each format's site behaves on import/export — what it drops, what it enriches, what it normalizes, validation quirks. Filled in as we round-trip the per-format `reference-collection.csv` through each site.
 
+> **For the user-facing summary of cross-format data loss, see [`/CONVERSION_LIMITATIONS.md`](../../../../CONVERSION_LIMITATIONS.md) at the repo root.** This file is the per-format operational reference behind that summary.
+
 Conventions:
 - **Drops on export**: columns present on import that the site does not re-emit.
 - **Enriches on import**: data the site fills in or looks up from its own database.

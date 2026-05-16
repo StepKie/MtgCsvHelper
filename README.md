@@ -31,7 +31,8 @@ The version displayed in the upper right corner should match the last commit id 
 
 ## Limitations / Known Issues
 
-* Currently, sites that export data in non-standard formats for certain sets (i.e., not adhering to Scryfall syntax) may cause issues for certain cards when rewriting to another format
+* **Data loss between formats is sometimes unavoidable.** See [CONVERSION_LIMITATIONS.md](CONVERSION_LIMITATIONS.md) for the full per-format matrix — what each platform supports (Etched, conditions, languages, set-name aliases) and where round-trip conversions silently coerce or drop fields. Read it before you trust a cross-format round-trip.
+* Sites that export data in non-standard formats for certain sets (i.e., not adhering to Scryfall syntax) may cause issues for certain cards when rewriting to another format
   * most often, this relates to non-standard set or card names. Examples are compilation sets like Mystery Boosters or how special printings (Borderless, etc.) are encoded
   * e.g. examples: issues [#23](https://github.com/StepKie/MtgCsvHelper/issues/23),  [#24](https://github.com/StepKie/MtgCsvHelper/issues/24),  [#3](https://github.com/StepKie/MtgCsvHelper/issues/3)
 
