@@ -38,11 +38,6 @@
   </ItemGroup>
 
   <ItemGroup>
-    <Content Update="wwwroot\appsettings.json">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-      <ExcludeFromSingleFile>true</ExcludeFromSingleFile>
-      <CopyToPublishDirectory>PreserveNewest</CopyToPublishDirectory>
-    </Content>
     <Content Update="wwwroot\appsettings.Development.json">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
       <ExcludeFromSingleFile>true</ExcludeFromSingleFile>
@@ -53,6 +48,15 @@
   <!-- Copy README.md from repository root directory to wwwroot so it is available in About -->
   <Target Name="CopyReadme" AfterTargets="Build">
     <Copy SourceFiles="..\README.md" DestinationFolder="wwwroot" />
+  </Target>
+
+  <!-- Stage MtgCsvHelper/appsettings.json into wwwroot before the static-web-asset pipeline
+       so Blazor serves the canonical single-source-of-truth config. The copy is gitignored
+       at wwwroot/appsettings.json so the duplicate doesn't sneak back into the repo. -->
+  <Target Name="StageAppsettings" BeforeTargets="ResolveStaticWebAssetsInputs;BeforeBuild">
+    <Copy SourceFiles="..\MtgCsvHelper\appsettings.json"
+          DestinationFiles="wwwroot\appsettings.json"
+          SkipUnchangedFiles="true" />
   </Target>
 
 </Project>

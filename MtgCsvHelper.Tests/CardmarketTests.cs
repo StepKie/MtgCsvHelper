@@ -6,7 +6,7 @@ namespace MtgCsvHelper.Tests;
 [Collection(CatalogCollection.Name)]
 public class CardmarketTests(CatalogFixture fixture, ITestOutputHelper output) : ApiBaseTest(fixture, output)
 {
-	const string SamplePath = "Resources/SampleCsvs/Samples/cardmarket-sample.csv";
+	const string SamplePath = "Resources/SampleCsvs/Tests/cardmarket-field-fidelity.csv";
 
 	static MemoryStream CsvStream(string csv) => new(Encoding.UTF8.GetBytes(csv));
 

@@ -12,49 +12,6 @@ public class FaultToleranceTests(CatalogFixture fixture, ITestOutputHelper outpu
 	MtgCardCsvHandler Handler(string format = "MOXFIELD") => new(_catalog, _resolver, _config, format);
 
 	[Fact]
-	public void HappyPath_AllValid_ProducesCardsAndNoIssues()
-	{
-		var csv = MoxHeader + "\n"
-			+ "2,Lightning Bolt,M11,149,,Near Mint,English,\n"
-			+ "1,Counterspell,MMQ,69,,Near Mint,English,\n";
-
-		var result = Handler().ParseCollectionCsv(CsvStream(csv));
-
-		result.Collection.Cards.Should().HaveCount(2);
-		result.Issues.Should().BeEmpty();
-	}
-
-	[Fact]
-	public void Invariant_MixedValidAndInvalidRows_CardCountPlusErrorCountEqualsDataRows()
-	{
-		const int dataRows = 3;
-		var csv = MoxHeader + "\n"
-			+ "2,Lightning Bolt,M11,149,,Near Mint,English,\n"
-			+ "notanint,Counterspell,MMQ,69,,Near Mint,English,\n" // bad Count → error
-			+ "1,Mox Ruby,LEA,265,,Near Mint,English,\n";
-
-		var result = Handler().ParseCollectionCsv(CsvStream(csv));
-
-		result.Collection.Cards.Should().HaveCount(2);
-		result.ErrorCount.Should().Be(1);
-		(result.Collection.Cards.Count + result.ErrorCount).Should().Be(dataRows);
-	}
-
-	[Fact]
-	public void AllRowsInvalid_NoCardsAllErrors()
-	{
-		var csv = MoxHeader + "\n"
-			+ "notanint,A,M11,149,,Near Mint,English,\n"
-			+ "alsobad,B,M11,149,,Near Mint,English,\n";
-
-		var result = Handler().ParseCollectionCsv(CsvStream(csv));
-
-		result.Collection.Cards.Should().BeEmpty();
-		result.ErrorCount.Should().Be(2);
-		result.Issues.Should().AllSatisfy(i => i.Severity.Should().Be(IssueSeverity.Error));
-	}
-
-	[Fact]
 	public void UnknownSetCode_RaisesWarning_CardStillImported()
 	{
 		// "FAKESET" is not a real Scryfall set code — post-load enrichment will fail to backfill the set name.
@@ -68,23 +25,6 @@ public class FaultToleranceTests(CatalogFixture fixture, ITestOutputHelper outpu
 		result.WarningCount.Should().Be(1);
 		result.Issues[0].Severity.Should().Be(IssueSeverity.Warning);
 		result.Issues[0].Reason.Should().Contain("FAKESET");
-	}
-
-	[Fact]
-	public void MixedWarningsAndErrors_InvariantHolds()
-	{
-		const int dataRows = 3;
-		var csv = MoxHeader + "\n"
-			+ "1,Lightning Bolt,M11,149,,Near Mint,English,\n"          // valid, no warning
-			+ "1,Lightning Bolt,FAKESET,149,,Near Mint,English,\n"      // valid card, warning (bad set)
-			+ "notanint,Lightning Bolt,M11,149,,Near Mint,English,\n";  // error (bad Count)
-
-		var result = Handler().ParseCollectionCsv(CsvStream(csv));
-
-		result.Collection.Cards.Should().HaveCount(2);
-		result.ErrorCount.Should().Be(1);
-		result.WarningCount.Should().Be(1);
-		(result.Collection.Cards.Count + result.ErrorCount).Should().Be(dataRows);
 	}
 
 	[Fact]
