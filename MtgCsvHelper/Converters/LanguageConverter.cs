@@ -12,19 +12,21 @@ public class LanguageConverter(LanguageConfiguration configuration) : ITypeConve
     {
         if (string.IsNullOrEmpty(text)) { return null; }
 
+        // Flipping the operand order (text vs config) so a null config entry safely returns false
+        // rather than throwing NRE — latent bug noted in PR #66 review.
         return text switch
         {
-            _ when _mappings.en.Equals(text) => nameof(LanguageMappings.en),
-            _ when _mappings.es.Equals(text) => nameof(LanguageMappings.es),
-            _ when _mappings.fr.Equals(text) => nameof(LanguageMappings.fr),
-            _ when _mappings.de.Equals(text) => nameof(LanguageMappings.de),
-            _ when _mappings.it.Equals(text) => nameof(LanguageMappings.it),
-            _ when _mappings.pt.Equals(text) => nameof(LanguageMappings.pt),
-            _ when _mappings.ja.Equals(text) => nameof(LanguageMappings.ja),
-            _ when _mappings.ko.Equals(text) => nameof(LanguageMappings.ko),
-            _ when _mappings.ru.Equals(text) => nameof(LanguageMappings.ru),
-            _ when _mappings.zht.Equals(text) => nameof(LanguageMappings.zht),
-            _ when _mappings.zhs.Equals(text) => nameof(LanguageMappings.zhs),
+            _ when text.MatchesConfig(_mappings.en) => nameof(LanguageMappings.en),
+            _ when text.MatchesConfig(_mappings.es) => nameof(LanguageMappings.es),
+            _ when text.MatchesConfig(_mappings.fr) => nameof(LanguageMappings.fr),
+            _ when text.MatchesConfig(_mappings.de) => nameof(LanguageMappings.de),
+            _ when text.MatchesConfig(_mappings.it) => nameof(LanguageMappings.it),
+            _ when text.MatchesConfig(_mappings.pt) => nameof(LanguageMappings.pt),
+            _ when text.MatchesConfig(_mappings.ja) => nameof(LanguageMappings.ja),
+            _ when text.MatchesConfig(_mappings.ko) => nameof(LanguageMappings.ko),
+            _ when text.MatchesConfig(_mappings.ru) => nameof(LanguageMappings.ru),
+            _ when text.MatchesConfig(_mappings.zht) => nameof(LanguageMappings.zht),
+            _ when text.MatchesConfig(_mappings.zhs) => nameof(LanguageMappings.zhs),
             _ => throw new TypeConverterException(this, memberMapData, text, row.Context, $"Unrecognized Language value '{text}'"),
         };
     }

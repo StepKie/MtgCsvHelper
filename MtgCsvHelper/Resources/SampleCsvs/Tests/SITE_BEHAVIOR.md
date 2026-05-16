@@ -245,7 +245,20 @@ Status: 43/43 rows round-trip cleanly (May 2026). Full parity with Moxfield. Clo
 
 **Foil values**: `Normal` / `Foil` / `Etched` — supports all three Scryfall finishes cleanly.
 
-**Condition vocabulary**: only 6 strings (`M, NM, LP, MP, HP, D`) — no separate Excellent value. Our 7-enum model collapses `Excellent` → `NM` on writes (same pattern as Moxfield). The map is one-way: an internal `Excellent` written as `"NM"` round-trips back as `NearMint`, since `CardConditionConverter` resolves `"NM"` to the first match (`NearMint`). Intentional — Archidekt has no Excellent tier, and `appsettings.json` Archidekt > Condition encodes both `NearMint` and `Excellent` as `"NM"` deliberately.
+**Condition vocabulary**: TCGPlayer-standard 5 strings (`NM, LP, MP, HP, D`) — no Mint, no Excellent. Our 7-enum model collapses both `Mint` and `Excellent` to `"NM"` on writes (same pattern as Moxfield's Excellent collapse). The map is one-way: internal `Mint` or `Excellent` written as `"NM"` round-trips back as `NearMint`, since `CardConditionConverter` resolves `"NM"` to the first match (`NearMint`).
+
+**Archidekt's moxfield-format importer is lossy on conditions** (mirroring DragonShield's pattern). Importing our 6 distinct moxfield condition strings, Archidekt re-emits only 4:
+
+| Moxfield string we wrote | Archidekt re-export |
+|---|---|
+| `Mint` | `NM` (Archidekt has no Mint) |
+| `Near Mint` | `NM` ✓ |
+| `Good (Lightly Played)` | **`NM`** (cross-format importer doesn't recognize the parenthetical) |
+| `Played` (Moxfield's LightlyPlayed equivalent) | `MP` ✓ |
+| `Heavily Played` (Moxfield's Played equivalent) | `HP` ✓ |
+| `Damaged` | `D` ✓ |
+
+The LP collapse is **specific to Archidekt's moxfield-importer**, not their condition vocabulary — their UI dropdown has `LP` as a valid option, but the moxfield cross-import doesn't map our literal `"Good (Lightly Played)"` string to it.
 
 **Language vocabulary** uses Archidekt-specific 2-letter codes that diverge from common conventions for some entries:
 - `EN, DE, FR, IT, ES, PT, RU` (standard ISO)

@@ -14,14 +14,14 @@ public class CardConditionConverter(ConditionConfiguration configuration) : ITyp
 #pragma warning disable format
 			return text switch
 			{
-				_ when _conditionConfig.Mint.Equals(text)			=> CardCondition.MINT,
-				_ when _conditionConfig.NearMint.Equals(text)		=> CardCondition.NEAR_MINT,
-				_ when _conditionConfig.Excellent.Equals(text)		=> CardCondition.EXCELLENT,
-				_ when _conditionConfig.Good.Equals(text)			=> CardCondition.GOOD,
-				_ when _conditionConfig.LightlyPlayed.Equals(text)	=> CardCondition.LIGHTLY_PLAYED,
-				_ when _conditionConfig.Played.Equals(text)			=> CardCondition.PLAYED,
-				_ when _conditionConfig.Poor.Equals(text)			=> CardCondition.POOR,
-				_													=> CardCondition.UNKNOWN,
+				_ when text.MatchesConfig(_conditionConfig.Mint)			=> CardCondition.MINT,
+				_ when text.MatchesConfig(_conditionConfig.NearMint)		=> CardCondition.NEAR_MINT,
+				_ when text.MatchesConfig(_conditionConfig.Excellent)		=> CardCondition.EXCELLENT,
+				_ when text.MatchesConfig(_conditionConfig.Good)			=> CardCondition.GOOD,
+				_ when text.MatchesConfig(_conditionConfig.LightlyPlayed)	=> CardCondition.LIGHTLY_PLAYED,
+				_ when text.MatchesConfig(_conditionConfig.Played)			=> CardCondition.PLAYED,
+				_ when text.MatchesConfig(_conditionConfig.Poor)			=> CardCondition.POOR,
+				_															=> CardCondition.UNKNOWN,
 			};
 
 		}
