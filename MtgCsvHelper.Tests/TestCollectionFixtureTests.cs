@@ -22,14 +22,6 @@ public class TestCollectionFixtureTests(CatalogFixture fixture, ITestOutputHelpe
 
 	static TheoryData<string> DiscoverFixtures(string searchPattern)
 	{
-		// Surface missing-directory cases with the actionable message rather than letting
-		// Directory.EnumerateFiles throw an opaque DirectoryNotFoundException.
-		if (!Directory.Exists(TestCollectionsRoot))
-		{
-			throw new InvalidOperationException(
-				$"Fixture root '{TestCollectionsRoot}' does not exist. Check CopyToOutputDirectory in the .csproj.");
-		}
-
 		var data = new TheoryData<string>();
 		foreach (var path in Directory.EnumerateFiles(TestCollectionsRoot, searchPattern, SearchOption.TopDirectoryOnly))
 		{

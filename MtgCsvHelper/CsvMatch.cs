@@ -7,7 +7,7 @@ namespace MtgCsvHelper;
 /// <c>"Normal"</c>), and hand-edited exports compound it. Documented once here; all converters
 /// use this rather than calling <c>string.Equals</c> with an explicit comparer arg.
 /// </summary>
-public static class CsvMatch
+internal static class CsvMatch
 {
 	/// <summary>
 	/// True if <paramref name="input"/> matches <paramref name="configValue"/> ignoring case.
