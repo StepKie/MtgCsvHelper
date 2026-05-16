@@ -260,9 +260,24 @@ Status: 43/43 rows round-trip cleanly (May 2026). Full parity with Moxfield. Clo
 
 ## Cardmarket (read-only, by `idProduct`)
 
-Status: not approached — different shape from the per-format pattern.
+Status: 40 rows (May 2026). Generated from `moxfield-reference-collection.csv` via `tools/MtgCsvHelper.RefreshReferenceData -- cardmarket-fixture`. The generator parses the moxfield reference, looks up each printing's `cardmarket_id` in the catalog, and emits a Cardmarket-shaped row. 3 of the 43 moxfield rows had no `cardmarket_id` and were skipped: Clue token (tmh2 #14), Treasure token (tclb #17), Demonic Tutor 30th Anniversary (30a #101) — Cardmarket doesn't list those products.
 
-Cardmarket imports cards by `idProduct` (cardmarket_id, an integer) plus per-row condition, language, finish — not by Name + Set + Collector Number. A reference-collection for Cardmarket would need real `idProduct` values looked up from the catalog. Defer to a follow-up.
+**Schema:** 14-column semicolon-delimited CSV from cardmarket.com's "Manage Stock" export.
+`idProduct;groupCount;price;idLanguage;condition;isFoil;isSigned;isAltered;isPlayset;isReverseHolo;isFirstEd;isFullArt;isUberRare;isWithDie`
+
+Card resolution is `idProduct` → Scryfall reverse-lookup (`/cards/cardmarket/{id}`); Name, Set, Collector Number are absent and filled in by enrichment. Different language versions of the same printing share an `idProduct` — language/condition/foil are per-listing attributes, not part of the product key.
+
+**Field mapping verifications:**
+
+- `idLanguage` (1–11) — verified against the MKM REST API v2.0 docs ([`API_2.0:Stock`](https://api.cardmarket.com/ws/documentation/API_2.0:Stock)) and the `pymkm` wrapper. Mapping: `1=en, 2=fr, 3=de, 4=es, 5=it, 6=zhs, 7=ja, 8=pt, 9=ru, 10=ko, 11=zht`.
+- `condition` (integers 1–7 in the CSV export) — **not officially documented**. The REST API itself uses two-letter string codes (`MT, NM, EX, GD, LP, PL, PO`); the website's stock CSV switches to integers, confirmed by [`demogorgon1/mkmcsv`](https://github.com/demogorgon1/mkmcsv) ("Cardmarket CSVs use integers; manual shipment lists use abbreviated strings"). The integer mapping is the natural ordering of the string codes (`1=MT, 2=NM, …, 7=PO`); empirically validated against a real 113-row export (commit `af36b6c1`).
+- `isFoil` — `"1"` for foil, empty for non-foil. Cardmarket doesn't track Etched as a separate finish, so etched printings collapse to `isFoil=1` on write (same lossy collapse as our `bool? Foil` model).
+
+**Coverage in the generated fixture:**
+
+- All 11 `idLanguage` values via the 11 Lightning Bolt M11 #149 language rows.
+- Conditions `1, 2, 4, 5, 6, 7` (six of seven). `3=Excellent` is structurally missing: moxfield's `Excellent` collapses to `"Near Mint"` in its appsettings, so no moxfield row produces a parsed `CardCondition.EXCELLENT`. Synthetic field-fidelity coverage of `condition=3` lives in `cardmarket-field-fidelity.csv`.
+- `isFoil=1` exercised by 8 rows (Aragorn foil, Lightning Bolt foils, Demonic Tutor variants, Disciplined Duelist).
 
 ---
 
