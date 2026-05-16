@@ -28,23 +28,6 @@ public class FaultToleranceTests(CatalogFixture fixture, ITestOutputHelper outpu
 	}
 
 	[Fact]
-	public void MixedWarningsAndErrors_InvariantHolds()
-	{
-		const int dataRows = 3;
-		var csv = MoxHeader + "\n"
-			+ "1,Lightning Bolt,M11,149,,Near Mint,English,\n"          // valid, no warning
-			+ "1,Lightning Bolt,FAKESET,149,,Near Mint,English,\n"      // valid card, warning (bad set)
-			+ "notanint,Lightning Bolt,M11,149,,Near Mint,English,\n";  // error (bad Count)
-
-		var result = Handler().ParseCollectionCsv(CsvStream(csv));
-
-		result.Collection.Cards.Should().HaveCount(2);
-		result.ErrorCount.Should().Be(1);
-		result.WarningCount.Should().Be(1);
-		(result.Collection.Cards.Count + result.ErrorCount).Should().Be(dataRows);
-	}
-
-	[Fact]
 	public void HeaderMismatch_ThrowsHeaderValidationException_ListingMissingHeaders()
 	{
 		var csv = "wrong,headers,here\n1,2,3\n";

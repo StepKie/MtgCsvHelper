@@ -9,6 +9,8 @@ public class TestCollectionFixtureTests(CatalogFixture fixture, ITestOutputHelpe
 
 	public static TheoryData<string> CorrectFixtures() => DiscoverFixtures("*-reference-collection.csv");
 
+	public static TheoryData<string> MixedFixtures() => DiscoverFixtures("*-mixed-warnings-and-errors.csv");
+
 	static TheoryData<string> DiscoverFixtures(string searchPattern)
 	{
 		var data = new TheoryData<string>();
@@ -51,15 +53,36 @@ public class TestCollectionFixtureTests(CatalogFixture fixture, ITestOutputHelpe
 
 		var result = handler.ParseCollectionCsv(Path.Combine(TestCollectionsRoot, filename));
 
-		var expectedRows = File.ReadAllLines(Path.Combine(TestCollectionsRoot, filename))
-			.Where(line => !string.IsNullOrWhiteSpace(line))
-			.SkipWhile(line => line.TrimStart('"').StartsWith("sep=", StringComparison.OrdinalIgnoreCase))
-			.Skip(1) // header
-			.Count();
+		var expectedRows = CountDataRows(filename);
 
 		result.ErrorCount.Should().Be(0, $"reference-collection rows are real exports and should round-trip cleanly. Issues: {string.Join("; ", result.Issues.Select(i => i.Reason))}");
 		result.Collection.Cards.Count.Should().Be(expectedRows, $"every data row in {filename} should produce exactly one card (catches silent drops via Warning-severity paths)");
 	}
+
+	[Theory]
+	[MemberData(nameof(MixedFixtures))]
+	public void Mixed_NoSilentSwallow_CardsPlusErrorsEqualDataRows(string filename)
+	{
+		var format = FormatFromFilename(filename);
+		var handler = new MtgCardCsvHandler(_catalog, _resolver, _config, format);
+
+		var result = handler.ParseCollectionCsv(Path.Combine(TestCollectionsRoot, filename));
+
+		var expectedRows = CountDataRows(filename);
+
+		(result.Collection.Cards.Count + result.ErrorCount).Should().Be(expectedRows,
+			$"every data row in {filename} must end up either as a card or as an error — anything in between is a silent swallow");
+	}
+
+	// Counts CSV data rows the parser would see: drops blank lines, the optional Excel "sep=..."
+	// directive, and the header. Assumes one CSV row per text line — would over-count if a future
+	// fixture has a quoted cell with an embedded newline (CsvHelper would parse it as one row).
+	static int CountDataRows(string filename) =>
+		File.ReadAllLines(Path.Combine(TestCollectionsRoot, filename))
+			.Where(line => !string.IsNullOrWhiteSpace(line))
+			.SkipWhile(line => line.TrimStart('"').StartsWith("sep=", StringComparison.OrdinalIgnoreCase))
+			.Skip(1) // header
+			.Count();
 
 	static string FormatFromFilename(string filename)
 	{

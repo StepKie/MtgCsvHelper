@@ -16,11 +16,11 @@ public class FinishConverter(FinishConfiguration configuration) : ITypeConverter
 	public object? ConvertFromString(string? text, IReaderRow row, MemberMapData memberMapData)
 	{
 		if (string.IsNullOrEmpty(text)) { return false; }
-		if (_finishConfig.Foil is not null && text.Equals(_finishConfig.Foil)) { return true; }
+		if (_finishConfig.Foil is not null && text.Equals(_finishConfig.Foil, StringComparison.Ordinal)) { return true; }
 		// Etched collapses to foil=true: the current `bool? Foil` model can't represent it.
 		// Tri-state Foil enum is the planned follow-up; see ConvertToString for the matching write-side data loss.
-		if (_finishConfig.Etched is not null && text.Equals(_finishConfig.Etched)) { return true; }
-		if (_finishConfig.Normal is not null && text.Equals(_finishConfig.Normal)) { return false; }
+		if (_finishConfig.Etched is not null && text.Equals(_finishConfig.Etched, StringComparison.Ordinal)) { return true; }
+		if (_finishConfig.Normal is not null && text.Equals(_finishConfig.Normal, StringComparison.Ordinal)) { return false; }
 		if (FoilVariants.Contains(text, StringComparer.Ordinal)) { return true; }
 
 		throw new TypeConverterException(this, memberMapData, text, row.Context, $"Unrecognized Foil value '{text}'");
