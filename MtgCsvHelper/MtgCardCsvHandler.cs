@@ -69,6 +69,15 @@ public class MtgCardCsvHandler
 			try
 			{
 				var card = csv.GetRecord<PhysicalMtgCard>();
+				if (card.Count <= 0)
+				{
+					issues.Add(new ImportIssue(
+						IssueSeverity.Error,
+						rowNum,
+						$"Count must be positive (got {card.Count})",
+						RawContent: csv.Parser.RawRecord?.TrimEnd()));
+					continue;
+				}
 				// For non-cardmarket formats, the printing's Name is set during parse; backfill set info now.
 				// For cardmarket-style stubs (Name empty, CardMarketId set), defer to the cardmarket enricher.
 				if (!string.IsNullOrEmpty(card.Printing.Name))

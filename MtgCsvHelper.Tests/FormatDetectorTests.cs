@@ -12,6 +12,7 @@ public class FormatDetectorTests(ITestOutputHelper output) : BaseTest(output)
 	[InlineData("Count,Tradelist Count,Name,Edition Code,Edition,Card Number,Condition,Language,Foil,My Price", "DECKBOX")]
 	[InlineData("Quantity,Simple Name,Set Code,Set,Card Number,Printing,Condition,Language", "TCGPLAYER")]
 	[InlineData("Card,Set ID,Set Name,Quantity,Foil,Collector Number", "MTGGOLDFISH")]
+	[InlineData("Quantity,Name,Finish,Condition,Date Added,Language,Purchase Price,Tags,Edition Name,Edition Code,Multiverse Id,Scryfall ID,Collector Number", "ARCHIDEKT")]
 	[InlineData("idProduct;groupCount;isFoil;condition;idLanguage;price", "CARDMARKET")]
 	// CARDKINGDOM uses lowercase headers, distinct from any other format in the configured set.
 	// No matching fixture in Resources/SampleCsvs/Collection (the sample file uses Title-Case

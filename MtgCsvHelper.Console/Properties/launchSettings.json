@@ -2,11 +2,11 @@
   "profiles": {
     "MfToMb": {
       "commandName": "Project",
-      "commandLineArgs": "-f Resources/SampleCsvs/Samples/moxfield*.csv --in MOXFIELD --out MANABOX"
+      "commandLineArgs": "-f Resources/SampleCsvs/Tests/moxfield-field-fidelity.csv --in MOXFIELD --out MANABOX"
     },
     "DsToMf": {
       "commandName": "Project",
-      "commandLineArgs": "-f Resources/SampleCsvs/Samples/dragonshield-sample.csv --in DRAGONSHIELD --out MOXFIELD"
+      "commandLineArgs": "-f Resources/SampleCsvs/Tests/dragonshield-field-fidelity.csv --in DRAGONSHIELD --out MOXFIELD"
     }
   }
 }

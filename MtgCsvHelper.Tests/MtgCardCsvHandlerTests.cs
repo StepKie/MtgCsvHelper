@@ -6,7 +6,7 @@ namespace MtgCsvHelper.Tests;
 [Collection(CatalogCollection.Name)]
 public class MtgCardCsvHandlerTests(CatalogFixture fixture, ITestOutputHelper output) : ApiBaseTest(fixture, output)
 {
-	public const string SAMPLES_FOLDER = "Resources/SampleCsvs/Samples";
+	public const string TESTS_FOLDER = "Resources/SampleCsvs/Tests";
 	public const string COLLECTIONS_FOLDER = "Resources/SampleCsvs/Collection";
 
 	[Theory]
@@ -31,11 +31,11 @@ public class MtgCardCsvHandlerTests(CatalogFixture fixture, ITestOutputHelper ou
 	}
 
 	[Theory]
-	[InlineData($"{SAMPLES_FOLDER}/dragonshield-sample.csv", "DRAGONSHIELD", "USD")]
-	[InlineData($"{SAMPLES_FOLDER}/moxfield-sample.csv", "MOXFIELD", "EUR")]
-	[InlineData($"{SAMPLES_FOLDER}/manabox-sample.csv", "MANABOX", "USD")]
-	[InlineData($"{SAMPLES_FOLDER}/topdecked-sample.csv", "TOPDECKED", "USD")]
-	//[InlineData($"{SAMPLES_FOLDER}/deckbox-sample.csv", "DECKBOX", "USD")] // TODO special Deckbox set names.
+	[InlineData($"{TESTS_FOLDER}/dragonshield-field-fidelity.csv", "DRAGONSHIELD", "USD")]
+	[InlineData($"{TESTS_FOLDER}/moxfield-field-fidelity.csv", "MOXFIELD", "EUR")]
+	[InlineData($"{TESTS_FOLDER}/manabox-field-fidelity.csv", "MANABOX", "USD")]
+	[InlineData($"{TESTS_FOLDER}/topdecked-field-fidelity.csv", "TOPDECKED", "USD")]
+	//[InlineData($"{TESTS_FOLDER}/deckbox-field-fidelity.csv", "DECKBOX", "USD")] // TODO #31 (Deckbox set-name aliases).
 	public void ParseSampleCsv_WithValidInput_ParsesCards(string csvFilePath, string deckFormatName, string currency)
 	{
 		// Arrange

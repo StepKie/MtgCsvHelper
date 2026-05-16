@@ -3,13 +3,20 @@ using System.Net.Http.Json;
 using System.Text.Json;
 using System.Text.Json.Serialization;
 using MtgCsvHelper;
+using MtgCsvHelper.RefreshReferenceData;
 
-// Refresh the bundled ReferenceCard catalog by downloading Scryfall's `default_cards`
-// bulk file, stripping each card to the fields ReferenceCard needs, and writing the
-// result as gzipped JSON to a target path.
+// Two sub-commands:
+//   (default)            refresh the bundled ReferenceCard catalog from Scryfall's default_cards.
+//   cardmarket-fixture   regenerate Tests/cardmarket-reference-collection.csv from the moxfield reference.
 //
 // Usage:  dotnet run --project tools/MtgCsvHelper.RefreshReferenceData -- [<output-path>]
-//         (default output: MtgCsvHelper.BlazorWebAssembly/wwwroot/data/cards.min.json.gz)
+//         dotnet run --project tools/MtgCsvHelper.RefreshReferenceData -- cardmarket-fixture
+
+if (args.Length > 0 && args[0] == "cardmarket-fixture")
+{
+	await CardmarketFixtureGenerator.RunAsync();
+	return;
+}
 
 string defaultOutput = Path.GetFullPath(Path.Combine(
 	AppContext.BaseDirectory, "..", "..", "..", "..", "..",

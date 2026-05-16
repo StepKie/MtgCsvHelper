@@ -40,7 +40,16 @@ using IHost host = builder.Build();
 
 // Ask the service provider for the configuration abstraction.
 var config = host.Services.GetRequiredService<IConfiguration>();
-Log.Logger = new LoggerConfiguration().ReadFrom.Configuration(config).CreateLogger();
+
+// Console-specific Serilog setup. The base (MinimumLevel + Debug sink + output template) lives
+// in AppLogging so tests share it; Console layers on Console + File sinks here. Kept in code
+// rather than appsettings.json so the shared appsettings can be linked into Blazor (which uses
+// BrowserConsole instead — see appsettings.Development.json).
+Log.Logger = AppLogging.CreateDefaultLoggerConfig()
+	.Enrich.FromLogContext()
+	.WriteTo.Console(outputTemplate: AppLogging.DEFAULT_OUTPUT_TEMPLATE)
+	.WriteTo.File("Logs/log.txt", outputTemplate: AppLogging.DEFAULT_OUTPUT_TEMPLATE)
+	.CreateLogger();
 
 var resolver = host.Services.GetRequiredService<ICardmarketResolver>();
 Log.Information("Loaded reference catalog: {Count:N0} printings.", catalog.Count);
