@@ -74,6 +74,24 @@ public class MtgCardCsvHandlerTests(CatalogFixture fixture, ITestOutputHelper ou
 		cards.Should().HaveCountGreaterThan(500);
 	}
 
+	[Fact]
+	public void Mtgo_AllRowsParse_WithCollectorNumberStrippedAndMtgoCodeAliased()
+	{
+		// MTGO fixture has 7 rows of old-set printings (Mirage, Visions, Tempest, Exodus).
+		// Two MTGO-specific quirks the parser handles: collector numbers in "N/M" form
+		// (116/350 → 116) and 2-letter set codes (MI → MIR via the bundled mtgo_code map).
+		var handler = CreateHandler("MTGO");
+		var result = handler.ParseCollectionCsv($"{COLLECTIONS_FOLDER}/mtgo-collection.csv");
+
+		result.Collection.Cards.Should().HaveCount(7);
+		result.ErrorCount.Should().Be(0,
+			$"all 7 rows are real printings with valid (Set, Collector#) once aliased. Issues: {string.Join("; ", result.Issues.Select(i => i.Reason))}");
+
+		// "116/350" → "116" stripping verification.
+		result.Collection.Cards.Select(c => c.Printing.CollectorNumber)
+			.Should().AllSatisfy(n => n.Should().NotContain("/"));
+	}
+
 	MtgCardCsvHandler CreateHandler(string deckFormatName) => new(_catalog, _resolver, _config, deckFormatName);
 
 	static List<PhysicalMtgCard> GetReferenceCards(Currency currency)

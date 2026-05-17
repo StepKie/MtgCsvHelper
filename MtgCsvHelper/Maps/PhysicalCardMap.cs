@@ -30,7 +30,7 @@ public class PhysicalCardMap : ClassMap<PhysicalMtgCard>
 		}
 
 		// At least one of SetCode / SetName is expected per format (sites differ on which they include).
-		MapOptional(c => c.Printing.CollectorNumber, cfg.SetNumber);
+		MapOptional(c => c.Printing.CollectorNumber, cfg.SetNumber)?.TypeConverter<CollectorNumberConverter>();
 		MapOptional(c => c.Printing.Set, cfg.SetCode)?.TypeConverter<UpperCaseConverter>();
 		MapOptional(c => c.Printing.SetName, cfg.SetName);
 

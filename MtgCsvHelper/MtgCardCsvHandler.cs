@@ -138,9 +138,7 @@ public class MtgCardCsvHandler
 		// Missing Set/CollectorNumber already warned by EnrichSetInfo; double-erroring would be noise.
 		if (string.IsNullOrEmpty(p.Set) || string.IsNullOrEmpty(p.CollectorNumber)) { return true; }
 
-		// Scryfall stores set codes lowercase; FindBySetAndCollectorNumber's key is case-sensitive
-		// on the tuple. Imported CSVs use either case (Moxfield uppercase, Topdecked lowercase).
-		var match = catalog.FindBySetAndCollectorNumber(p.Set.ToLowerInvariant(), p.CollectorNumber);
+		var match = catalog.FindBySetAndCollectorNumber(p.Set, p.CollectorNumber);
 		if (match is null)
 		{
 			issues.Add(new ImportIssue(IssueSeverity.Error, rowNum,

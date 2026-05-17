@@ -58,9 +58,10 @@ public class TestCollectionFixtureTests(CatalogFixture fixture, ITestOutputHelpe
 	// still enforces "no silent drops" (cards + errors == data rows).
 	static readonly IReadOnlyDictionary<string, (int ExpectedErrors, string TrackingIssue)> KnownDivergence = new Dictionary<string, (int, string)>
 	{
-		// Deckbox emits internal token codes (EX_127, EX_145), legacy aliases (1E, AL, AP), and
-		// renamed list code PLIST → Scryfall plst. Aliasing table tracked by #31.
-		["deckbox-reference-collection.csv"] = (ExpectedErrors: 8, TrackingIssue: "#31"),
+		// Deckbox emits internal token codes (EX_127, EX_145), legacy aliases (PLIST x2, 1E, AP),
+		// and renamed list code PLIST → Scryfall plst. The MTGO alias map now rescues one of the
+		// originally-8 errors (AL → ALL via mtgo_code); remaining aliasing tracked by #31.
+		["deckbox-reference-collection.csv"] = (ExpectedErrors: 7, TrackingIssue: "#31"),
 	};
 
 	[Theory]

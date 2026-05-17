@@ -27,8 +27,8 @@ public sealed class ReferenceCardCatalog : IReferenceCardCatalog
 	readonly Dictionary<int, ReferenceCard> _byCardmarketId;
 	readonly Dictionary<(string Set, string CollectorNumber), ReferenceCard> _bySetAndCollector;
 	readonly Dictionary<string, string> _sets;
-	readonly Dictionary<string, string> _setCodeByName;     // "Innistrad" -> "ISD" (uppercase)
-	readonly HashSet<string> _doubleFacedNames;
+	readonly Dictionary<string, string> _setCodeByName;     // "Innistrad" -> "ISD"
+	readonly Dictionary<string, string> _setCodeByMtgoCode; // "MI" -> "MIR"
 	readonly Dictionary<string, string> _frontFaceToFull;  // "Delver of Secrets" -> "Delver of Secrets // Insectile Aberration"
 	readonly HashSet<string> _tokenNames;
 
@@ -41,12 +41,14 @@ public sealed class ReferenceCardCatalog : IReferenceCardCatalog
 		_byId = new(cards.Count);
 		_byCardmarketId = [];
 		_bySetAndCollector = new(cards.Count);
-		_sets = new(StringComparer.OrdinalIgnoreCase);
-		_setCodeByName = new(StringComparer.OrdinalIgnoreCase);
-		_doubleFacedNames = new(StringComparer.OrdinalIgnoreCase);
+		_sets = [];
+		_setCodeByName = new(StringComparer.OrdinalIgnoreCase);  // human-typed names: stay forgiving
+		_setCodeByMtgoCode = [];
 		_frontFaceToFull = new(StringComparer.OrdinalIgnoreCase);
 		_tokenNames = new(StringComparer.OrdinalIgnoreCase);
 
+		// Set codes are uppercase by construction (normalized in ReferenceCard.CreateFromScryfall),
+		// so the set-code dicts can use default comparers — no extra ToUpper/IgnoreCase needed.
 		foreach (var c in cards)
 		{
 			_byId[c.Id] = c;
@@ -54,27 +56,20 @@ public sealed class ReferenceCardCatalog : IReferenceCardCatalog
 			// First-write-wins on duplicate (set, collector_number); Scryfall keeps these unique
 			// per English printing in default_cards but TryAdd makes the intent explicit.
 			_bySetAndCollector.TryAdd((c.Set, c.CollectorNumber), c);
-			// Both set indexes use uppercase keys so GetSets()/GetSetNameByCode/GetSetCodeByName
-			// are consistent — Scryfall's raw set codes are lowercase (e.g. "isd"), but our
-			// public contract is to expose them uppercase to match historical convention.
-			var setUpper = c.Set.ToUpperInvariant();
-			_sets.TryAdd(setUpper, c.SetName);
-			_setCodeByName.TryAdd(c.SetName, setUpper);
+			_sets.TryAdd(c.Set, c.SetName);
+			_setCodeByName.TryAdd(c.SetName, c.Set);
+			if (!string.IsNullOrEmpty(c.MtgoCode)) { _setCodeByMtgoCode.TryAdd(c.MtgoCode, c.Set); }
 
 			bool isToken = TokenLayouts.Contains(c.Layout);
 			if (isToken) { _tokenNames.Add(c.Name); }
 
-			// DFC indexing intentionally skips token/emblem layouts. Tokens like "Bolt // Bolt"
-			// would otherwise pollute the front-face map and shadow real transform pairs because
-			// of TryAdd's first-write-wins semantics.
+			// Front-face → full-name indexing intentionally skips token/emblem layouts.
+			// Tokens like "Bolt // Bolt" would otherwise shadow real transform pairs.
 			if (!isToken && c.Name.Contains(DoubleFacedSeparator, StringComparison.Ordinal))
 			{
-				_doubleFacedNames.Add(c.Name);
 				var split = c.Name.Split(DoubleFacedSeparator, 2);
-				// Skip self-pairs ("X // X" — Scryfall's `reversible_card` layout, where both
-				// faces share the same oracle name). They can't disambiguate a front-face lookup.
-				// Case-insensitive match catches hypothetical "Forest // forest" variants too —
-				// defensive cost: zero.
+				// Skip self-pairs ("X // X" — Scryfall's `reversible_card` layout): same oracle on
+				// both faces, so the front face alone can't disambiguate.
 				if (split.Length == 2 && !split[0].Equals(split[1], StringComparison.OrdinalIgnoreCase))
 				{
 					_frontFaceToFull.TryAdd(split[0], c.Name);
@@ -85,13 +80,26 @@ public sealed class ReferenceCardCatalog : IReferenceCardCatalog
 
 	public ReferenceCard? FindById(Guid scryfallId) => _byId.GetValueOrDefault(scryfallId);
 	public ReferenceCard? FindByCardmarketId(int cardmarketId) => _byCardmarketId.GetValueOrDefault(cardmarketId);
-	public ReferenceCard? FindBySetAndCollectorNumber(string setCode, string collectorNumber) =>
-		_bySetAndCollector.GetValueOrDefault((setCode, collectorNumber));
+	// Callers pass set codes as-typed (Moxfield uppercase, Topdecked lowercase, MTGO 2-letter…).
+	// Storage is canonical uppercase, so input is normalized once at the entry point.
+	public ReferenceCard? FindBySetAndCollectorNumber(string setCode, string collectorNumber)
+	{
+		var canonical = Canonicalize(setCode);
+		return _bySetAndCollector.GetValueOrDefault((canonical, collectorNumber));
+	}
 
 	public IReadOnlyDictionary<string, string> GetSets() => _sets;
-	public string? GetSetNameByCode(string setCode) => _sets.GetValueOrDefault(setCode);
+	public string? GetSetNameByCode(string setCode) => _sets.GetValueOrDefault(Canonicalize(setCode));
+
+	// Returns the canonical Scryfall set code for an input that may be: an MTGO 2-letter code
+	// (MI → MIR), a different-cased canonical code (mir → MIR), or already canonical (MIR → MIR).
+	// Unknown codes pass through as-uppercased (lookups against them will simply miss).
+	string Canonicalize(string setCode)
+	{
+		var upper = setCode.ToUpperInvariant();
+		return _setCodeByMtgoCode.TryGetValue(upper, out var aliased) ? aliased : upper;
+	}
 	public string? GetSetCodeByName(string setName) => _setCodeByName.GetValueOrDefault(setName);
-	public bool IsDoubleFacedName(string name) => _doubleFacedNames.Contains(name);
 	public string? ExpandFrontFaceToFullName(string frontFaceName) => _frontFaceToFull.GetValueOrDefault(frontFaceName);
 	public bool IsTokenName(string name) => _tokenNames.Contains(name);
 

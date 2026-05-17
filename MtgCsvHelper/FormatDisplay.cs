@@ -24,6 +24,7 @@ public static class FormatDisplay
 			["CARDMARKET"] = "Cardmarket",
 			["TCGPLAYER"] = "TCGplayer",
 			["ARCHIDEKT"] = "Archidekt",
+			["MTGO"] = "MTGO",
 		};
 
 	public static string For(string format) =>
