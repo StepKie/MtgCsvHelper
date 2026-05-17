@@ -16,17 +16,18 @@ public class MtgCardCsvHandler
 	{
 		_format = format;
 		_factory = new CardMapFactory(config, catalog);
-		// Order matters: Cardmarket stubs (Name="") must be resolved before SetInfo and CatalogValidator
-		// can do anything with them. SetInfo runs before CatalogValidator so the canonical Set is in
-		// place when the catalog lookup happens. Note: this ordering means resolved Cardmarket cards
-		// also go through SetInfo + Validator — the old inline code ran Cardmarket resolution last
-		// and resolved cards bypassed both. Intentional improvement: validation now catches catalog
-		// drift in Scryfall-resolved data too.
+		// Order matches the prior inline implementation:
+		// 1. SetInfo + Validator run on non-stub rows (Cardmarket stubs have Name="" and are
+		//    skipped by both via their leading null-name guards).
+		// 2. CardmarketIdEnricher runs last, resolving stubs from the Scryfall network/catalog.
+		// Cardmarket-resolved cards intentionally bypass CatalogValidator: the resolver's data
+		// IS Scryfall data, so validating it against our possibly-stale local bundle would drop
+		// legitimate cards released after our last bundle refresh.
 		_pipeline =
 		[
-			new CardmarketIdEnricher(resolver),
 			new SetInfoEnricher(catalog),
 			new CatalogValidator(catalog),
+			new CardmarketIdEnricher(resolver),
 		];
 	}
 
