@@ -30,7 +30,10 @@ public sealed class CardmarketIdEnricher(ICardmarketResolver resolver) : IEnrich
 		var ids = pendingIndices.Select(i => rows[i].Card.Printing.CardMarketId).Distinct().ToList();
 		var resolved = await resolver.ResolveAsync(ids, ct);
 
-		// Walk in reverse so removals don't shift indices we still need.
+		// Walk pendingIndices in reverse so RemoveAt doesn't shift positions we still need to
+		// visit. Note the double-indexing: k indexes pendingIndices, i is the original position
+		// in rows. Duplicate CardMarketIds across rows are handled correctly — both rows have
+		// distinct entries in pendingIndices and both look up the same `full` record below.
 		for (int k = pendingIndices.Count - 1; k >= 0; k--)
 		{
 			var i = pendingIndices[k];

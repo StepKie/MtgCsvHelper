@@ -14,8 +14,10 @@ public sealed class CatalogValidator(IReferenceCardCatalog catalog) : PerCardEnr
 	protected override bool EnrichOne(ParsedRow row, ICollection<ImportIssue> issues)
 	{
 		var p = row.Card.Printing;
-		// Stub rows (Cardmarket pre-resolution) and rows that EnrichSetInfo already warned about
-		// for missing identifiers pass through — double-erroring would be noise.
+		// No catalog lookup is possible without (Name, Set, CollectorNumber). Rows missing any
+		// of these have either already been warned by SetInfoEnricher (no set info) or are
+		// stubs that a later enricher will fill in (Cardmarket); validating now would error
+		// on data that isn't actually broken.
 		if (string.IsNullOrEmpty(p.Name)) { return true; }
 		if (string.IsNullOrEmpty(p.Set) || string.IsNullOrEmpty(p.CollectorNumber)) { return true; }
 
