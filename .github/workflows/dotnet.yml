@@ -37,7 +37,7 @@ jobs:
 
     - name: Refresh reference catalog (cache miss only)
       if: steps.bundle-cache.outputs.cache-hit != 'true'
-      run: dotnet run --project tools/MtgCsvHelper.RefreshReferenceData -c Release
+      run: dotnet run --project tools/MtgCsvHelper.RefreshReferenceData -c Release --no-restore
 
     - name: Build
       run: dotnet build --no-restore
