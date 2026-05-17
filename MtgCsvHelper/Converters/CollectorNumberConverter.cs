@@ -9,9 +9,6 @@ namespace MtgCsvHelper.Converters;
 // (we don't know the set total, so MTGO round-trips will emit just "N").
 public class CollectorNumberConverter : StringConverter
 {
-	public override object? ConvertFromString(string? text, IReaderRow row, MemberMapData memberMapData)
-	{
-		var stripped = text?.Split('/', 2)[0];
-		return base.ConvertFromString(stripped, row, memberMapData);
-	}
+	public override object? ConvertFromString(string? text, IReaderRow row, MemberMapData memberMapData) =>
+		text is null ? base.ConvertFromString(text, row, memberMapData) : text.Split('/', 2)[0];
 }

@@ -34,9 +34,11 @@ public sealed record ReferenceCard(
 	// null for sets MTGO doesn't carry. Catalog uses it as a fallback set-code lookup key.
 	string? MtgoCode = null)
 {
-	// Structural normalization: Set and MtgoCode are always uppercase regardless of how the
-	// record was constructed (factory, JSON deserialization, direct ctor in tests). The catalog's
-	// lookup invariants depend on this — overriding here makes it impossible to bypass.
+	// Normalized at construction: Set and MtgoCode are uppercased for any primary-constructor
+	// invocation (factory, JSON deserialization, direct ctor in tests). The catalog's lookup
+	// invariants depend on uppercase storage. Note: `with { Set = "mir" }` would bypass the
+	// initializer; no such callers exist today, but a future one would need to uppercase
+	// manually or this can be upgraded to a normalizing init setter.
 	public string Set { get; init; } = Set.ToUpperInvariant();
 	public string? MtgoCode { get; init; } = MtgoCode?.ToUpperInvariant();
 
