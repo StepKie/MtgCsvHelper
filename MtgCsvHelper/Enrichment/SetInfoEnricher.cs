@@ -9,9 +9,9 @@ public sealed class SetInfoEnricher(IReferenceCardCatalog catalog) : PerCardEnri
 {
 	protected override bool EnrichOne(ParsedRow row, ICollection<ImportIssue> issues)
 	{
-		// Stub cards (Cardmarket pre-resolution) have no Name; their set info comes from the
-		// resolver enricher that runs before this one. Skip them here.
 		var p = row.Card.Printing;
+		// Defensive: skip any row still missing a name. CardmarketIdEnricher runs first and
+		// either resolves stubs (Name now set) or drops them — this guard catches anything else.
 		if (string.IsNullOrEmpty(p.Name)) { return true; }
 
 		bool hadSetCode = p.Set is not null;

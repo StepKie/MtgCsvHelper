@@ -18,7 +18,10 @@ public class MtgCardCsvHandler
 		_factory = new CardMapFactory(config, catalog);
 		// Order matters: Cardmarket stubs (Name="") must be resolved before SetInfo and CatalogValidator
 		// can do anything with them. SetInfo runs before CatalogValidator so the canonical Set is in
-		// place when the catalog lookup happens.
+		// place when the catalog lookup happens. Note: this ordering means resolved Cardmarket cards
+		// also go through SetInfo + Validator — the old inline code ran Cardmarket resolution last
+		// and resolved cards bypassed both. Intentional improvement: validation now catches catalog
+		// drift in Scryfall-resolved data too.
 		_pipeline =
 		[
 			new CardmarketIdEnricher(resolver),
