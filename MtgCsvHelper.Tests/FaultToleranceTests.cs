@@ -12,19 +12,20 @@ public class FaultToleranceTests(CatalogFixture fixture, ITestOutputHelper outpu
 	MtgCardCsvHandler Handler(string format = "MOXFIELD") => new(_catalog, _resolver, _config, format);
 
 	[Fact]
-	public void UnknownSetCode_RaisesWarning_CardStillImported()
+	public void UnknownSetCode_RaisesError_RowDropped()
 	{
-		// "FAKESET" is not a real Scryfall set code — post-load enrichment will fail to backfill the set name.
+		// "FAKESET" is not a real Scryfall set code — EnrichSetInfo warns it can't backfill
+		// the set name, then the catalog-validation step errors out because (FAKESET, 149)
+		// doesn't resolve to any printing. Net effect: 1 warning + 1 error, card dropped.
 		var csv = MoxHeader + "\n"
 			+ "1,Lightning Bolt,FAKESET,149,,Near Mint,English,\n";
 
 		var result = Handler().ParseCollectionCsv(CsvStream(csv));
 
-		result.Collection.Cards.Should().HaveCount(1);
-		result.ErrorCount.Should().Be(0);
-		result.WarningCount.Should().Be(1);
-		result.Issues[0].Severity.Should().Be(IssueSeverity.Warning);
-		result.Issues[0].Reason.Should().Contain("FAKESET");
+		result.Collection.Cards.Should().BeEmpty();
+		result.ErrorCount.Should().Be(1);
+		result.Issues.Should().Contain(i => i.Severity == IssueSeverity.Warning && i.Reason.Contains("FAKESET"));
+		result.Issues.Should().Contain(i => i.Severity == IssueSeverity.Error && i.Reason.Contains("FAKESET"));
 	}
 
 	[Fact]
@@ -37,6 +38,49 @@ public class FaultToleranceTests(CatalogFixture fixture, ITestOutputHelper outpu
 		var ex = act.Should().Throw<HeaderValidationException>().Which;
 		var missing = ex.InvalidHeaders.SelectMany(h => h.Names).ToList();
 		missing.Should().Contain("Name").And.Contain("Count");
+	}
+
+	[Fact]
+	public void NameDoesNotMatchPrinting_RaisesError_RowDropped()
+	{
+		// Lightning Bolt at M11 #149 is real, but the name is wrong.
+		var csv = MoxHeader + "\n"
+			+ "1,Fake Card Name,M11,149,,Near Mint,English,\n";
+
+		var result = Handler().ParseCollectionCsv(CsvStream(csv));
+
+		result.Collection.Cards.Should().BeEmpty();
+		result.ErrorCount.Should().Be(1);
+		result.Issues[0].Reason.Should().Contain("Fake Card Name").And.Contain("M11").And.Contain("#149");
+	}
+
+	[Fact]
+	public void FoilOnNonFoilPrinting_RaisesError_RowDropped()
+	{
+		// Lim-Dûl's Vault from Alliances (ALL #107) is a 1996 pre-foil-era printing;
+		// the catalog's Finishes list is ["nonfoil"] only.
+		var csv = MoxHeader + "\n"
+			+ "1,Lim-Dûl's Vault,ALL,107,foil,Near Mint,English,\n";
+
+		var result = Handler().ParseCollectionCsv(CsvStream(csv));
+
+		result.Collection.Cards.Should().BeEmpty();
+		result.ErrorCount.Should().Be(1);
+		result.Issues[0].Reason.Should().Contain("foil");
+	}
+
+	[Fact]
+	public void SetAndCollectorNotInCatalog_RaisesError_RowDropped()
+	{
+		// M11 has 249 cards. #9999 doesn't exist.
+		var csv = MoxHeader + "\n"
+			+ "1,Lightning Bolt,M11,9999,,Near Mint,English,\n";
+
+		var result = Handler().ParseCollectionCsv(CsvStream(csv));
+
+		result.Collection.Cards.Should().BeEmpty();
+		result.ErrorCount.Should().Be(1);
+		result.Issues[0].Reason.Should().Contain("No printing").And.Contain("M11").And.Contain("9999");
 	}
 
 	[Fact]

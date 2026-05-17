@@ -202,11 +202,11 @@ Status: 42 rows (May 2026). All site-blessed via Deckbox's **Manabox-format impo
 
 Status: 43 rows, **synthetic only** (not site-blessed). TCGPlayer's CSV import/export is paywalled — restricted to **Level 4 Seller** accounts. Round-trip blessing isn't feasible without paid seller access.
 
-**Format reference**: real TCGPlayer export available at `Resources/SampleCsvs/Collection/tcgplayer-collection.csv` (500+ rows from a real seller account, different cards than our 43-row test set).
+**Format reference**: real TCGPlayer export available at `Resources/SampleCsvs/Collection/tcgplayer-collection.csv` (1000+ rows from a real seller account, different cards than our 43-row test set).
 
 **Schema** (from the real export):
 - 12 columns: `Quantity,Name,Simple Name,Set,Card Number,Set Code,Printing,Condition,Language,Rarity,Product ID,SKU`.
-- `Simple Name` is a sanitized version of `Name` (e.g. `Lim-Dûl's Vault` → `Lim-Duls Vault`, `Aragorn, the Uniter` → `Aragorn the Uniter`).
+- `Name` vs `Simple Name` (verified against real exports, May 2026): `Simple Name` strips **parenthetical variant tags** only (`(Borderless)`, `(Showcase)`, `(Retro Frame)`, `(Extended Art)`, `(0269)`, `(No PW Symbol)`). Commas, apostrophes, and most punctuation are **preserved in both columns**. Example: `Aragorn, Hornburg Hero (Borderless)` in `Name` becomes `Aragorn, Hornburg Hero` in `Simple Name`; `"Elesh Norn, Grand Cenobite"` is identical in both. Diacritics ARE normalized in both columns (`Lim-Dûl` → `Lim-Dul`) — this is a real catalog mismatch handled by NFD-normalization in `NamesMatch`. Our `appsettings.json` reads `Simple Name` because the absence of `(Borderless)`/`(Showcase)` suffixes matches Scryfall's canonical names directly.
 - Set codes UPPERCASE.
 - `Product ID` and `SKU` columns — TCGPlayer-internal identifiers, enriched on import.
 - No `Purchase Price` column.

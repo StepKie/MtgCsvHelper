@@ -1,4 +1,5 @@
 using System.Globalization;
+using System.Text;
 using CsvHelper.Configuration;
 using CsvHelper.TypeConversion;
 using Microsoft.Extensions.Configuration;
@@ -83,6 +84,10 @@ public class MtgCardCsvHandler
 				if (!string.IsNullOrEmpty(card.Printing.Name))
 				{
 					EnrichSetInfo(card, _catalog, issues, rowNum);
+					if (!IsValidPrinting(card, _catalog, issues, rowNum))
+					{
+						continue;
+					}
 				}
 				cards.Add(card);
 				rowNumbers.Add(rowNum);
@@ -126,6 +131,73 @@ public class MtgCardCsvHandler
 			}
 		}
 	}
+
+	// Validates a parsed row against the Scryfall catalog. Issues an Error and returns false
+	// (so the caller drops the row) when (Set, CollectorNumber) doesn't resolve, the name
+	// doesn't match the resolved printing, or Foil is claimed for a non-foil-only printing.
+	// Rows without enough info to look up (no Set or no CollectorNumber) pass through —
+	// EnrichSetInfo already flagged them as Warning, and dropping them on top would be noise.
+	static bool IsValidPrinting(PhysicalMtgCard card, IReferenceCardCatalog catalog, List<ImportIssue> issues, int rowNum)
+	{
+		var p = card.Printing;
+		if (string.IsNullOrEmpty(p.Set) || string.IsNullOrEmpty(p.CollectorNumber)) { return true; }
+
+		// Scryfall stores set codes lowercase; FindBySetAndCollectorNumber's key is case-sensitive
+		// on the tuple. Imported CSVs use either case (Moxfield uppercase, Topdecked lowercase).
+		var match = catalog.FindBySetAndCollectorNumber(p.Set.ToLowerInvariant(), p.CollectorNumber);
+		if (match is null)
+		{
+			issues.Add(new ImportIssue(IssueSeverity.Error, rowNum,
+				$"No printing at {p.Set.ToUpperInvariant()} #{p.CollectorNumber} in Scryfall data", CardName: p.Name));
+			return false;
+		}
+
+		if (!NamesMatch(p.Name, match.Name, catalog))
+		{
+			issues.Add(new ImportIssue(IssueSeverity.Error, rowNum,
+				$"Name '{p.Name}' does not match printing at {p.Set.ToUpperInvariant()} #{p.CollectorNumber} ('{match.Name}')",
+				CardName: p.Name));
+			return false;
+		}
+
+		if (card.Foil == true && !HasFoilFinish(match.Finishes))
+		{
+			issues.Add(new ImportIssue(IssueSeverity.Error, rowNum,
+				"This printing was not released in foil", CardName: p.Name));
+			return false;
+		}
+
+		return true;
+	}
+
+	static bool NamesMatch(string imported, string referenceName, IReferenceCardCatalog catalog)
+	{
+		if (EqualsNormalized(imported, referenceName)) { return true; }
+		// Front-face-only imports (Moxfield's ShortNames=false formats) match the full Scryfall name.
+		var expanded = catalog.ExpandFrontFaceToFullName(imported);
+		return expanded is not null && EqualsNormalized(expanded, referenceName);
+	}
+
+	// Compares with Unicode diacritic stripping (NFD + remove combining marks). TCGPlayer and a
+	// few other sites normalize "Lim-Dûl's Vault" → "Lim-Dul's Vault" on export; Scryfall keeps the
+	// diacritic. Matching naively would reject every accented card. Done in one pass on both sides.
+	static bool EqualsNormalized(string a, string b) =>
+		string.Equals(StripDiacritics(a), StripDiacritics(b), StringComparison.OrdinalIgnoreCase);
+
+	static string StripDiacritics(string s)
+	{
+		var decomposed = s.Normalize(NormalizationForm.FormD);
+		var sb = new StringBuilder(decomposed.Length);
+		foreach (var c in decomposed)
+		{
+			if (CharUnicodeInfo.GetUnicodeCategory(c) != UnicodeCategory.NonSpacingMark) { sb.Append(c); }
+		}
+		return sb.ToString();
+	}
+
+	static bool HasFoilFinish(IReadOnlyList<string> finishes) =>
+		finishes.Any(f => string.Equals(f, "foil", StringComparison.OrdinalIgnoreCase)
+		               || string.Equals(f, "etched", StringComparison.OrdinalIgnoreCase));
 
 	static void EnrichSetInfo(PhysicalMtgCard card, IReferenceCardCatalog catalog, List<ImportIssue> issues, int rowNum)
 	{
