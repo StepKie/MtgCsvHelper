@@ -12,9 +12,10 @@ public class CardMapFactory(IConfiguration config, IReferenceCardCatalog catalog
 	public static IReadOnlyList<string> NotYetFullySupported { get; } = ["URZAGATHERER"];
 
 	// Formats whose CSV doesn't carry enough info to populate a complete card without external lookups,
-	// or that don't make sense as targets for our writers.
-	static readonly HashSet<string> WriteOnlyFormats = new(StringComparer.OrdinalIgnoreCase) { "CARDKINGDOM" };
-	static readonly HashSet<string> ReadOnlyFormats = new(StringComparer.OrdinalIgnoreCase) { "CARDMARKET" };
+	// or that don't make sense as targets for our writers. Internal so tests can derive expectations
+	// from the same source of truth as the Readable/Writable filters below.
+	internal static readonly HashSet<string> WriteOnlyFormats = new(StringComparer.OrdinalIgnoreCase) { "CARDKINGDOM" };
+	internal static readonly HashSet<string> ReadOnlyFormats = new(StringComparer.OrdinalIgnoreCase) { "CARDMARKET" };
 
 	public static IReadOnlyList<string> ReadableFormats { get; } = [.. Supported.Where(f => !WriteOnlyFormats.Contains(f))];
 	public static IReadOnlyList<string> WritableFormats { get; } = [.. Supported.Where(f => !ReadOnlyFormats.Contains(f))];
