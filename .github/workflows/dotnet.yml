@@ -37,7 +37,9 @@ jobs:
 
     - name: Refresh reference catalog (cache miss only)
       if: steps.bundle-cache.outputs.cache-hit != 'true'
-      run: dotnet run --project tools/MtgCsvHelper.RefreshReferenceData -c Release --no-restore
+      # No --no-restore: tools/ project isn't in MtgCsvHelper.slnx, so the prior restore step
+      # doesn't cover it; letting `dotnet run` do its own restore is the simpler fix.
+      run: dotnet run --project tools/MtgCsvHelper.RefreshReferenceData -c Release
 
     - name: Build
       run: dotnet build --no-restore
