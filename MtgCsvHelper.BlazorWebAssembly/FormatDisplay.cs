@@ -14,10 +14,11 @@ public static class FormatDisplay
 		["MANABOX"] = "Manabox",
 		["TOPDECKED"] = "Topdecked",
 		["DECKBOX"] = "Deckbox",
-		["MTGGOLDFISH"] = "MTG Goldfish",
+		["MTGGOLDFISH"] = "MTGGoldfish",
 		["CARDKINGDOM"] = "Card Kingdom",
 		["CARDMARKET"] = "Cardmarket",
 		["TCGPLAYER"] = "TCGplayer",
+		["ARCHIDEKT"] = "Archidekt",
 	};
 
 	public static string For(string format) =>

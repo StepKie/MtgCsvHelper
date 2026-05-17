@@ -16,6 +16,9 @@ public class CardMapFactory(IConfiguration config, IReferenceCardCatalog catalog
 	static readonly HashSet<string> WriteOnlyFormats = new(StringComparer.OrdinalIgnoreCase) { "CARDKINGDOM" };
 	static readonly HashSet<string> ReadOnlyFormats = new(StringComparer.OrdinalIgnoreCase) { "CARDMARKET" };
 
+	public static IReadOnlyList<string> ReadableFormats { get; } = [.. Supported.Where(f => !WriteOnlyFormats.Contains(f))];
+	public static IReadOnlyList<string> WritableFormats { get; } = [.. Supported.Where(f => !ReadOnlyFormats.Contains(f))];
+
 	public static IEnumerable<FormatConfig> From(IConfiguration config) =>
 		config.GetSection("CsvConfigurations")
 		.GetChildren()
