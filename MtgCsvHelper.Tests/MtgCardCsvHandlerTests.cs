@@ -90,6 +90,11 @@ public class MtgCardCsvHandlerTests(CatalogFixture fixture, ITestOutputHelper ou
 		// "116/350" → "116" stripping verification.
 		result.Collection.Cards.Select(c => c.Printing.CollectorNumber)
 			.Should().AllSatisfy(n => n.Should().NotContain("/"));
+
+		// MTGO 2-letter codes (MI, VI, TE, EX) must be rewritten to canonical 3-letter Scryfall
+		// codes (MIR, VIS, TMP, EXO) so MTGO → other-format conversions emit the right code.
+		result.Collection.Cards.Should().AllSatisfy(c =>
+			c.Printing.Set.Should().HaveLength(3, "MTGO 2-letter codes should be resolved to canonical Scryfall codes"));
 	}
 
 	MtgCardCsvHandler CreateHandler(string deckFormatName) => new(_catalog, _resolver, _config, deckFormatName);

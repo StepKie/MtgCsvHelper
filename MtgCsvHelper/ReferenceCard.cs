@@ -34,14 +34,18 @@ public sealed record ReferenceCard(
 	// null for sets MTGO doesn't carry. Catalog uses it as a fallback set-code lookup key.
 	string? MtgoCode = null)
 {
-	/// <summary> Single canonical factory used by the bundle generator and the runtime network path.
-	/// Normalizes <see cref="Set"/> and <see cref="MtgoCode"/> to uppercase so downstream code can
-	/// rely on canonical casing without sprinkling <c>ToUpperInvariant</c>/<c>IgnoreCase</c> everywhere. </summary>
+	// Structural normalization: Set and MtgoCode are always uppercase regardless of how the
+	// record was constructed (factory, JSON deserialization, direct ctor in tests). The catalog's
+	// lookup invariants depend on this — overriding here makes it impossible to bypass.
+	public string Set { get; init; } = Set.ToUpperInvariant();
+	public string? MtgoCode { get; init; } = MtgoCode?.ToUpperInvariant();
+
+	/// <summary> Single canonical factory used by the bundle generator and the runtime network path. </summary>
 	internal static ReferenceCard CreateFromScryfall(ScryfallCardJson c, string? mtgoCode = null) => new(
 		Id: c.Id,
 		OracleId: c.OracleId,
 		Name: c.Name,
-		Set: c.Set.ToUpperInvariant(),
+		Set: c.Set,
 		SetName: c.SetName,
 		CollectorNumber: c.CollectorNumber,
 		Lang: string.IsNullOrEmpty(c.Lang) ? "en" : c.Lang,
@@ -54,5 +58,5 @@ public sealed record ReferenceCard(
 		TcgplayerId: c.TcgplayerId,
 		TcgplayerEtchedId: c.TcgplayerEtchedId,
 		MultiverseIds: c.MultiverseIds,
-		MtgoCode: mtgoCode?.ToUpperInvariant());
+		MtgoCode: mtgoCode);
 }

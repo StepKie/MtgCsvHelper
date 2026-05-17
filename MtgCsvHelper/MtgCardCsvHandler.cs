@@ -202,6 +202,9 @@ public class MtgCardCsvHandler
 		// Both directions are O(1) — the catalog maintains forward (code → name) and reverse (name → code) indexes.
 		if (hadSetCode) { p.SetName ??= catalog.GetSetNameByCode(p.Set!); }
 		if (hadSetName) { p.Set ??= catalog.GetSetCodeByName(p.SetName!); }
+		// Rewrite Set to its canonical Scryfall form once SetName is known. Catches MTGO aliases
+		// (MI → MIR) and any lowercase input so downstream writes emit the code other tools expect.
+		if (p.SetName is not null) { p.Set = catalog.GetSetCodeByName(p.SetName) ?? p.Set; }
 
 		if (!hadSetCode && !hadSetName)
 		{

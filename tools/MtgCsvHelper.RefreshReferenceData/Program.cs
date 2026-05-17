@@ -37,6 +37,10 @@ var serializerOptions = new JsonSerializerOptions
 Console.WriteLine("Fetching /sets to build set_code → mtgo_code map…");
 var setsResponse = await http.GetFromJsonAsync<ScryfallList<ScryfallSetJson>>("https://api.scryfall.com/sets", serializerOptions)
 	?? throw new InvalidOperationException("Empty /sets response.");
+if (setsResponse.HasMore)
+{
+	throw new InvalidOperationException("/sets returned a paginated response — implement pagination before the alias map silently truncates.");
+}
 var mtgoCodeBySet = setsResponse.Data
 	.Where(s => !string.IsNullOrEmpty(s.MtgoCode))
 	.ToDictionary(s => s.Code, s => s.MtgoCode!, StringComparer.OrdinalIgnoreCase);
@@ -81,5 +85,5 @@ internal sealed record BulkDataManifest(List<BulkDataEntry> Data);
 internal sealed record BulkDataEntry(string Type, string Name, long Size,
 	[property: JsonPropertyName("download_uri")] string DownloadUri);
 
-internal sealed record ScryfallList<T>(List<T> Data);
+internal sealed record ScryfallList<T>(List<T> Data, [property: JsonPropertyName("has_more")] bool HasMore);
 internal sealed record ScryfallSetJson(string Code, [property: JsonPropertyName("mtgo_code")] string? MtgoCode);
