@@ -128,12 +128,13 @@ public class ReferenceCardCatalogTests
 	}
 
 	[Fact]
-	public void FindBySetAndCollectorNumber_IsCaseSensitive_BackingDictionaryUsesOrdinal()
+	public void FindBySetAndCollectorNumber_IsCaseInsensitive_NormalizedAtBoundary()
 	{
-		// Set codes are uppercase by convention in Scryfall data; lookup is case-sensitive.
-		// This test documents the contract — flipping to case-insensitive would be an
-		// intentional change, not an accident.
-		Catalog().FindBySetAndCollectorNumber("m11", "149").Should().BeNull();
+		// Set codes are stored uppercase canonical; the lookup method normalizes input casing
+		// once at the entry point so callers don't need to. "m11" and "M11" both resolve.
+		var lower = Catalog().FindBySetAndCollectorNumber("m11", "149");
+		var upper = Catalog().FindBySetAndCollectorNumber("M11", "149");
+		lower.Should().NotBeNull().And.Be(upper);
 	}
 
 	[Fact]
@@ -145,15 +146,6 @@ public class ReferenceCardCatalogTests
 		sets.Should().Contain(new KeyValuePair<string, string>("ISD", "Innistrad"));
 		sets.Should().Contain(new KeyValuePair<string, string>("TMH2", "Modern Horizons 2 Tokens"));
 		sets.Should().Contain(new KeyValuePair<string, string>("CMM", "Commander Masters"));
-	}
-
-	[Fact]
-	public void IsDoubleFacedName_OnlyTrueForTransformedNames()
-	{
-		var c = Catalog();
-		c.IsDoubleFacedName("Delver of Secrets // Insectile Aberration").Should().BeTrue();
-		c.IsDoubleFacedName("Lightning Bolt").Should().BeFalse();
-		c.IsDoubleFacedName("Unknown Card").Should().BeFalse();
 	}
 
 	[Fact]

@@ -350,7 +350,7 @@
 	static readonly IReadOnlyList<string> _outputFormats = CardMapFactory.WritableFormats;
 
 	string _selectedInputFormat = _inputFormats[0];
-	string _selectedOutputFormat = _outputFormats.First(f => f != _selectedInputFormat);
+	string _selectedOutputFormat = "";  // set in OnInitialized — instance field initializers can't reference other instance fields (CS0236).
 
 	IBrowserFile? _csvFile;
 	ConversionResult? _result;
@@ -364,7 +364,11 @@
 
 	readonly CancellationTokenSource _cts = new();
 
-	protected override void OnInitialized() => CatalogLoader.StateChanged += StateHasChanged;
+	protected override void OnInitialized()
+	{
+		CatalogLoader.StateChanged += StateHasChanged;
+		_selectedOutputFormat = _outputFormats.First(f => f != _selectedInputFormat);
+	}
 
 	async Task RetryCatalogLoad()
 	{

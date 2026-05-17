@@ -138,20 +138,18 @@ public class MtgCardCsvHandler
 		// Missing Set/CollectorNumber already warned by EnrichSetInfo; double-erroring would be noise.
 		if (string.IsNullOrEmpty(p.Set) || string.IsNullOrEmpty(p.CollectorNumber)) { return true; }
 
-		// Scryfall stores set codes lowercase; FindBySetAndCollectorNumber's key is case-sensitive
-		// on the tuple. Imported CSVs use either case (Moxfield uppercase, Topdecked lowercase).
-		var match = catalog.FindBySetAndCollectorNumber(p.Set.ToLowerInvariant(), p.CollectorNumber);
+		var match = catalog.FindBySetAndCollectorNumber(p.Set, p.CollectorNumber);
 		if (match is null)
 		{
 			issues.Add(new ImportIssue(IssueSeverity.Error, rowNum,
-				$"No printing at {p.Set.ToUpperInvariant()} #{p.CollectorNumber} in Scryfall data", CardName: p.Name));
+				$"No printing at {p.Set} #{p.CollectorNumber} in Scryfall data", CardName: p.Name));
 			return false;
 		}
 
 		if (!NamesMatch(p.Name, match.Name, catalog))
 		{
 			issues.Add(new ImportIssue(IssueSeverity.Error, rowNum,
-				$"Name '{p.Name}' does not match printing at {p.Set.ToUpperInvariant()} #{p.CollectorNumber} ('{match.Name}')",
+				$"Name '{p.Name}' does not match printing at {p.Set} #{p.CollectorNumber} ('{match.Name}')",
 				CardName: p.Name));
 			return false;
 		}
@@ -159,7 +157,7 @@ public class MtgCardCsvHandler
 		if (card.Foil is true && !HasFoilFinish(match.Finishes))
 		{
 			issues.Add(new ImportIssue(IssueSeverity.Error, rowNum,
-				$"Printing {p.Set.ToUpperInvariant()} #{p.CollectorNumber} was not released in foil", CardName: p.Name));
+				$"Printing {p.Set} #{p.CollectorNumber} was not released in foil", CardName: p.Name));
 			return false;
 		}
 
@@ -204,6 +202,9 @@ public class MtgCardCsvHandler
 		// Both directions are O(1) — the catalog maintains forward (code → name) and reverse (name → code) indexes.
 		if (hadSetCode) { p.SetName ??= catalog.GetSetNameByCode(p.Set!); }
 		if (hadSetName) { p.Set ??= catalog.GetSetCodeByName(p.SetName!); }
+		// Rewrite Set to its canonical Scryfall form once SetName is known. Catches MTGO aliases
+		// (MI → MIR) and any lowercase input so downstream writes emit the code other tools expect.
+		if (p.SetName is not null) { p.Set = catalog.GetSetCodeByName(p.SetName) ?? p.Set; }
 
 		if (!hadSetCode && !hadSetName)
 		{

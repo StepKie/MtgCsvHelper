@@ -28,10 +28,22 @@ public sealed record ReferenceCard(
 	int? CardmarketId,
 	int? TcgplayerId,
 	int? TcgplayerEtchedId,
-	IReadOnlyList<int>? MultiverseIds)
+	IReadOnlyList<int>? MultiverseIds,
+	// MTGO uses 2-letter codes for older sets (MI, VI, TE...) that don't match Scryfall's
+	// 3-letter codes (mir, vis, tmp...). Populated from the /sets endpoint at bundle build time;
+	// null for sets MTGO doesn't carry. Catalog uses it as a fallback set-code lookup key.
+	string? MtgoCode = null)
 {
-	/// <summary> Single canonical factory used by the bundle generator and the runtime network path — keeps Lang/Layout/Finishes defaults from drifting between them. </summary>
-	internal static ReferenceCard CreateFromScryfall(ScryfallCardJson c) => new(
+	// Normalized at construction: Set and MtgoCode are uppercased for any primary-constructor
+	// invocation (factory, JSON deserialization, direct ctor in tests). The catalog's lookup
+	// invariants depend on uppercase storage. Note: `with { Set = "mir" }` would bypass the
+	// initializer; no such callers exist today, but a future one would need to uppercase
+	// manually or this can be upgraded to a normalizing init setter.
+	public string Set { get; init; } = Set.ToUpperInvariant();
+	public string? MtgoCode { get; init; } = MtgoCode?.ToUpperInvariant();
+
+	/// <summary> Single canonical factory used by the bundle generator and the runtime network path. </summary>
+	internal static ReferenceCard CreateFromScryfall(ScryfallCardJson c, string? mtgoCode = null) => new(
 		Id: c.Id,
 		OracleId: c.OracleId,
 		Name: c.Name,
@@ -47,5 +59,6 @@ public sealed record ReferenceCard(
 		CardmarketId: c.CardmarketId,
 		TcgplayerId: c.TcgplayerId,
 		TcgplayerEtchedId: c.TcgplayerEtchedId,
-		MultiverseIds: c.MultiverseIds);
+		MultiverseIds: c.MultiverseIds,
+		MtgoCode: mtgoCode);
 }

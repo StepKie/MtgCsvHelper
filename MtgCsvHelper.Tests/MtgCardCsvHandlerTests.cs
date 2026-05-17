@@ -74,6 +74,55 @@ public class MtgCardCsvHandlerTests(CatalogFixture fixture, ITestOutputHelper ou
 		cards.Should().HaveCountGreaterThan(500);
 	}
 
+	[Fact]
+	public void Mtgo_AllRowsParse_WithCollectorNumberStrippedAndMtgoCodeAliased()
+	{
+		// MTGO fixture has 7 rows of old-set printings (Mirage, Visions, Tempest, Exodus).
+		// Two MTGO-specific quirks the parser handles: collector numbers in "N/M" form
+		// (116/350 → 116) and 2-letter set codes (MI → MIR via the bundled mtgo_code map).
+		var handler = CreateHandler("MTGO");
+		var result = handler.ParseCollectionCsv($"{COLLECTIONS_FOLDER}/mtgo-collection.csv");
+
+		result.Collection.Cards.Should().HaveCount(7);
+		result.ErrorCount.Should().Be(0,
+			$"all 7 rows are real printings with valid (Set, Collector#) once aliased. Issues: {string.Join("; ", result.Issues.Select(i => i.Reason))}");
+
+		// "116/350" → "116" stripping verification.
+		result.Collection.Cards.Select(c => c.Printing.CollectorNumber)
+			.Should().AllSatisfy(n => n.Should().NotContain("/"));
+
+		// MTGO 2-letter codes (MI, VI, TE, EX) must be rewritten to canonical 3-letter Scryfall
+		// codes (MIR, VIS, TMP, EXO) so MTGO → other-format conversions emit the right code.
+		result.Collection.Cards.Should().AllSatisfy(c =>
+			c.Printing.Set.Should().HaveLength(3, "MTGO 2-letter codes should be resolved to canonical Scryfall codes"));
+	}
+
+	[Fact]
+	public void Mtgo_ConvertToMoxfield_EmitsCanonicalSetCodesInOutput()
+	{
+		// End-to-end through the WRITE path: parse MTGO, write to Moxfield, then inspect the
+		// emitted CSV. Catches any regression that bypasses the in-memory canonicalization but
+		// still produces a non-canonical code in the output column.
+		var reader = CreateHandler("MTGO");
+		var writer = CreateHandler("MOXFIELD");
+
+		var cards = reader.ParseCollectionCsv($"{COLLECTIONS_FOLDER}/mtgo-collection.csv").Collection.Cards;
+		using var output = new MemoryStream();
+		writer.WriteCollectionCsv(cards, output);
+		var csv = System.Text.Encoding.UTF8.GetString(output.ToArray());
+
+		// Each canonical 3-letter code from the 7 fixture rows must appear in the output.
+		foreach (var canonical in new[] { "MIR", "VIS", "TMP", "EXO" })
+		{
+			csv.Should().Contain(canonical, $"row(s) of {canonical} should round-trip through the write path");
+		}
+		// And no MTGO 2-letter code should leak through.
+		foreach (var mtgo in new[] { ",MI,", ",VI,", ",TE,", ",EX," })
+		{
+			csv.Should().NotContain(mtgo, $"MTGO 2-letter code {mtgo.Trim(',')} must be canonicalized before write");
+		}
+	}
+
 	MtgCardCsvHandler CreateHandler(string deckFormatName) => new(_catalog, _resolver, _config, deckFormatName);
 
 	static List<PhysicalMtgCard> GetReferenceCards(Currency currency)

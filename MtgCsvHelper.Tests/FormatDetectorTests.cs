@@ -13,6 +13,7 @@ public class FormatDetectorTests(ITestOutputHelper output) : BaseTest(output)
 	[InlineData("Quantity,Simple Name,Set Code,Set,Card Number,Printing,Condition,Language", "TCGPLAYER")]
 	[InlineData("Card,Set ID,Set Name,Quantity,Foil,Collector Number", "MTGGOLDFISH")]
 	[InlineData("Quantity,Name,Finish,Condition,Date Added,Language,Purchase Price,Tags,Edition Name,Edition Code,Multiverse Id,Scryfall ID,Collector Number", "ARCHIDEKT")]
+	[InlineData("Card Name,Quantity,ID #,Rarity,Set,Collector #,Premium,Sideboarded,Annotation", "MTGO")]
 	[InlineData("idProduct;groupCount;isFoil;condition;idLanguage;price", "CARDMARKET")]
 	// CARDKINGDOM uses lowercase headers, distinct from any other format in the configured set.
 	// No matching fixture in Resources/SampleCsvs/Collection (the sample file uses Title-Case
@@ -60,6 +61,7 @@ public class FormatDetectorTests(ITestOutputHelper output) : BaseTest(output)
 	[InlineData("mtggoldfish-from-mtgarena.csv", "MTGGOLDFISH")]
 	[InlineData("tcgplayer-collection.csv", "TCGPLAYER")]
 	[InlineData("tcgplayer-collection-old.csv", "TCGPLAYER")]
+	[InlineData("mtgo-collection.csv", "MTGO")]
 	public void DetectsRealFixtureFiles(string fixtureName, string expectedFormat)
 	{
 		var path = Path.Combine("Resources", "SampleCsvs", "Collection", fixtureName);
