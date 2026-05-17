@@ -54,7 +54,7 @@ jobs:
         uses: anthropics/claude-code-action@v1
         with:
           claude_code_oauth_token: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
-          # Enabled so we can debug why Claude posts nothing despite running successfully (issue: 2 consecutive PRs).
+          # Enabled for debug visibility while auto-review reliability is being verified.
           # Safe for our review prompts: no secrets in the input. Disable once auto-review is reliably commenting.
           show_full_output: true
           # Inject the PR number explicitly. Without this the agent intermittently can't infer
@@ -72,5 +72,14 @@ jobs:
             - Test coverage
 
             Use inline comments for specific issues and a summary comment for overall feedback.
+            You are running in CI with no interactive user — never call AskUserQuestion. If a
+            tool you need is not allowed, post a summary comment via `gh pr comment` explaining
+            what's blocked, then stop.
+          # gh api is allowed because the agent occasionally needs it to post review-level
+          # summary comments (the create_inline_comment MCP tool only handles inline). Without
+          # this the agent falls back to AskUserQuestion asking permission to call gh api,
+          # which terminates silently in CI. Disallowing AskUserQuestion explicitly is the
+          # belt-and-suspenders fix.
           claude_args: |
-            --allowedTools "mcp__github_inline_comment__create_inline_comment,Bash(gh pr comment:*),Bash(gh pr diff:*),Bash(gh pr view:*)"
+            --allowedTools "mcp__github_inline_comment__create_inline_comment,Bash(gh pr comment:*),Bash(gh pr diff:*),Bash(gh pr view:*),Bash(gh api:*)"
+            --disallowedTools "AskUserQuestion"
