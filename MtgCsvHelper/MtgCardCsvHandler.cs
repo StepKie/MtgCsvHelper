@@ -132,14 +132,10 @@ public class MtgCardCsvHandler
 		}
 	}
 
-	// Validates a parsed row against the Scryfall catalog. Issues an Error and returns false
-	// (so the caller drops the row) when (Set, CollectorNumber) doesn't resolve, the name
-	// doesn't match the resolved printing, or Foil is claimed for a non-foil-only printing.
-	// Rows without enough info to look up (no Set or no CollectorNumber) pass through —
-	// EnrichSetInfo already flagged them as Warning, and dropping them on top would be noise.
 	static bool IsValidPrinting(PhysicalMtgCard card, IReferenceCardCatalog catalog, List<ImportIssue> issues, int rowNum)
 	{
 		var p = card.Printing;
+		// Missing Set/CollectorNumber already warned by EnrichSetInfo; double-erroring would be noise.
 		if (string.IsNullOrEmpty(p.Set) || string.IsNullOrEmpty(p.CollectorNumber)) { return true; }
 
 		// Scryfall stores set codes lowercase; FindBySetAndCollectorNumber's key is case-sensitive
@@ -160,10 +156,10 @@ public class MtgCardCsvHandler
 			return false;
 		}
 
-		if (card.Foil == true && !HasFoilFinish(match.Finishes))
+		if (card.Foil is true && !HasFoilFinish(match.Finishes))
 		{
 			issues.Add(new ImportIssue(IssueSeverity.Error, rowNum,
-				"This printing was not released in foil", CardName: p.Name));
+				$"Printing {p.Set.ToUpperInvariant()} #{p.CollectorNumber} was not released in foil", CardName: p.Name));
 			return false;
 		}
 

@@ -73,11 +73,13 @@ public class TestCollectionFixtureTests(CatalogFixture fixture, ITestOutputHelpe
 		var result = handler.ParseCollectionCsv(Path.Combine(TestCollectionsRoot, filename));
 
 		var expectedRows = CountDataRows(filename);
-		var expectedErrors = KnownDivergence.TryGetValue(filename, out var known) ? known.ExpectedErrors : 0;
-		var becauseClean = $"reference-collection rows are real exports and should round-trip cleanly. Issues: {string.Join("; ", result.Issues.Select(i => i.Reason))}";
-		var becauseKnown = $"{filename} has {expectedErrors} known site-specific divergences tracked by {known.TrackingIssue}";
+		var hasKnown = KnownDivergence.TryGetValue(filename, out var known);
+		var expectedErrors = hasKnown ? known.ExpectedErrors : 0;
+		var because = hasKnown
+			? $"{filename} has {known.ExpectedErrors} known site-specific divergences tracked by {known.TrackingIssue}"
+			: $"reference-collection rows are real exports and should round-trip cleanly. Issues: {string.Join("; ", result.Issues.Select(i => i.Reason))}";
 
-		result.ErrorCount.Should().Be(expectedErrors, expectedErrors == 0 ? becauseClean : becauseKnown);
+		result.ErrorCount.Should().Be(expectedErrors, because);
 		(result.Collection.Cards.Count + result.ErrorCount).Should().Be(expectedRows,
 			$"every data row in {filename} should end up as a card or an error — anything in between is a silent swallow");
 	}
