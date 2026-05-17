@@ -350,7 +350,7 @@
 	static readonly IReadOnlyList<string> _outputFormats = CardMapFactory.WritableFormats;
 
 	string _selectedInputFormat = _inputFormats[0];
-	string _selectedOutputFormat = _outputFormats.First(f => f != _inputFormats[0]);
+	string _selectedOutputFormat = _outputFormats.First(f => f != _selectedInputFormat);
 
 	IBrowserFile? _csvFile;
 	ConversionResult? _result;
