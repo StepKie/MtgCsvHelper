@@ -1,24 +1,30 @@
 using System.Globalization;
-using System.Text;
 using CsvHelper.Configuration;
 using CsvHelper.TypeConversion;
 using Microsoft.Extensions.Configuration;
+using MtgCsvHelper.Enrichment;
 using MtgCsvHelper.Services;
 
 namespace MtgCsvHelper;
 public class MtgCardCsvHandler
 {
 	readonly CardMapFactory _factory;
-	readonly IReferenceCardCatalog _catalog;
-	readonly ICardmarketResolver _resolver;
 	readonly string _format;
+	readonly IReadOnlyList<IEnricher> _pipeline;
 
 	public MtgCardCsvHandler(IReferenceCardCatalog catalog, ICardmarketResolver resolver, IConfiguration config, string format)
 	{
 		_format = format;
 		_factory = new CardMapFactory(config, catalog);
-		_catalog = catalog;
-		_resolver = resolver;
+		// Order matters: Cardmarket stubs (Name="") must be resolved before SetInfo and CatalogValidator
+		// can do anything with them. SetInfo runs before CatalogValidator so the canonical Set is in
+		// place when the catalog lookup happens.
+		_pipeline =
+		[
+			new CardmarketIdEnricher(resolver),
+			new SetInfoEnricher(catalog),
+			new CatalogValidator(catalog),
+		];
 	}
 
 	// Sync wrappers — fine for non-Blazor callers and for formats that don't need network I/O.
@@ -52,8 +58,7 @@ public class MtgCardCsvHandler
 		csv.ReadHeader();
 		csv.ValidateHeader<PhysicalMtgCard>(); // throws HeaderValidationException if non-Optional fields are missing
 
-		var cards = new List<PhysicalMtgCard>();
-		var rowNumbers = new List<int>(); // parallel to cards; needed for issue reporting in the post-parse enrichment step
+		var rows = new List<ParsedRow>();
 		var issues = new List<ImportIssue>();
 
 		// CsvHelper's ReadAsync doesn't take a CT, so cancellation is checked per-row instead.
@@ -79,18 +84,7 @@ public class MtgCardCsvHandler
 						RawContent: csv.Parser.RawRecord?.TrimEnd()));
 					continue;
 				}
-				// For non-cardmarket formats, the printing's Name is set during parse; backfill set info now.
-				// For cardmarket-style stubs (Name empty, CardMarketId set), defer to the cardmarket enricher.
-				if (!string.IsNullOrEmpty(card.Printing.Name))
-				{
-					EnrichSetInfo(card, _catalog, issues, rowNum);
-					if (!IsValidPrinting(card, _catalog, issues, rowNum))
-					{
-						continue;
-					}
-				}
-				cards.Add(card);
-				rowNumbers.Add(rowNum);
+				rows.Add(new ParsedRow(card, rowNum));
 			}
 			catch (TypeConverterException tcex)
 			{
@@ -112,10 +106,13 @@ public class MtgCardCsvHandler
 			}
 		}
 
-		// Post-parse enrichment: fill in stubbed cards (Cardmarket) by batched Scryfall lookup.
-		await EnrichByCardmarketIdAsync(cards, rowNumbers, issues, ct);
+		// Run the post-parse pipeline. Each step mutates rows/issues in place (transforms or drops).
+		foreach (var enricher in _pipeline)
+		{
+			await enricher.EnrichAsync(rows, issues, ct);
+		}
 
-		var collection = new Collection { Name = $"Import {_format}, Date: {DateTime.Now}", Cards = cards };
+		var collection = new Collection { Name = $"Import {_format}, Date: {DateTime.Now}", Cards = [.. rows.Select(r => r.Card)] };
 		Log.Debug(collection.GenerateSummary());
 		return new ParseResult(collection, issues);
 
@@ -129,141 +126,6 @@ public class MtgCardCsvHandler
 				stream.BaseStream.Position = 0;
 				stream.DiscardBufferedData();
 			}
-		}
-	}
-
-	static bool IsValidPrinting(PhysicalMtgCard card, IReferenceCardCatalog catalog, List<ImportIssue> issues, int rowNum)
-	{
-		var p = card.Printing;
-		// Missing Set/CollectorNumber already warned by EnrichSetInfo; double-erroring would be noise.
-		if (string.IsNullOrEmpty(p.Set) || string.IsNullOrEmpty(p.CollectorNumber)) { return true; }
-
-		var match = catalog.FindBySetAndCollectorNumber(p.Set, p.CollectorNumber);
-		if (match is null)
-		{
-			issues.Add(new ImportIssue(IssueSeverity.Error, rowNum,
-				$"No printing at {p.Set} #{p.CollectorNumber} in Scryfall data", CardName: p.Name));
-			return false;
-		}
-
-		if (!NamesMatch(p.Name, match.Name, catalog))
-		{
-			issues.Add(new ImportIssue(IssueSeverity.Error, rowNum,
-				$"Name '{p.Name}' does not match printing at {p.Set} #{p.CollectorNumber} ('{match.Name}')",
-				CardName: p.Name));
-			return false;
-		}
-
-		if (card.Foil is true && !HasFoilFinish(match.Finishes))
-		{
-			issues.Add(new ImportIssue(IssueSeverity.Error, rowNum,
-				$"Printing {p.Set} #{p.CollectorNumber} was not released in foil", CardName: p.Name));
-			return false;
-		}
-
-		return true;
-	}
-
-	static bool NamesMatch(string imported, string referenceName, IReferenceCardCatalog catalog)
-	{
-		if (EqualsNormalized(imported, referenceName)) { return true; }
-		// Front-face-only imports (Moxfield's ShortNames=false formats) match the full Scryfall name.
-		var expanded = catalog.ExpandFrontFaceToFullName(imported);
-		return expanded is not null && EqualsNormalized(expanded, referenceName);
-	}
-
-	// Compares with Unicode diacritic stripping (NFD + remove combining marks). TCGPlayer and a
-	// few other sites normalize "Lim-Dûl's Vault" → "Lim-Dul's Vault" on export; Scryfall keeps the
-	// diacritic. Matching naively would reject every accented card. Done in one pass on both sides.
-	static bool EqualsNormalized(string a, string b) =>
-		string.Equals(StripDiacritics(a), StripDiacritics(b), StringComparison.OrdinalIgnoreCase);
-
-	static string StripDiacritics(string s)
-	{
-		var decomposed = s.Normalize(NormalizationForm.FormD);
-		var sb = new StringBuilder(decomposed.Length);
-		foreach (var c in decomposed)
-		{
-			if (CharUnicodeInfo.GetUnicodeCategory(c) != UnicodeCategory.NonSpacingMark) { sb.Append(c); }
-		}
-		return sb.ToString();
-	}
-
-	static bool HasFoilFinish(IReadOnlyList<string> finishes) =>
-		finishes.Any(f => string.Equals(f, "foil", StringComparison.OrdinalIgnoreCase)
-		               || string.Equals(f, "etched", StringComparison.OrdinalIgnoreCase));
-
-	static void EnrichSetInfo(PhysicalMtgCard card, IReferenceCardCatalog catalog, List<ImportIssue> issues, int rowNum)
-	{
-		var p = card.Printing;
-		bool hadSetCode = p.Set is not null;
-		bool hadSetName = p.SetName is not null;
-
-		// Both directions are O(1) — the catalog maintains forward (code → name) and reverse (name → code) indexes.
-		if (hadSetCode) { p.SetName ??= catalog.GetSetNameByCode(p.Set!); }
-		if (hadSetName) { p.Set ??= catalog.GetSetCodeByName(p.SetName!); }
-		// Rewrite Set to its canonical Scryfall form once SetName is known. Catches MTGO aliases
-		// (MI → MIR) and any lowercase input so downstream writes emit the code other tools expect.
-		if (p.SetName is not null) { p.Set = catalog.GetSetCodeByName(p.SetName) ?? p.Set; }
-
-		if (!hadSetCode && !hadSetName)
-		{
-			issues.Add(new ImportIssue(IssueSeverity.Warning, rowNum, "No set information found in row", CardName: p.Name));
-		}
-		else if (hadSetCode && p.SetName is null)
-		{
-			issues.Add(new ImportIssue(IssueSeverity.Warning, rowNum, $"Set code '{p.Set}' not found in Scryfall data", CardName: p.Name));
-		}
-		else if (hadSetName && p.Set is null)
-		{
-			issues.Add(new ImportIssue(IssueSeverity.Warning, rowNum, $"Set name '{p.SetName}' not found in Scryfall data", CardName: p.Name));
-		}
-	}
-
-	// For cards whose Printing was parsed as a stub (only CardMarketId set), batch-resolve the
-	// full Scryfall card by cardmarket_id and fill in name/set/setName/collectorNumber.
-	// IDs not found in Scryfall produce an ImportIssue.Warning per affected card.
-	async Task EnrichByCardmarketIdAsync(IList<PhysicalMtgCard> cards, IList<int> rowNumbers, List<ImportIssue> issues, CancellationToken ct)
-	{
-		// CardMarketId is `int` (not `int?`) in the Scryfall library, so 0 acts as the "unset" sentinel —
-		// real cardmarket_ids are always positive in Scryfall data.
-		var pending = new List<(PhysicalMtgCard Card, int RowNum)>();
-		for (int i = 0; i < cards.Count; i++)
-		{
-			var c = cards[i];
-			if (c.Printing.CardMarketId > 0 && string.IsNullOrEmpty(c.Printing.Name))
-			{
-				pending.Add((c, rowNumbers[i]));
-			}
-		}
-
-		if (pending.Count == 0) return;
-
-		var ids = pending.Select(x => x.Card.Printing.CardMarketId).Distinct().ToList();
-		var resolved = await _resolver.ResolveAsync(ids, ct);
-
-		var unresolved = new List<PhysicalMtgCard>();
-		foreach (var entry in pending)
-		{
-			var id = entry.Card.Printing.CardMarketId;
-			if (resolved.TryGetValue(id, out var full))
-			{
-				entry.Card.Printing.Name = full.Name;
-				entry.Card.Printing.Set = full.Set;
-				entry.Card.Printing.SetName = full.SetName;
-				entry.Card.Printing.CollectorNumber = full.CollectorNumber;
-			}
-			else
-			{
-				// Without a name/set, we can't write a meaningful row — drop the card.
-				// This is data loss (Error), not just degraded fidelity (Warning).
-				issues.Add(new ImportIssue(IssueSeverity.Error, entry.RowNum, $"Cardmarket ID {id} not found in Scryfall data — card skipped"));
-				unresolved.Add(entry.Card);
-			}
-		}
-		foreach (var dropped in unresolved)
-		{
-			cards.Remove(dropped);
 		}
 	}
 
