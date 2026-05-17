@@ -68,7 +68,7 @@
 			<MudGrid Spacing="3" Justify="Justify.Center">
 				<MudItem xs="12" sm="5">
 					<MudSelect T="string" Value="_selectedInputFormat" ValueChanged="OnInputFormatChanged" Label="Input format" Variant="Variant.Outlined" Dense="true" Disabled="@(_autoDetect && !_autoDetectFailed)">
-						@foreach (var fmt in _supportedFormats)
+						@foreach (var fmt in _inputFormats)
 						{
 							<MudSelectItem Value="@fmt">@FormatDisplay.For(fmt)</MudSelectItem>
 						}
@@ -79,7 +79,7 @@
 				</MudItem>
 				<MudItem xs="12" sm="5">
 					<MudSelect T="string" Value="_selectedOutputFormat" ValueChanged="OnOutputFormatChanged" Label="Output format" Variant="Variant.Outlined" Dense="true">
-						@foreach (var fmt in _supportedFormats)
+						@foreach (var fmt in _outputFormats)
 						{
 							<MudSelectItem Value="@fmt">@FormatDisplay.For(fmt)</MudSelectItem>
 						}
@@ -346,10 +346,11 @@
 
 @code {
 	const int MaxFileSize = 5 * 1024 * 1024;
-	static readonly IReadOnlyList<string> _supportedFormats = CardMapFactory.Supported;
+	static readonly IReadOnlyList<string> _inputFormats = CardMapFactory.ReadableFormats;
+	static readonly IReadOnlyList<string> _outputFormats = CardMapFactory.WritableFormats;
 
-	string _selectedInputFormat = _supportedFormats[0];
-	string _selectedOutputFormat = _supportedFormats[1];
+	string _selectedInputFormat = _inputFormats[0];
+	string _selectedOutputFormat = _outputFormats.First(f => f != _selectedInputFormat);
 
 	IBrowserFile? _csvFile;
 	ConversionResult? _result;
@@ -421,7 +422,7 @@
 	{
 		_selectedInputFormat = value;
 		if (_selectedOutputFormat == value)
-			_selectedOutputFormat = _supportedFormats.First(f => f != value);
+			_selectedOutputFormat = _outputFormats.First(f => f != value);
 		// A manual pick clears any prior auto-detect failure so the warning chip goes away.
 		_autoDetectFailed = false;
 	}
@@ -430,7 +431,7 @@
 	{
 		_selectedOutputFormat = value;
 		if (_selectedInputFormat == value)
-			_selectedInputFormat = _supportedFormats.First(f => f != value);
+			_selectedInputFormat = _inputFormats.First(f => f != value);
 	}
 
 	// Imported PhysicalMtgCard objects don't carry the Scryfall Id (the CSV parse only fills
