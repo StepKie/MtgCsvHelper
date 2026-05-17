@@ -30,6 +30,8 @@ public class PhysicalCardMap : ClassMap<PhysicalMtgCard>
 		}
 
 		// At least one of SetCode / SetName is expected per format (sites differ on which they include).
+		// CollectorNumberConverter is applied universally (not MTGO-specific) — it's a no-op for any
+		// collector number without a "/", and "/" doesn't appear in Scryfall data.
 		MapOptional(c => c.Printing.CollectorNumber, cfg.SetNumber)?.TypeConverter<CollectorNumberConverter>();
 		MapOptional(c => c.Printing.Set, cfg.SetCode)?.TypeConverter<UpperCaseConverter>();
 		MapOptional(c => c.Printing.SetName, cfg.SetName);

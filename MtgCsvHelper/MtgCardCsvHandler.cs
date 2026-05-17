@@ -142,14 +142,14 @@ public class MtgCardCsvHandler
 		if (match is null)
 		{
 			issues.Add(new ImportIssue(IssueSeverity.Error, rowNum,
-				$"No printing at {p.Set.ToUpperInvariant()} #{p.CollectorNumber} in Scryfall data", CardName: p.Name));
+				$"No printing at {p.Set} #{p.CollectorNumber} in Scryfall data", CardName: p.Name));
 			return false;
 		}
 
 		if (!NamesMatch(p.Name, match.Name, catalog))
 		{
 			issues.Add(new ImportIssue(IssueSeverity.Error, rowNum,
-				$"Name '{p.Name}' does not match printing at {p.Set.ToUpperInvariant()} #{p.CollectorNumber} ('{match.Name}')",
+				$"Name '{p.Name}' does not match printing at {p.Set} #{p.CollectorNumber} ('{match.Name}')",
 				CardName: p.Name));
 			return false;
 		}
@@ -157,7 +157,7 @@ public class MtgCardCsvHandler
 		if (card.Foil is true && !HasFoilFinish(match.Finishes))
 		{
 			issues.Add(new ImportIssue(IssueSeverity.Error, rowNum,
-				$"Printing {p.Set.ToUpperInvariant()} #{p.CollectorNumber} was not released in foil", CardName: p.Name));
+				$"Printing {p.Set} #{p.CollectorNumber} was not released in foil", CardName: p.Name));
 			return false;
 		}
 
