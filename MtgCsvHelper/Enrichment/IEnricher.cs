@@ -15,26 +15,3 @@ public interface IEnricher
 	/// read-only <see cref="IList{T}"/> (e.g. arrays, <c>ReadOnlyCollection</c>) will throw.</param>
 	Task EnrichAsync(IList<ParsedRow> rows, ICollection<ImportIssue> issues, CancellationToken ct);
 }
-
-/// <summary>
-/// Convenience base for the common case: a sync, per-card step that may drop the row.
-/// Iterates in reverse so removals don't shift downstream indices.
-/// </summary>
-public abstract class PerCardEnricher : IEnricher
-{
-	public Task EnrichAsync(IList<ParsedRow> rows, ICollection<ImportIssue> issues, CancellationToken ct)
-	{
-		for (int i = rows.Count - 1; i >= 0; i--)
-		{
-			ct.ThrowIfCancellationRequested();
-			if (!EnrichOne(rows[i], issues))
-			{
-				rows.RemoveAt(i);
-			}
-		}
-		return Task.CompletedTask;
-	}
-
-	/// <returns><c>true</c> to keep the row, <c>false</c> to drop it.</returns>
-	protected abstract bool EnrichOne(ParsedRow row, ICollection<ImportIssue> issues);
-}
