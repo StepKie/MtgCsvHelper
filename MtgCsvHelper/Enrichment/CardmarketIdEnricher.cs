@@ -15,30 +15,28 @@ public sealed class CardmarketIdEnricher(ICardmarketResolver resolver) : IEnrich
 	{
 		// CardMarketId is `int` (not `int?`) in the Scryfall library, so 0 acts as the "unset" sentinel —
 		// real cardmarket_ids are always positive in Scryfall data.
-		var pendingIndices = new List<int>();
+		var pending = new List<(int Index, int Id)>();
 		for (int i = 0; i < rows.Count; i++)
 		{
 			var c = rows[i].Card;
 			if (c.Printing.CardMarketId > 0 && string.IsNullOrEmpty(c.Printing.Name))
 			{
-				pendingIndices.Add(i);
+				pending.Add((i, c.Printing.CardMarketId));
 			}
 		}
 
-		if (pendingIndices.Count == 0) { return; }
+		if (pending.Count == 0) { return; }
 
-		var ids = pendingIndices.Select(i => rows[i].Card.Printing.CardMarketId).Distinct().ToList();
+		var ids = pending.Select(p => p.Id).Distinct().ToList();
 		var resolved = await resolver.ResolveAsync(ids, ct);
 
-		// Walk pendingIndices in reverse so RemoveAt doesn't shift positions we still need to
-		// visit. Note the double-indexing: k indexes pendingIndices, i is the original position
-		// in rows. Duplicate CardMarketIds across rows are handled correctly — both rows have
-		// distinct entries in pendingIndices and both look up the same `full` record below.
-		for (int k = pendingIndices.Count - 1; k >= 0; k--)
+		// Walk in reverse so RemoveAt doesn't shift positions we still need to visit. Duplicate
+		// CardMarketIds across rows are handled correctly: each row has its own entry in `pending`
+		// and both look up the same `full` record below (TryGetValue is idempotent).
+		for (int k = pending.Count - 1; k >= 0; k--)
 		{
-			var i = pendingIndices[k];
+			var (i, id) = pending[k];
 			var row = rows[i];
-			var id = row.Card.Printing.CardMarketId;
 			if (resolved.TryGetValue(id, out var full))
 			{
 				row.Card.Printing.Name = full.Name;
