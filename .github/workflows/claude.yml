@@ -71,9 +71,9 @@ jobs:
             - Security implications
             - Test coverage
 
-            Use inline comments for specific issues and a summary comment for overall feedback.
+            Use inline comments for specific issues. ${{ github.event.action == 'opened' && 'Add a single summary comment with the overall assessment.' || 'Do NOT post a summary / overall-assessment comment — this is a re-review on push and the initial review already has one; another summary would duplicate it. Focus on issues introduced by the new commits.' }}
             You are running in CI with no interactive user — never call AskUserQuestion. If a
-            tool you need is not allowed, post a summary comment via `gh pr comment` explaining
+            tool you need is not allowed, post a single comment via `gh pr comment` explaining
             what's blocked, then stop.
           # gh api is allowed because the agent occasionally needs it to post review-level
           # summary comments (the create_inline_comment MCP tool only handles inline). Without
