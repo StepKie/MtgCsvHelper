@@ -3,12 +3,12 @@ namespace MtgCsvHelper.Enrichment;
 /// <summary>
 /// Convenience base for the common case: a sync, per-card step that may drop the row.
 /// Iterates in reverse so removals don't shift downstream indices — as a side effect,
-/// issues appended during a single pass land in reverse row order. Consumers that care
-/// about ordering should sort by <see cref="ImportIssue.RowNumber"/>.
+/// issues appended during a single pass land in reverse row order. <c>ParseCollectionCsvAsync</c>
+/// sorts the final issue list by <see cref="ImportIssue.RowNumber"/> before returning.
 /// </summary>
 public abstract class PerCardEnricher : IEnricher
 {
-	public Task EnrichAsync(IList<ParsedRow> rows, ICollection<ImportIssue> issues, CancellationToken ct)
+	public Task EnrichAsync(List<ParsedRow> rows, ICollection<ImportIssue> issues, CancellationToken ct)
 	{
 		for (int i = rows.Count - 1; i >= 0; i--)
 		{

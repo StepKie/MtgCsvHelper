@@ -11,7 +11,7 @@ namespace MtgCsvHelper.Enrichment;
 /// </summary>
 public sealed class CardmarketIdEnricher(ICardmarketResolver resolver) : IEnricher
 {
-	public async Task EnrichAsync(IList<ParsedRow> rows, ICollection<ImportIssue> issues, CancellationToken ct)
+	public async Task EnrichAsync(List<ParsedRow> rows, ICollection<ImportIssue> issues, CancellationToken ct)
 	{
 		// CardMarketId is `int` (not `int?`) in the Scryfall library, so 0 acts as the "unset" sentinel —
 		// real cardmarket_ids are always positive in Scryfall data.
@@ -30,9 +30,12 @@ public sealed class CardmarketIdEnricher(ICardmarketResolver resolver) : IEnrich
 		var ids = pending.Select(p => p.Id).Distinct().ToList();
 		var resolved = await resolver.ResolveAsync(ids, ct);
 
-		// Walk in reverse so RemoveAt doesn't shift positions we still need to visit. Duplicate
-		// CardMarketIds across rows are handled correctly: each row has its own entry in `pending`
-		// and both look up the same `full` record below (TryGetValue is idempotent).
+		// Walk in reverse so RemoveAt doesn't shift positions we still need to visit. Invariant:
+		// pending was built by walking rows forward, so its Index values are strictly ascending —
+		// reverse iteration here processes rows high-to-low, and each RemoveAt(i) only shifts
+		// positions we've already visited. Duplicate CardMarketIds across rows are handled
+		// correctly: each row has its own entry in `pending` and both look up the same `full`
+		// record below (TryGetValue is idempotent).
 		for (int k = pending.Count - 1; k >= 0; k--)
 		{
 			var (i, id) = pending[k];

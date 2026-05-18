@@ -10,9 +10,7 @@ namespace MtgCsvHelper.Enrichment;
 /// </summary>
 public interface IEnricher
 {
-	/// <param name="rows">Mutable <see cref="List{T}"/> of parsed rows. Implementations may modify
-	/// cards in place and call <c>RemoveAt</c> to drop invalid/unresolvable rows. Passing a
-	/// fixed-size collection (e.g. an array or <c>ReadOnlyCollection</c>) throws
-	/// <see cref="NotSupportedException"/> at runtime.</param>
-	Task EnrichAsync(IList<ParsedRow> rows, ICollection<ImportIssue> issues, CancellationToken ct);
+	/// <param name="rows">Mutable list of parsed rows. Implementations may modify cards in
+	/// place and call <c>RemoveAt</c> to drop invalid/unresolvable rows.</param>
+	Task EnrichAsync(List<ParsedRow> rows, ICollection<ImportIssue> issues, CancellationToken ct);
 }

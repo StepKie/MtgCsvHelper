@@ -116,9 +116,12 @@ public class MtgCardCsvHandler
 			await enricher.EnrichAsync(rows, issues, ct);
 		}
 
+		// Pipeline stages emit issues in mixed order (parse loop ascending, PerCardEnricher
+		// reverse iteration descending, batch enrichers ascending). Sort by RowNumber once at
+		// the exit so consumers always see ascending row order.
 		var collection = new Collection { Name = $"Import {_format}, Date: {DateTime.Now}", Cards = [.. rows.Select(r => r.Card)] };
 		Log.Debug(collection.GenerateSummary());
-		return new ParseResult(collection, issues);
+		return new ParseResult(collection, [.. issues.OrderBy(i => i.RowNumber)]);
 
 		static void CheckIfFirstLineCanBeIgnored(StreamReader stream)
 		{
