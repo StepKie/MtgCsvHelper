@@ -5,8 +5,8 @@ namespace MtgCsvHelper.Enrichment;
 /// can mutate cards in place, can drop rows, and can append issues. Steps run in registration
 /// order — order is significant (e.g. catalog validation runs before Cardmarket resolution so
 /// Scryfall-resolved cards bypass the validator and avoid being dropped against a stale bundle).
-/// Named "Enricher" after the dominant role (4 of 5 known implementations transform card data);
-/// the one validator class is named <c>CatalogValidator</c> rather than pretending to be an enricher.
+/// Named "Enricher" after the dominant role — most implementations transform card data, while
+/// the lone validator is named <c>CatalogValidator</c> rather than pretending to be an enricher.
 /// </summary>
 public interface IEnricher
 {
