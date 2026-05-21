@@ -26,8 +26,13 @@ public class MtgCardCsvHandlerTests(CatalogFixture fixture, ITestOutputHelper ou
 		handler.WriteCollectionCsv(originalCards, fileName);
 		List<PhysicalMtgCard> parsedCards = handler.ParseCollectionCsv(fileName).Collection.Cards;
 
-		// Assert
-		parsedCards.Should().BeEquivalentTo(originalCards);
+		// Assert — only DS rewrites null Folder / PriceBought / DateBought during write
+		// (RequiresWriteDefaults), so the round-trip isn't lossless for those fields *only*
+		// when the target is DS. Other formats must still round-trip them exactly.
+		bool dsFormat = deckFormatName == "DRAGONSHIELD";
+		parsedCards.Should().BeEquivalentTo(originalCards, opts => dsFormat
+			? opts.Excluding(c => c.Folder).Excluding(c => c.PriceBought).Excluding(c => c.DateBought)
+			: opts);
 	}
 
 	[Theory]
@@ -35,7 +40,7 @@ public class MtgCardCsvHandlerTests(CatalogFixture fixture, ITestOutputHelper ou
 	[InlineData($"{TESTS_FOLDER}/moxfield-field-fidelity.csv", "MOXFIELD", "EUR")]
 	[InlineData($"{TESTS_FOLDER}/manabox-field-fidelity.csv", "MANABOX", "USD")]
 	[InlineData($"{TESTS_FOLDER}/topdecked-field-fidelity.csv", "TOPDECKED", "USD")]
-	//[InlineData($"{TESTS_FOLDER}/deckbox-field-fidelity.csv", "DECKBOX", "USD")] // TODO #31 (Deckbox set-name aliases).
+	[InlineData($"{TESTS_FOLDER}/deckbox-field-fidelity.csv", "DECKBOX", "USD")]
 	public void ParseSampleCsv_WithValidInput_ParsesCards(string csvFilePath, string deckFormatName, string currency)
 	{
 		// Arrange
@@ -51,8 +56,8 @@ public class MtgCardCsvHandlerTests(CatalogFixture fixture, ITestOutputHelper ou
 
 	[Theory]
 	[InlineData($"{COLLECTIONS_FOLDER}/dragonshield-collection.csv", "DRAGONSHIELD", "MOXFIELD")]
-	[InlineData($"{COLLECTIONS_FOLDER}/moxfield-collection.csv", "MOXFIELD", "DRAGONSHIELD")]
-	[InlineData($"{COLLECTIONS_FOLDER}/moxfield-collection.csv", "MOXFIELD", "TOPDECKED")]
+	[InlineData($"{COLLECTIONS_FOLDER}/moxfield-haves.csv", "MOXFIELD", "DRAGONSHIELD")]
+	[InlineData($"{COLLECTIONS_FOLDER}/moxfield-haves.csv", "MOXFIELD", "TOPDECKED")]
 	[InlineData($"{COLLECTIONS_FOLDER}/topdecked-collection.csv", "TOPDECKED", "MOXFIELD")]
 	[InlineData($"{COLLECTIONS_FOLDER}/manabox-collection.csv", "MANABOX", "MOXFIELD")]
 	[InlineData($"{COLLECTIONS_FOLDER}/manabox-collection.csv", "MANABOX", "CARDKINGDOM")]
@@ -121,6 +126,35 @@ public class MtgCardCsvHandlerTests(CatalogFixture fixture, ITestOutputHelper ou
 		{
 			csv.Should().NotContain(mtgo, $"MTGO 2-letter code {mtgo.Trim(',')} must be canonicalized before write");
 		}
+	}
+
+	[Fact]
+	public void RequiresWriteDefaults_FillsNullFolderPriceDate_AndDoesNotMutateInput()
+	{
+		var handler = CreateHandler("DRAGONSHIELD");
+		var input = new List<PhysicalMtgCard>
+		{
+			new() { Count = 1, Printing = new Card { Name = "Lightning Bolt", Set = "M11", SetName = "Magic 2011", CollectorNumber = "149" } },
+			new() { Count = 1, Printing = new Card { Name = "Llanowar Elves", Set = "M11", SetName = "Magic 2011", CollectorNumber = "182" },
+				Folder = "MyDeck", PriceBought = new Money(2.50m, Currency.FromString("USD")), DateBought = new DateTime(2024, 1, 1) },
+		};
+
+		using var output = new MemoryStream();
+		handler.WriteCollectionCsv(input, output);
+		var csv = System.Text.Encoding.UTF8.GetString(output.ToArray());
+
+		// Null/unset fields get the DS defaults.
+		csv.Should().Contain("Imported,1").And.Contain("Lightning Bolt");
+		csv.Should().Contain(DateTime.Today.ToString("yyyy-MM-dd"));
+
+		// Source-set fields are preserved verbatim.
+		csv.Should().Contain("MyDeck,1").And.Contain("Llanowar Elves");
+		csv.Should().Contain("2024-01-01");
+
+		// Caller's input is NOT mutated — the projection should leave the records immutable.
+		input[0].Folder.Should().BeNull("write-defaults must project, not mutate, the input list");
+		input[0].PriceBought.Should().BeNull();
+		input[0].DateBought.Should().BeNull();
 	}
 
 	MtgCardCsvHandler CreateHandler(string deckFormatName) => new(_catalog, _resolver, _config, deckFormatName);

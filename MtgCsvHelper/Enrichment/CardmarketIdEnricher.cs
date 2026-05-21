@@ -53,7 +53,9 @@ public sealed class CardmarketIdEnricher(ICardmarketResolver resolver) : IEnrich
 				// This is data loss (Error), not just degraded fidelity (Warning).
 				// One error per affected row (not per distinct ID), so duplicate-ID inputs that
 				// fail to resolve produce one issue per row — keeps row-level traceability.
-				issues.Add(new ImportIssue(IssueSeverity.Error, row.RowNumber, $"Cardmarket ID {id} not found in Scryfall data — card skipped"));
+				issues.Add(new ImportIssue(IssueSeverity.Error, row.RowNumber,
+					$"Cardmarket ID {id} not found in Scryfall data — card skipped",
+					RawContent: row.RawContent));
 				rows.RemoveAt(i);
 			}
 		}

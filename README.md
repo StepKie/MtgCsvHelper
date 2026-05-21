@@ -1,33 +1,39 @@
 # MtG Csv Helper
 
-The purpose of this tool is to automate the conversion between several collection formats for Magic the Gathering used by popular tools.
+A free, browser-side converter for Magic: The Gathering collection CSVs between popular sites. Your file never leaves your machine — everything runs as Blazor WebAssembly in the tab.
+
+➡️ **[Try it now: stepkie.github.io/MtgCsvHelper](https://stepkie.github.io/MtgCsvHelper/)** &nbsp; ·&nbsp; [CHANGELOG](CHANGELOG.md) &nbsp; ·&nbsp; [Conversion limitations](CONVERSION_LIMITATIONS.md)
+
+![Screenshot of the converter UI](docs/screenshot.png)
 
 ## TL;DR
 
-You are welcome to try out the web app [here](https://stepkie.github.io/MtgCsvHelper/).
+1. Upload input CSV file.
+2. The input format is auto-detected from the headers; toggle off to pick manually. Pick the output format.
+3. Click **Convert**. Larger collections take a moment.
+4. Download the converted CSV. The results table shows per-row issues and totals.
 
-**ATTENTION:** Since this is a client-side Blazor app, the browser may cache data. and this cache needs to be cleared in order to load the latest version of the app.
-The version displayed in the upper right corner should match the last commit id displayed on the [main](https://github.com/StepKie/MtgCsvHelper/tree/main) branch.
+When a new version ships, the app shows a "Reload to update" banner — click it to swap in the latest build. (The service worker keeps an offline copy of the previous version until you do.)
 
-1. Upload input csv file
-2. Select output format (input is auto-detected from the CSV headers — toggle off to pick manually)
-3. Click "Convert". In case of a larger collection, please allow for some processing time.
-4. Download converted output csv file
+## Supported formats
 
-* Currently supported:
-  * Moxfield
-  * DragonShield
-  * Manabox
-  * Topdecked
-  * Deckbox
-  * Mtggoldfish
-  * TcgPlayer
-  * Archidekt
-  * Cardmarket (read-only, by cardmarket_id)
-  * Cardkingdom (Low info, only 4 columns - Export only)
+Both import and export, unless noted.
 
-* Potentially added by demand
-  * ???
+| Format | Notes |
+| --- | --- |
+| Moxfield | |
+| Dragon Shield | |
+| Manabox | |
+| Topdecked | |
+| Deckbox | Curated edition names + legacy edition codes are aliased back to Scryfall codes on read/write. |
+| MTGGoldfish | |
+| TCGplayer | |
+| Archidekt | |
+| MTGO | 2-letter legacy codes (MI/VI/TE/EX) canonicalized to 3-letter Scryfall codes (MIR/VIS/TMP/EXO); `N/M` collector numbers stripped. |
+| Cardmarket | Import only — resolves rows by `idProduct` via Scryfall reverse lookup. |
+| Card Kingdom | Export only — 4-column buylist shape, no condition/language/foil-etched. |
+
+Open an issue if you want a new site supported.
 
 ## Limitations / Known Issues
 
@@ -39,82 +45,62 @@ The version displayed in the upper right corner should match the last commit id 
 
 ## Project Info
 
-* Created this tool for my own use since I like to keep my MtG collection up-to-date by using a card scanner.
-* The best ones I found for this purpose are [Manabox](https://www.manabox.app/) and [MtG DragonShield Card Manager](https://mtg.dragonshield.com/)
-* You can export data from their site, but there is no easy way to import it to some of the most popular other collection managers such as [Moxfield](https://www.moxfield.com/collection) or [Deckbox](https://deckbox.org)
-* The other use case, unrelated to card scanners, is to keep your collection in sync across multiple sites
+Built originally to bridge card-scanner exports ([Manabox](https://www.manabox.app/), [MtG DragonShield Card Manager](https://mtg.dragonshield.com/)) into mainstream collection managers ([Moxfield](https://www.moxfield.com/collection), [Deckbox](https://deckbox.org)) without manual header-shuffling. Also handles the inverse: keeping a collection in sync across multiple sites.
 
+The cumbersome bits the tool takes care of for you:
 
-* The manual conversion process is quite cumbersome, one always has to replace the corresponding Csv Headers, and replace some values that are slightly different. For example
-  * Card name: infuriatingly, some sites do not properly encode the full name of double-faced cards, but only front-side.
-  * Set information: set name or set code missing, non-standard set names
-  * Foil status;: encoded widely different across formats
-  *Card condition: some sites use a scale of 6, some of 7 conditions. These need to be mapped. Loss of information is inevitable when mapping to lower resolution, though.
-  * Language: (code vs full name)
-  * Price: (various formats with various currencies, with or without currency symbol, leading or trailing position)
-  * etc
-* Some columns which are not common to most tools are not supported
+* **Card names** — some sites only emit the front face of double-faced cards; we expand to the full Scryfall name.
+* **Set info** — missing set codes or set names, non-standard set names (Deckbox in particular curates its own vocabulary).
+* **Foil** — different sites encode "foil"/"nonfoil"/"etched" with different strings.
+* **Condition** — sites use 6 or 7 levels with varying vocabulary; we map between them (with documented information loss when mapping to a coarser scale).
+* **Language** — short codes vs. full names.
+* **Price** — currency, separator, and symbol position all vary.
 
-This tool defines configurable mappings addressing the above issues in *appsettings.json*
+All site-specific behavior lives in `MtgCsvHelper/appsettings.json` so adding a format is configuration, not code.
 
 ## How to use
 
 ### Browser
 
-* A static webapp is available at [https://stepkie.github.io/MtgCsvHelper/](https://stepkie.github.io/MtgCsvHelper/)
-* As opposed to the console version, there is currently no way to access the configuration (appsettings) and customize the app's behavior
-* However, it is more user-friendly and should work across a wide range of default scenarios
+The web app at <https://stepkie.github.io/MtgCsvHelper/> covers the common path. Unlike the console version, the in-browser tool doesn't expose `appsettings.json` for live tweaking, but it works for any default-shaped CSV from a supported site.
 
 ### Console
 
-* Prerequisite: [Installed .NET Runtime, Version >= 7.0](https://dotnet.microsoft.com/download/dotnet).
-* You can download from the Releases tab on the right, or you can build from source yourself
-  * For building from source, unzip the source folde, and run *dotnet build* in the root directory of the unzipped folder
+* Prerequisite: [.NET 10 SDK / Runtime](https://dotnet.microsoft.com/download/dotnet/10.0).
+* Download a release zip from the [Releases tab](https://github.com/StepKie/MtgCsvHelper/releases), or build from source with `dotnet build MtgCsvHelper.slnx`.
+* Run `dotnet run --project MtgCsvHelper.Console` — `--help` lists all flags.
+  * `--in` is optional; when omitted, the input format is auto-detected from each file's CSV header. Pass `--in MOXFIELD` (etc.) to skip detection.
+* `MtgCsvHelper/appsettings.json` carries the per-format column mappings and is checked into the repo; tweak it if you want to add a new format or override a column.
 
-* Run the provided MtgCsvHelper.
-	* Usage info can be found running it with the *--help* flag
-	* `--in` is optional: when omitted, the input format is auto-detected from each file's CSV header row.
-	  Pass `--in MOXFIELD` (etc.) to skip detection and force a specific format.
-* Some additional configurability for end user via appsettings.json etc.
+### Refreshing the bundled reference data
 
-### Refreshing the bundled card data
-
-Both the web app and console ship with a Scryfall reference bundle (`cards.min.json.gz`, ~10 MB)
+The web app and console ship with a Scryfall reference bundle (`cards.min.json.gz`, ~10 MB)
 under `MtgCsvHelper.BlazorWebAssembly/wwwroot/data/`. This avoids hitting the Scryfall
 API at runtime for static lookups (set names, double-faced names, tokens).
 
-To regenerate it locally — e.g. after a new MtG set release:
+To regenerate locally — e.g. after a new MtG set release:
 
 ```bash
 dotnet run --project tools/MtgCsvHelper.RefreshReferenceData
 ```
 
-This downloads Scryfall's `default_cards` bulk file, strips it to the fields the catalog needs,
-and writes the gzipped bundle to the default location above. The Console and test projects pick
-up the refreshed bundle on the next build via `<None CopyToOutputDirectory>`.
+This downloads Scryfall's `default_cards` bulk file, strips it to the fields the catalog needs, and writes the gzipped bundle to the default location above. The Console and test projects pick it up on the next build via `<None CopyToOutputDirectory>`. CI regenerates the bundle on every deploy.
 
-CI regenerates the bundle automatically on every deploy of the web app (see `.github/workflows/github-pages.yml`).
+Two sibling sub-commands:
+
+* `-- cardmarket-fixture` — regenerates `Tests/cardmarket-reference-collection.csv` from the Moxfield reference via the Scryfall reverse lookup.
+* `-- deckbox-aliases` — scrapes [deckbox.org/editions](https://deckbox.org/editions) and emits `Resources/deckbox-set-aliases.json` (Deckbox edition names that diverge from Scryfall canonical) and `Resources/deckbox-code-aliases.json` (Deckbox-internal codes like `ex_127` mapped back to Scryfall codes).
 
 
 ## Troubleshooting
 
-You can report bugs and issues on Github by creating a [new issue](https://github.com/StepKie/MtgCsvHelper/issues/new/choose).
-**After the release of a new version, the browser data/cache should to be cleared** to force the new version of the site to be loaded, since static webapps are kept in the browser's cache.
-The version displayed in the upper right corner should match the last commit id displayed on the [main](https://github.com/StepKie/MtgCsvHelper/tree/main) branch.
+Report bugs and feature requests by opening a [new issue](https://github.com/StepKie/MtgCsvHelper/issues/new/choose). The PWA shows a **"Reload to update"** banner when a new version is available — click it instead of clearing the whole browser cache. The current version is shown in the bottom of the app bar and links to the [CHANGELOG](CHANGELOG.md).
 
-## Current state
+## Format configuration
 
-* In appsettings.json, there are a lot of predefined mappings for popular sites
-  * DRAGONSHIELD
-  * MOXFIELD
-  * DECKBOX
-  * MANABOX
-  * TCGPLAYER
-  * MTGGOLDFISH
-  * CARDKINGDOM
-  
-* You can add a new configuration for a site that is not yet supported, or even better, create a pull request for it.
-* The format should be self-documenting. This is an example configuration for MOXFIELD:
+All site-specific column mappings live in `MtgCsvHelper/appsettings.json` — a single source of truth shared between Console, Tests, and the Blazor app (the latter via a build-time copy into `wwwroot/`). Adding a new format means dropping in a new entry; PRs welcome.
+
+Example entry — Moxfield:
 
 ```json
 "MOXFIELD": {
@@ -166,31 +152,10 @@ The version displayed in the upper right corner should match the last commit id 
 }
 ```
 
-* The left hand side of the mappings should be adapted to match the desired format (csv header row)
-* For some columns, there is additional configuration needed (for example, how the _Finish_ is encoded
-* For the _Condition_ category, note that different sites use different scales (sometimes 6, sometimes 7 different values, as well as different naming schemes). Hence, there is no canonical mapping
-* The Language.Mappings only needs to be defined if it differs from the default
-* Some formats (e.g. CARDKINGDOM) should not be used for imports, since they contain very few columns
+* The right-hand side of each mapping is the CSV header used by that site.
+* `Finish`, `Condition`, `Language`, and `PriceBought` are rich sub-configs because sites encode them differently.
+* The `Condition` scale varies by site (6 vs 7 values, different vocabulary) — see [CONVERSION_LIMITATIONS.md](CONVERSION_LIMITATIONS.md) for the per-format collapse table.
+* `Language.Mappings` only needs to be set when the site uses non-ISO codes.
+* `CARDKINGDOM` is a write-only buylist format (4 columns, no condition/language/foil-etched). `CARDMARKET` is import-only — it identifies cards by `idProduct` and we Scryfall-reverse-lookup the rest.
 
-## TODOs
-
-* Support more formats by popular demand
-* Add support for token cards (widely different encodings)
-	
-Examples:
-
-```
-Token: (TODO)
-
-Moxfield:		"1","1","Clue","tmh2","Near Mint","English","","","2022-11-15 13:00:49.057000","14"
-DragonShield:	1,Clue Token,Modern Horizons 2 Tokens,TMH2,14,NearMint,German,Normal
-Deckbox:		1,0,Clue,Extras: Modern Horizons 2,14,Near Mint,German,,,,,,,,$0.00
-
-Double-sided: (FIXED)
-
-Moxfield:		"1","1","Ambitious Farmhand // Seasoned Cathar","mid","Near Mint","German","","","2022-11-14 16:57:33.500000","2"
-DragonShield:	Other,1,0,Ambitious Farmhand,MID,Innistrad: Midnight Hunt,2,NearMint,Normal,German,0.01,2022-01-29,0.08,0.02,0.14
-Deckbox:		1,0,Ambitious Farmhand // Seasoned Cathar,Innistrad: Midnight Hunt,2,Near Mint,German,,,,,,,,$0.00
-```
-
-Basically, we would want to default to Scryfall's syntax (which would mean using the full double-sided name, and omitting the "Token"
+Tracked feature and quality work lives in [issues](https://github.com/StepKie/MtgCsvHelper/issues).

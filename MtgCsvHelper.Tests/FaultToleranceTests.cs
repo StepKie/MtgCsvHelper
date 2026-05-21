@@ -26,6 +26,9 @@ public class FaultToleranceTests(CatalogFixture fixture, ITestOutputHelper outpu
 		result.ErrorCount.Should().Be(1);
 		result.Issues.Should().Contain(i => i.Severity == IssueSeverity.Warning && i.Reason.Contains("FAKESET"));
 		result.Issues.Should().Contain(i => i.Severity == IssueSeverity.Error && i.Reason.Contains("FAKESET"));
+		// RawContent must be threaded from the parse loop through both the SetInfoEnricher
+		// warning and the CatalogValidator error so the UI can show the offending row.
+		result.Issues.Should().AllSatisfy(i => i.RawContent.Should().Contain("Lightning Bolt").And.Contain("FAKESET"));
 	}
 
 	[Fact]
@@ -52,6 +55,7 @@ public class FaultToleranceTests(CatalogFixture fixture, ITestOutputHelper outpu
 		result.Collection.Cards.Should().BeEmpty();
 		result.ErrorCount.Should().Be(1);
 		result.Issues[0].Reason.Should().Contain("Fake Card Name").And.Contain("M11").And.Contain("#149");
+		result.Issues[0].RawContent.Should().Contain("Fake Card Name");
 	}
 
 	[Fact]
@@ -67,6 +71,7 @@ public class FaultToleranceTests(CatalogFixture fixture, ITestOutputHelper outpu
 		result.Collection.Cards.Should().BeEmpty();
 		result.ErrorCount.Should().Be(1);
 		result.Issues[0].Reason.Should().Contain("foil");
+		result.Issues[0].RawContent.Should().Contain("Lim-Dûl's Vault");
 	}
 
 	[Fact]
@@ -81,6 +86,25 @@ public class FaultToleranceTests(CatalogFixture fixture, ITestOutputHelper outpu
 		result.Collection.Cards.Should().BeEmpty();
 		result.ErrorCount.Should().Be(1);
 		result.Issues[0].Reason.Should().Contain("No printing").And.Contain("M11").And.Contain("9999");
+		result.Issues[0].RawContent.Should().Contain("9999");
+	}
+
+	[Fact]
+	public void NonPositiveCount_RaisesError_RowDropped_WithRawContent()
+	{
+		// Guards the parse-time RawContent capture (not the enricher pipeline). The Count
+		// validation runs inside the GetRecord try-block in MtgCardCsvHandler before the row
+		// reaches any enricher; if csv.Parser.RawRecord isn't captured there too the field is
+		// null on the emitted issue.
+		var csv = MoxHeader + "\n"
+			+ "0,Lightning Bolt,M11,149,,Near Mint,English,\n";
+
+		var result = Handler().ParseCollectionCsv(CsvStream(csv));
+
+		result.Collection.Cards.Should().BeEmpty();
+		result.ErrorCount.Should().Be(1);
+		result.Issues[0].Reason.Should().Contain("Count");
+		result.Issues[0].RawContent.Should().Contain("Lightning Bolt").And.StartWith("0,");
 	}
 
 	[Fact]

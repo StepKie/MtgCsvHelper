@@ -5,16 +5,24 @@ using System.Text.Json.Serialization;
 using MtgCsvHelper;
 using MtgCsvHelper.RefreshReferenceData;
 
-// Two sub-commands:
+// Three sub-commands:
 //   (default)            refresh the bundled ReferenceCard catalog from Scryfall's default_cards.
 //   cardmarket-fixture   regenerate Tests/cardmarket-reference-collection.csv from the moxfield reference.
+//   deckbox-aliases      regenerate Resources/deckbox-set-aliases.json from deckbox.org/editions.
 //
 // Usage:  dotnet run --project tools/MtgCsvHelper.RefreshReferenceData -- [<output-path>]
 //         dotnet run --project tools/MtgCsvHelper.RefreshReferenceData -- cardmarket-fixture
+//         dotnet run --project tools/MtgCsvHelper.RefreshReferenceData -- deckbox-aliases
 
 if (args.Length > 0 && args[0] == "cardmarket-fixture")
 {
 	await CardmarketFixtureGenerator.RunAsync();
+	return;
+}
+
+if (args.Length > 0 && args[0] == "deckbox-aliases")
+{
+	await DeckboxAliasesGenerator.RunAsync();
 	return;
 }
 

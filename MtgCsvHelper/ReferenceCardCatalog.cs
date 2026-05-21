@@ -30,6 +30,7 @@ public sealed class ReferenceCardCatalog : IReferenceCardCatalog
 	readonly Dictionary<string, string> _setCodeByName;     // "Innistrad" -> "ISD"
 	readonly Dictionary<string, string> _setCodeByMtgoCode; // "MI" -> "MIR"
 	readonly Dictionary<string, string> _frontFaceToFull;  // "Delver of Secrets" -> "Delver of Secrets // Insectile Aberration"
+	readonly Dictionary<string, string> _layoutByName;     // "Commit // Memory" -> "split"
 	readonly HashSet<string> _tokenNames;
 
 	public int Count => _all.Count;
@@ -45,6 +46,7 @@ public sealed class ReferenceCardCatalog : IReferenceCardCatalog
 		_setCodeByName = new(StringComparer.OrdinalIgnoreCase);  // human-typed names: stay forgiving
 		_setCodeByMtgoCode = [];
 		_frontFaceToFull = new(StringComparer.OrdinalIgnoreCase);
+		_layoutByName = new(StringComparer.OrdinalIgnoreCase);
 		_tokenNames = new(StringComparer.OrdinalIgnoreCase);
 
 		// Set codes are uppercase by construction (normalized in ReferenceCard.CreateFromScryfall),
@@ -62,6 +64,9 @@ public sealed class ReferenceCardCatalog : IReferenceCardCatalog
 
 			bool isToken = TokenLayouts.Contains(c.Layout);
 			if (isToken) { _tokenNames.Add(c.Name); }
+
+			// First-write-wins: every printing of the same name shares a layout in Scryfall.
+			_layoutByName.TryAdd(c.Name, c.Layout);
 
 			// Front-face → full-name indexing intentionally skips token/emblem layouts.
 			// Tokens like "Bolt // Bolt" would otherwise shadow real transform pairs.
@@ -101,6 +106,7 @@ public sealed class ReferenceCardCatalog : IReferenceCardCatalog
 	}
 	public string? GetSetCodeByName(string setName) => _setCodeByName.GetValueOrDefault(setName);
 	public string? ExpandFrontFaceToFullName(string frontFaceName) => _frontFaceToFull.GetValueOrDefault(frontFaceName);
+	public string? GetLayoutByName(string name) => _layoutByName.GetValueOrDefault(name);
 	public bool IsTokenName(string name) => _tokenNames.Contains(name);
 
 	/// <summary> Loads a gzip-compressed JSON bundle of <see cref="ReferenceCard"/>s. </summary>
