@@ -61,6 +61,24 @@ public class ReferenceCardCatalogTests
 		TcgplayerEtchedId: null,
 		MultiverseIds: null);
 
+	static readonly ReferenceCard CommitMemorySplit = new(
+		Id: Guid.NewGuid(),
+		OracleId: Guid.NewGuid(),
+		Name: "Commit // Memory",
+		Set: "AKH",
+		SetName: "Amonkhet",
+		CollectorNumber: "211",
+		Lang: "en",
+		Layout: "split",
+		Finishes: ["nonfoil", "foil"],
+		FrameEffects: null,
+		BorderColor: "black",
+		PromoTypes: null,
+		CardmarketId: 99002,
+		TcgplayerId: null,
+		TcgplayerEtchedId: null,
+		MultiverseIds: null);
+
 	static readonly ReferenceCard EtchedFoilOnly = new(
 		Id: Guid.NewGuid(),
 		OracleId: Guid.NewGuid(),
@@ -79,14 +97,14 @@ public class ReferenceCardCatalogTests
 		TcgplayerEtchedId: 503567,
 		MultiverseIds: null);
 
-	static List<ReferenceCard> Fixture() => [LightningBoltM11, DelverOfSecretsTransform, ClueToken, EtchedFoilOnly];
+	static List<ReferenceCard> Fixture() => [LightningBoltM11, DelverOfSecretsTransform, CommitMemorySplit, ClueToken, EtchedFoilOnly];
 
 	ReferenceCardCatalog Catalog() => new(Fixture());
 
 	[Fact]
 	public void Count_MatchesFixtureSize()
 	{
-		Catalog().Count.Should().Be(4);
+		Catalog().Count.Should().Be(5);
 	}
 
 	[Fact]
@@ -141,7 +159,7 @@ public class ReferenceCardCatalogTests
 	public void GetSets_ReturnsDistinctSetCodes()
 	{
 		var sets = Catalog().GetSets();
-		sets.Should().HaveCount(4);
+		sets.Should().HaveCount(5);
 		sets.Should().Contain(new KeyValuePair<string, string>("M11", "Magic 2011"));
 		sets.Should().Contain(new KeyValuePair<string, string>("ISD", "Innistrad"));
 		sets.Should().Contain(new KeyValuePair<string, string>("TMH2", "Modern Horizons 2 Tokens"));
@@ -177,6 +195,24 @@ public class ReferenceCardCatalogTests
 		c.IsTokenName("Lightning Bolt").Should().BeFalse();
 	}
 
+	// Guards the split-vs-DFC distinction CardNameConverter relies on: "// " names with layout
+	// = "split" must keep the full name on export, layouts like "transform" should be stripped
+	// to the front face. Adventures don't carry "// " in their Scryfall name so they're n/a here.
+	[Theory]
+	[InlineData("Commit // Memory", "split")]
+	[InlineData("Delver of Secrets // Insectile Aberration", "transform")]
+	[InlineData("Lightning Bolt", "normal")]
+	public void GetLayoutByName_ReturnsScryfallLayout(string cardName, string expectedLayout)
+	{
+		Catalog().GetLayoutByName(cardName).Should().Be(expectedLayout);
+	}
+
+	[Fact]
+	public void GetLayoutByName_MissesUnknownName_ReturnsNull()
+	{
+		Catalog().GetLayoutByName("Not A Real Card Name").Should().BeNull();
+	}
+
 	[Fact]
 	public async Task LoadGzipAsync_RoundTripsThroughCompressedJson()
 	{
@@ -193,7 +229,7 @@ public class ReferenceCardCatalogTests
 
 		var catalog = await ReferenceCardCatalog.LoadGzipAsync(compressed);
 
-		catalog.Count.Should().Be(4);
+		catalog.Count.Should().Be(5);
 		catalog.FindByCardmarketId(5395).Should().NotBeNull().And.BeEquivalentTo(LightningBoltM11);
 	}
 }

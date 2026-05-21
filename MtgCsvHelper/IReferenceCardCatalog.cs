@@ -44,4 +44,7 @@ public interface IReferenceCardCatalog
 
 	/// <summary> True if at least one printing of this exact name is a token-flavored layout. </summary>
 	bool IsTokenName(string name);
+
+	/// <summary> Scryfall layout for this exact name (e.g. "split", "transform", "normal"). Null if unknown. </summary>
+	string? GetLayoutByName(string name);
 }
