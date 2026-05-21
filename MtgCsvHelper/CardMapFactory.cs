@@ -40,6 +40,7 @@ public class CardMapFactory(IConfiguration config, IReferenceCardCatalog catalog
 		{
 			throw new InvalidOperationException($"Format '{format}' is write-only and cannot be parsed.");
 		}
+		if (format.Equals("DECKBOX", StringComparison.OrdinalIgnoreCase)) { return new DeckboxMap(cfg, catalog); }
 		return new PhysicalCardMap(cfg, catalog);
 	}
 
@@ -50,9 +51,9 @@ public class CardMapFactory(IConfiguration config, IReferenceCardCatalog catalog
 		{
 			throw new InvalidOperationException($"Format '{format}' is read-only and cannot be written.");
 		}
-		return format.Equals("CARDKINGDOM", StringComparison.OrdinalIgnoreCase)
-			? new CardKingdomWriteMap(cfg, catalog)
-			: new PhysicalCardMap(cfg, catalog);
+		if (format.Equals("CARDKINGDOM", StringComparison.OrdinalIgnoreCase)) { return new CardKingdomWriteMap(cfg, catalog); }
+		if (format.Equals("DECKBOX", StringComparison.OrdinalIgnoreCase)) { return new DeckboxMap(cfg, catalog); }
+		return new PhysicalCardMap(cfg, catalog);
 	}
 
 	// Throwing counterpart to GetFormatConfig (matches the GetService/GetRequiredService convention).
