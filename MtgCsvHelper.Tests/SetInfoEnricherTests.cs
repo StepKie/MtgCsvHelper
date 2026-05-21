@@ -38,6 +38,27 @@ public class SetInfoEnricherTests(CatalogFixture fixture)
 	// (Moxfield / Manabox / Archidekt / TopDecked all emit canonical names), the catalog
 	// overwrite is a no-op. Documents the intended boundary so the "catalog always wins" rule
 	// can't silently degrade into "catalog overwrites with garbage when name lookup misfires".
+	[Fact]
+	public async Task EnrichAsync_AlreadyCanonicalSetName_PassesThroughUnchanged()
+	{
+		var row = new ParsedRow(new PhysicalMtgCard
+		{
+			Count = 1,
+			Printing = new Card
+			{
+				Name = "Ambitious Farmhand // Seasoned Cathar",
+				Set = "MID",
+				CollectorNumber = "2",
+				SetName = "Innistrad: Midnight Hunt",
+			},
+		}, RowNumber: 2);
+
+		await _enricher.EnrichAsync([row], [], CancellationToken.None);
+
+		row.Card.Printing.SetName.Should().Be("Innistrad: Midnight Hunt",
+			because: "a row that already carries the Scryfall canonical name must come out unchanged");
+	}
+
 	// Diagnostic — pinning the current behavior for an "MB1 + Mystery Booster" row whose
 	// set code is unknown to the catalog. Reported by user: both SetInfoEnricher emits a
 	// warning ("Set code 'MB1' not found") AND CatalogValidator emits an error
@@ -62,26 +83,5 @@ public class SetInfoEnricherTests(CatalogFixture fixture)
 
 		issues.Should().BeEmpty(
 			because: "the CSV supplied both a set code and a set name; SetInfoEnricher's role is to canonicalize against the catalog, not to flag every unknown set — CatalogValidator's downstream lookup will already emit a precise (Set, CollectorNumber) error.");
-	}
-
-	[Fact]
-	public async Task EnrichAsync_AlreadyCanonicalSetName_PassesThroughUnchanged()
-	{
-		var row = new ParsedRow(new PhysicalMtgCard
-		{
-			Count = 1,
-			Printing = new Card
-			{
-				Name = "Ambitious Farmhand // Seasoned Cathar",
-				Set = "MID",
-				CollectorNumber = "2",
-				SetName = "Innistrad: Midnight Hunt",
-			},
-		}, RowNumber: 2);
-
-		await _enricher.EnrichAsync([row], [], CancellationToken.None);
-
-		row.Card.Printing.SetName.Should().Be("Innistrad: Midnight Hunt",
-			because: "a row that already carries the Scryfall canonical name must come out unchanged");
 	}
 }
