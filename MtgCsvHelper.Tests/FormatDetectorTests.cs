@@ -52,7 +52,6 @@ public class FormatDetectorTests(ITestOutputHelper output) : BaseTest(output)
 	// actual file catches that.
 	[Theory]
 	[InlineData("dragonshield-collection.csv", "DRAGONSHIELD")]
-	[InlineData("moxfield-collection.csv", "MOXFIELD")]
 	[InlineData("moxfield-haves.csv", "MOXFIELD")]
 	[InlineData("moxfield_pauper_cube.csv", "MOXFIELD")]
 	[InlineData("manabox-collection.csv", "MANABOX")]

@@ -15,6 +15,17 @@ public record FormatConfig(
 	ConditionConfiguration? Condition = null,
 	LanguageConfiguration? Language = null,
 	PriceConfiguration? PriceBought = null,
+	DateBoughtConfiguration? DateBought = null,
+	string? FolderName = null,
+	string? TradeQuantity = null,
+	// True if the importer rejects rows with null cells in declared columns (Dragon Shield).
+	// Triggers a pre-write defaulting pass that fills nulls. Coupling: also expects
+	// PriceBought to be configured (its Currency drives the default price) and a
+	// DefaultFolderName to be set.
+	bool RequiresWriteDefaults = false,
+	// Folder label stamped on rows whose Folder is null/empty when RequiresWriteDefaults
+	// is true. No effect otherwise.
+	string DefaultFolderName = "Imported",
 	// CSV delimiter. Most sites use comma; Cardmarket exports use semicolon.
 	string Delimiter = ","
 	)
@@ -85,3 +96,14 @@ public record PriceConfiguration(
 	string HeaderName,
 	string Currency,
 	string CurrencySymbol) : IHeaderConfig;
+
+// Formats is an ordered list passed straight to CsvHelper's TypeConverterOption.Format(...):
+// the FIRST entry is used for writes, ALL entries are tried in order on read. Lets a format
+// emit a canonical ISO date but still parse a vendor's historical export shape (e.g. Dragon
+// Shield's own exports use M/d/yyyy alongside the yyyy-MM-dd it accepts on import).
+public record DateBoughtConfiguration(
+	string HeaderName,
+	string[]? Formats = null) : IHeaderConfig
+{
+	public string[] FormatsOrDefault => Formats ?? ["yyyy-MM-dd"];
+}
