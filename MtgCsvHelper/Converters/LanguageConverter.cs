@@ -46,8 +46,10 @@ public class LanguageConverter(LanguageConfiguration configuration) : ITypeConve
             nameof(LanguageMappings.ru) => _mappings.ru,
             nameof(LanguageMappings.zht) => _mappings.zht,
             nameof(LanguageMappings.zhs) => _mappings.zhs,
-            _ => null,
-
+            // Empty string (not null) on no-match: CsvHelper treats a null return from
+            // ITypeConverter.ConvertToString as "skip this field entirely", which silently
+            // shifts every subsequent column one slot left and corrupts the row.
+            _ => "",
         };
     }
 }

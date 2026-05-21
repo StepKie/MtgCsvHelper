@@ -12,34 +12,47 @@ public class PhysicalCardMap : ClassMap<PhysicalMtgCard>
 {
 	public PhysicalCardMap(FormatConfig cfg, IReferenceCardCatalog catalog)
 	{
+		// Explicit indices override CsvHelper's clustering of nested-member maps
+		// (Printing.Name, Printing.Set, …) — registration order alone interleaves
+		// columns wrong. Unmapped indices are skipped on write, so gaps are fine.
+
+		if (cfg.FolderName is not null) { Map(c => c.Folder).Name(cfg.FolderName).Index(0).TypeConverter<EmptyAsNullStringConverter>(); }
+
 		Map(c => c.Count).Name(cfg.Quantity).Index(1);
 
-		// Card identification: most formats use a card-name column; Cardmarket uses an external ID.
-		// At least one must be set (validated in CardMapFactory).
+		if (cfg.TradeQuantity is not null) { Map(c => c.TradeQuantity).Name(cfg.TradeQuantity).Index(2); }
+
+		// Name and Cardmarket-id share index 3 — no format declares both.
 		if (cfg.CardName is not null)
 		{
 			Map(c => c.Printing.Name)
 				.TypeConverter(new CardNameConverter(cfg.CardName, catalog))
-				.Name(cfg.CardName.HeaderName).Index(0);
+				.Name(cfg.CardName.HeaderName).Index(3);
 		}
 		if (cfg.CardmarketId is not null)
 		{
 			// Stub Card object: only CardMarketId is filled here; name/set/etc. get resolved
 			// later in MtgCardCsvHandler.EnrichByCardmarketIdAsync via batched Scryfall lookup.
-			Map(c => c.Printing.CardMarketId).Name(cfg.CardmarketId);
+			Map(c => c.Printing.CardMarketId).Name(cfg.CardmarketId).Index(3);
 		}
 
 		// At least one of SetCode / SetName is expected per format (sites differ on which they include).
 		// CollectorNumberConverter is applied universally (not MTGO-specific) — it's a no-op for any
 		// collector number without a "/", and "/" doesn't appear in Scryfall data.
-		MapOptional(c => c.Printing.CollectorNumber, cfg.SetNumber)?.TypeConverter<CollectorNumberConverter>();
-		MapOptional(c => c.Printing.Set, cfg.SetCode)?.TypeConverter<UpperCaseConverter>();
-		MapOptional(c => c.Printing.SetName, cfg.SetName);
+		MapOptional(c => c.Printing.Set, cfg.SetCode)?.TypeConverter<UpperCaseConverter>().Index(4);
+		MapOptional(c => c.Printing.SetName, cfg.SetName)?.Index(5);
+		MapOptional(c => c.Printing.CollectorNumber, cfg.SetNumber)?.TypeConverter<CollectorNumberConverter>().Index(6);
 
-		MapOptional(c => c.Condition, cfg.Condition, c => new CardConditionConverter(c));
-		MapOptional(c => c.Foil, cfg.Finish, c => new FinishConverter(c));
-		MapOptional(c => c.Language, cfg.Language, c => new LanguageConverter(c));
-		MapOptional(c => c.PriceBought, cfg.PriceBought, c => new PriceConverter(c));
+		MapOptional(c => c.Condition, cfg.Condition, c => new CardConditionConverter(c))?.Index(7);
+		MapOptional(c => c.Foil, cfg.Finish, c => new FinishConverter(c))?.Index(8);
+		MapOptional(c => c.Language, cfg.Language, c => new LanguageConverter(c))?.Index(9);
+		MapOptional(c => c.PriceBought, cfg.PriceBought, c => new PriceConverter(c))?.Index(10);
+
+		if (cfg.DateBought is not null)
+		{
+			Map(c => c.DateBought).Name(cfg.DateBought.HeaderName).Index(11)
+				.TypeConverterOption.Format(cfg.DateBought.FormatsOrDefault);
+		}
 	}
 
 	MemberMap<PhysicalMtgCard, TMember>? MapOptional<TMember>(

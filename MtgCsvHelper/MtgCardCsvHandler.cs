@@ -147,13 +147,31 @@ public class MtgCardCsvHandler
 
 	public void WriteCollectionCsv(IList<PhysicalMtgCard> cards, Stream outputStream)
 	{
+		var cfg = _factory.GetFormatConfig(_format)
+			?? throw new InvalidOperationException($"Format '{_format}' configuration not found.");
+
+		// Project into new records when defaulting so the caller's cards stay immutable —
+		// avoids the second-write-sees-first-write-defaults hazard.
+		var rowsToWrite = cfg.RequiresWriteDefaults ? ApplyWriteDefaults(cards, cfg) : cards;
+
 		using var writer = new StreamWriter(outputStream, leaveOpen: true);
 		using var csv = new CsvWriter(writer, CultureInfo.InvariantCulture);
 
 		csv.Context.RegisterClassMap(_factory.GenerateWriteMap(_format));
 		csv.WriteHeader<PhysicalMtgCard>();
 		csv.NextRecord();
-		csv.WriteRecords(cards);
+		csv.WriteRecords(rowsToWrite);
 		csv.Flush();
+	}
+
+	static IEnumerable<PhysicalMtgCard> ApplyWriteDefaults(IEnumerable<PhysicalMtgCard> cards, FormatConfig cfg)
+	{
+		var currency = Currency.FromString(cfg.PriceBought?.Currency);
+		return cards.Select(c => c with
+		{
+			PriceBought = c.PriceBought ?? new Money(0m, currency),
+			DateBought = c.DateBought ?? DateTime.Today,
+			Folder = string.IsNullOrEmpty(c.Folder) ? cfg.DefaultFolderName : c.Folder,
+		});
 	}
 }
