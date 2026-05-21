@@ -113,12 +113,12 @@
       "url": "_framework\/Microsoft.JSInterop.ifnm5tv8of.wasm.br"
     },
     {
-      "hash": "sha256-yEh6eLbgEa8eTkWRmgR3Js1EHhtW\/ciStIySCP3EwkM=",
-      "url": "_framework\/MtgCsvHelper.BlazorWebAssembly.04f0cw3xrg.wasm.br"
+      "hash": "sha256-JsJvM+Vx3m\/+f4SmCUvfZAxffMPDe8zExK\/9\/yfPocg=",
+      "url": "_framework\/MtgCsvHelper.BlazorWebAssembly.ov3c50q0l5.wasm.br"
     },
     {
-      "hash": "sha256-i3S9ge0jyp\/\/cDyYKqc\/eexTKhdFPoV6m84TXYcwJZA=",
-      "url": "_framework\/MtgCsvHelper.hf7uo19w6v.wasm.br"
+      "hash": "sha256-+TMLtQ3GPOnzopxajVQYNsxutlkEua88uUjNDpOKp7k=",
+      "url": "_framework\/MtgCsvHelper.gxmeqnva85.wasm.br"
     },
     {
       "hash": "sha256-z6OLFhcTK2xMFnoNusgUIMKqwxEUNj6eq5siwwrfODI=",
@@ -285,8 +285,8 @@
       "url": "_framework\/System.Runtime.Serialization.Formatters.h8idoo3haa.wasm.br"
     },
     {
-      "hash": "sha256-ZObtn5fBzineoq19p+0zSw7+Uga5N9PCr2QkwQB\/IIo=",
-      "url": "_framework\/System.Runtime.kpke0t85ji.wasm.br"
+      "hash": "sha256-4R+G9BXXg6n5Pbb67oe3hzKQ+W\/3Bw1A1Yo9Wy5y1\/g=",
+      "url": "_framework\/System.Runtime.opwodrcqj1.wasm.br"
     },
     {
       "hash": "sha256-TTcvYq14igS4tcYmJ3j02gg+FH9gTLqQ7xNKSg9uLSI=",
@@ -321,7 +321,7 @@
       "url": "_framework\/blazor.webassembly.js"
     },
     {
-      "hash": "sha256-pKFZbUSJTM6M20AoP+kf2nPHWRbpa14Sv2M9zLLxBlA=",
+      "hash": "sha256-IcHktfuE635JkUEIvA\/MC+TcHU\/Kd4VspKWBHjFk2Pc=",
       "url": "_framework\/dotnet.js"
     },
     {
@@ -329,8 +329,8 @@
       "url": "_framework\/dotnet.native.at4snspvvz.js"
     },
     {
-      "hash": "sha256-gYUgGBvLodrOWWIOUGmq3YvtEwnUNWnoU\/cQeyHc6+k=",
-      "url": "_framework\/dotnet.native.wuxzhi45to.wasm.br"
+      "hash": "sha256-c\/yAXNPs6EFGeUjOkSn95hc7Hggh7oVTPgQCb62QNXs=",
+      "url": "_framework\/dotnet.native.o8esr3lh4y.wasm.br"
     },
     {
       "hash": "sha256-YyudibIWETMKrLb+nAZdJ+xDY7HY6BWf6s32UAdcvCU=",
@@ -353,6 +353,10 @@
       "url": "_framework\/netstandard.p1rwiy4jsy.wasm.br"
     },
     {
+      "hash": "sha256-z0NSJt12zCvonh\/MGlmbVYDwFnl1QspoX5pX266mQw0=",
+      "url": "appsettings.json"
+    },
+    {
       "hash": "sha256-YsJTr77VHFWbxjKiYf96yFUuOn16bvhMeXXuUDjjKBw=",
       "url": "css\/app.css"
     },
@@ -365,7 +369,7 @@
       "url": "css\/bootstrap\/bootstrap.min.css.map"
     },
     {
-      "hash": "sha256-Wi\/0vsJYH7kZkz4hYsIf5sFF\/CgxnNyc0ytws4dejGo=",
+      "hash": "sha256-RfDuyHINOhgV33aIPk2PlWdd1ILQnpopoYq5ZniZDVI=",
       "url": "data\/cards.min.json.gz"
     },
     {
@@ -393,5 +397,5 @@
       "url": "brotliloader.min.js"
     }
   ],
-  "version": "lEJ7ugc4"
+  "version": "MtZ0mG5h"
 };
