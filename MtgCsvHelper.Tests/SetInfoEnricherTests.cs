@@ -38,6 +38,32 @@ public class SetInfoEnricherTests(CatalogFixture fixture)
 	// (Moxfield / Manabox / Archidekt / TopDecked all emit canonical names), the catalog
 	// overwrite is a no-op. Documents the intended boundary so the "catalog always wins" rule
 	// can't silently degrade into "catalog overwrites with garbage when name lookup misfires".
+	// Diagnostic — pinning the current behavior for an "MB1 + Mystery Booster" row whose
+	// set code is unknown to the catalog. Reported by user: both SetInfoEnricher emits a
+	// warning ("Set code 'MB1' not found") AND CatalogValidator emits an error
+	// ("No printing at MB1 #N"). One issue per row, not two, is the expected UX.
+	[Fact]
+	public async Task EnrichAsync_UnknownSetCode_WithCsvProvidedSetName_DoesNotWarn()
+	{
+		var row = new ParsedRow(new PhysicalMtgCard
+		{
+			Count = 1,
+			Printing = new Card
+			{
+				Name = "Countless Gears Renegade",
+				Set = "MB1",                 // not in catalog (redirected to PLST upstream)
+				CollectorNumber = "62",
+				SetName = "Mystery Booster", // also not in catalog
+			},
+		}, RowNumber: 1);
+
+		var issues = new List<ImportIssue>();
+		await _enricher.EnrichAsync([row], issues, CancellationToken.None);
+
+		issues.Should().BeEmpty(
+			because: "the CSV supplied both a set code and a set name; SetInfoEnricher's role is to canonicalize against the catalog, not to flag every unknown set — CatalogValidator's downstream lookup will already emit a precise (Set, CollectorNumber) error.");
+	}
+
 	[Fact]
 	public async Task EnrichAsync_AlreadyCanonicalSetName_PassesThroughUnchanged()
 	{
