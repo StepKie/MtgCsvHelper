@@ -1,0 +1,71 @@
+@page "/whats-new"
+@inject HttpClient Http
+@implements IDisposable
+@using System.Text.RegularExpressions
+
+<PageTitle>What's new — MtG CsvHelper</PageTitle>
+
+<MudText Typo="Typo.h4" Class="mb-2">What's new</MudText>
+<MudText Typo="Typo.body2" Class="mud-text-secondary mb-6">
+	Release history for MtgCsvHelper. The full source of this page is
+	<MudLink Href="https://github.com/StepKie/MtgCsvHelper/blob/main/CHANGELOG.md" Target="_blank" Color="Color.Primary">CHANGELOG.md</MudLink>
+	on GitHub.
+</MudText>
+
+@if (_error is not null)
+{
+	<MudAlert Severity="Severity.Error" Variant="Variant.Outlined">
+		Couldn't load release notes: @_error
+	</MudAlert>
+}
+else if (_html is null)
+{
+	<MudProgressCircular Indeterminate="true" Color="Color.Primary" />
+}
+else
+{
+	<MudPaper Elevation="1" Class="pa-5 changelog-content">
+		@((MarkupString)_html)
+	</MudPaper>
+}
+
+@code {
+	// Pipeline is immutable and reusable — build once and share across page visits.
+	// DisableHtml() strips any raw HTML that might end up in CHANGELOG.md; the source is a
+	// trusted project file today, but the strip is free defense-in-depth against future drift.
+	static readonly Markdig.MarkdownPipeline _pipeline =
+		new Markdig.MarkdownPipelineBuilder().UseAutoLinks().DisableHtml().Build();
+
+	string? _html;
+	string? _error;
+
+	// Rewrites every absolute http(s) anchor to open in a new tab. Without this, clicking a PR
+	// or compare link inside the rendered CHANGELOG would navigate the whole Blazor SPA away
+	// from the app. Local/relative links (none in our changelog today) are left untouched.
+	static readonly Regex _externalLinkPattern = new(@"<a href=""(https?://[^""]+)""", RegexOptions.Compiled);
+
+	// Cancelled in Dispose. Stops the fetch if the user navigates away mid-load, so the
+	// post-await StateHasChanged doesn't fire on a disposed component.
+	readonly CancellationTokenSource _cts = new();
+
+	protected override async Task OnInitializedAsync()
+	{
+		try
+		{
+			var markdown = await Http.GetStringAsync("CHANGELOG.md", _cts.Token);
+			var html = Markdig.Markdown.ToHtml(markdown, _pipeline);
+			_html = _externalLinkPattern.Replace(html, @"<a target=""_blank"" rel=""noopener noreferrer"" href=""$1""");
+		}
+		catch (OperationCanceledException) { /* user navigated away mid-fetch */ }
+		catch (Exception ex)
+		{
+			_error = ex.Message;
+		}
+	}
+
+	public void Dispose()
+	{
+		_cts.Cancel();
+		_cts.Dispose();
+	}
+}

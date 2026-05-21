@@ -19,7 +19,11 @@
 		</MudLink>
 		<MudSpacer />
 		<MudButton Href="about" Variant="Variant.Text" Color="Color.Inherit" StartIcon="@Icons.Material.Filled.Info">About</MudButton>
-		<MudText Typo="Typo.caption" Class="d-none d-sm-flex mx-3">v@_version · @_commit</MudText>
+		<MudTooltip Text="What's new — release notes for this version and earlier">
+			<MudLink Href="whats-new" Color="Color.Inherit" Underline="Underline.None" Class="d-none d-sm-flex mx-3">
+				<MudText Typo="Typo.caption">v@_version · @_commit</MudText>
+			</MudLink>
+		</MudTooltip>
 		<MudTooltip Text="@(_isDarkMode ? "Switch to light mode" : "Switch to dark mode")">
 			<MudIconButton Icon="@(_isDarkMode ? Icons.Material.Filled.LightMode : Icons.Material.Filled.DarkMode)"
 			               Color="Color.Inherit" OnClick="ToggleTheme" />

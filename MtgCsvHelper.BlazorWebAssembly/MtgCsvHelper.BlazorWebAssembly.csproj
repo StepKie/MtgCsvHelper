@@ -50,9 +50,15 @@
     </Content>
   </ItemGroup>
 
-  <!-- Copy README.md from repository root directory to wwwroot so it is available in About -->
-  <Target Name="CopyReadme" AfterTargets="Build">
-    <Copy SourceFiles="..\README.md" DestinationFolder="wwwroot" />
+  <!-- Stage repo-root markdown files into wwwroot so the Blazor app can fetch them at runtime
+       (the About page links to README.md; the /whats-new page renders CHANGELOG.md via Markdig).
+       These run AfterTargets="Build" — the static-web-assets pipeline has already enumerated
+       wwwroot by then, so neither file ends up in service-worker-assets.js. That's deliberate:
+       both pages link to the GitHub-hosted originals as a fallback, so offline rendering
+       failing on these specific routes is acceptable; the alternative (commit + sync target,
+       like appsettings.json) would mean tracking two copies in git for no real benefit. -->
+  <Target Name="StageRepoMarkdown" AfterTargets="Build">
+    <Copy SourceFiles="..\README.md;..\CHANGELOG.md" DestinationFolder="wwwroot" />
   </Target>
 
   <!-- Keep wwwroot/appsettings.json in sync with the canonical MtgCsvHelper/appsettings.json
