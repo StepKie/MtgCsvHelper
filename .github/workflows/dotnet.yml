@@ -1,13 +1,16 @@
-# This workflow will build a .NET project
-# For more information see: https://docs.github.com/en/actions/automating-builds-and-tests/building-and-testing-net
+# Builds + tests on main and develop, plus PRs targeting either.
+# The reference-card bundle (cards.min.json.gz) is gitignored; the test fixture loads it,
+# so CI must either restore it from cache or regenerate from Scryfall. We cache by the hash
+# of the generator + model files — regen only fires when one of those changes, which is
+# also exactly when a fresh bundle is required.
 
 name: .NET
 
 on:
   push:
-    branches: [ "main" ]
+    branches: [ "main", "develop" ]
   pull_request:
-    branches: [ "main" ]
+    branches: [ "main", "develop" ]
 
 jobs:
   build:
@@ -20,8 +23,24 @@ jobs:
       uses: actions/setup-dotnet@v4
       with:
         dotnet-version: 10.0.x
+    - name: Install .NET WASM Build Tools
+      run: dotnet workload install wasm-tools
     - name: Restore dependencies
       run: dotnet restore
+
+    - name: Cache reference catalog bundle
+      id: bundle-cache
+      uses: actions/cache@v4
+      with:
+        path: MtgCsvHelper.BlazorWebAssembly/wwwroot/data/cards.min.json.gz
+        key: catalog-bundle-${{ hashFiles('tools/MtgCsvHelper.RefreshReferenceData/**', 'MtgCsvHelper/ReferenceCard.cs', 'MtgCsvHelper/ScryfallCardJson.cs') }}
+
+    - name: Refresh reference catalog (cache miss only)
+      if: steps.bundle-cache.outputs.cache-hit != 'true'
+      # No --no-restore: tools/ project isn't in MtgCsvHelper.slnx, so the prior restore step
+      # doesn't cover it; letting `dotnet run` do its own restore is the simpler fix.
+      run: dotnet run --project tools/MtgCsvHelper.RefreshReferenceData -c Release
+
     - name: Build
       run: dotnet build --no-restore
     - name: Test

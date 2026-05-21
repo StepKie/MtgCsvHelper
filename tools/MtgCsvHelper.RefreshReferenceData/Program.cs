@@ -34,6 +34,18 @@ var serializerOptions = new JsonSerializerOptions
 	PropertyNameCaseInsensitive = true,
 };
 
+Console.WriteLine("Fetching /sets to build set_code → mtgo_code map…");
+var setsResponse = await http.GetFromJsonAsync<ScryfallList<ScryfallSetJson>>("https://api.scryfall.com/sets", serializerOptions)
+	?? throw new InvalidOperationException("Empty /sets response.");
+if (setsResponse.HasMore)
+{
+	throw new InvalidOperationException("/sets returned a paginated response — implement pagination before the alias map silently truncates.");
+}
+var mtgoCodeBySet = setsResponse.Data
+	.Where(s => !string.IsNullOrEmpty(s.MtgoCode))
+	.ToDictionary(s => s.Code, s => s.MtgoCode!, StringComparer.OrdinalIgnoreCase);
+Console.WriteLine($"  {mtgoCodeBySet.Count} sets carry an mtgo_code (of {setsResponse.Data.Count} total).");
+
 Console.WriteLine("Looking up bulk-data manifest from Scryfall…");
 var manifest = await http.GetFromJsonAsync<BulkDataManifest>("https://api.scryfall.com/bulk-data", serializerOptions)
 	?? throw new InvalidOperationException("Empty bulk-data response.");
@@ -50,7 +62,8 @@ await foreach (var card in JsonSerializer.DeserializeAsyncEnumerable<ScryfallCar
 {
 	total++;
 	if (card is null) { continue; }
-	stripped.Add(ReferenceCard.CreateFromScryfall(card));
+	mtgoCodeBySet.TryGetValue(card.Set, out var mtgoCode);
+	stripped.Add(ReferenceCard.CreateFromScryfall(card, mtgoCode));
 	kept++;
 	if (total % 10_000 == 0) { Console.Write($"\r  parsed {total:N0} cards…"); }
 }
@@ -71,3 +84,6 @@ Console.WriteLine($"Done. Bundle size: {size / 1024.0:F1} KB ({size / 1e6:F2} MB
 internal sealed record BulkDataManifest(List<BulkDataEntry> Data);
 internal sealed record BulkDataEntry(string Type, string Name, long Size,
 	[property: JsonPropertyName("download_uri")] string DownloadUri);
+
+internal sealed record ScryfallList<T>(List<T> Data, [property: JsonPropertyName("has_more")] bool HasMore);
+internal sealed record ScryfallSetJson(string Code, [property: JsonPropertyName("mtgo_code")] string? MtgoCode);

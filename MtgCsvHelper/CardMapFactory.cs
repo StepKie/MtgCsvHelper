@@ -8,13 +8,18 @@ public class CardMapFactory(IConfiguration config, IReferenceCardCatalog catalog
 {
 	readonly List<FormatConfig> _formatConfigs = From(config).ToList();
 
-	public static IReadOnlyList<string> Supported { get; } = ["MOXFIELD", "DRAGONSHIELD", "MANABOX", "TOPDECKED", "DECKBOX", "CARDKINGDOM", "MTGGOLDFISH", "TCGPLAYER", "CARDMARKET", "ARCHIDEKT"];
+	public static IReadOnlyList<string> Supported { get; } = ["MOXFIELD", "DRAGONSHIELD", "MANABOX", "TOPDECKED", "DECKBOX", "CARDKINGDOM", "MTGGOLDFISH", "TCGPLAYER", "CARDMARKET", "ARCHIDEKT", "MTGO"];
 	public static IReadOnlyList<string> NotYetFullySupported { get; } = ["URZAGATHERER"];
 
 	// Formats whose CSV doesn't carry enough info to populate a complete card without external lookups,
-	// or that don't make sense as targets for our writers.
-	static readonly HashSet<string> WriteOnlyFormats = new(StringComparer.OrdinalIgnoreCase) { "CARDKINGDOM" };
-	static readonly HashSet<string> ReadOnlyFormats = new(StringComparer.OrdinalIgnoreCase) { "CARDMARKET" };
+	// or that don't make sense as targets for our writers. Internal so tests can derive expectations
+	// from the same source of truth as the Readable/Writable filters below. Declared as IReadOnlySet
+	// so the assembly-internal exposure can't accidentally mutate the contents.
+	internal static readonly IReadOnlySet<string> WriteOnlyFormats = new HashSet<string>(StringComparer.OrdinalIgnoreCase) { "CARDKINGDOM" };
+	internal static readonly IReadOnlySet<string> ReadOnlyFormats = new HashSet<string>(StringComparer.OrdinalIgnoreCase) { "CARDMARKET" };
+
+	public static IReadOnlyList<string> ReadableFormats { get; } = [.. Supported.Where(f => !WriteOnlyFormats.Contains(f))];
+	public static IReadOnlyList<string> WritableFormats { get; } = [.. Supported.Where(f => !ReadOnlyFormats.Contains(f))];
 
 	public static IEnumerable<FormatConfig> From(IConfiguration config) =>
 		config.GetSection("CsvConfigurations")

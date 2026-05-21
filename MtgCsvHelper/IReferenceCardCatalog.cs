@@ -34,9 +34,6 @@ public interface IReferenceCardCatalog
 	/// </summary>
 	string? GetSetCodeByName(string setName);
 
-	/// <summary> True if at least one printing of this exact name is a double-faced layout. </summary>
-	bool IsDoubleFacedName(string name);
-
 	/// <summary>
 	/// Given a front-face-only name (e.g. "Delver of Secrets"), returns the full double-faced
 	/// name (e.g. "Delver of Secrets // Insectile Aberration"), or null if no double-faced
