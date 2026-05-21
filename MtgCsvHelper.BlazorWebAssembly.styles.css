@@ -1,0 +1,35 @@
+/* /Pages/MtgCsvProcessor.razor.rz.scp.css */
+/* Scoped to MtgCsvProcessor via Blazor CSS isolation. */
+
+/* Per-row detail block inside an Import-issue group. Shows the raw CSV row beneath the
+   reason in a muted, secondary-text color so it doesn't compete with the reason line.
+   Same tone as the "Source CSV formats are defined by third-party sites..." caption above. */
+.issue-row-list[b-emrx4sg3sk] {
+	margin-top: 0.5rem;
+	display: flex;
+	flex-direction: column;
+	gap: 0.25rem;
+	color: var(--mud-palette-text-secondary);
+	font-size: 0.85rem;
+}
+
+.issue-row[b-emrx4sg3sk] {
+	word-break: break-word;
+}
+
+.issue-row-raw[b-emrx4sg3sk] {
+	font-family: ui-monospace, "Cascadia Code", Menlo, Consolas, monospace;
+	font-size: 0.8rem;
+	color: inherit;
+	background: none;
+	padding: 0;
+}
+/* /Pages/WhatsNew.razor.rz.scp.css */
+/* Scoped to WhatsNew via Blazor CSS isolation. Tightens spacing for the Markdig-rendered
+   CHANGELOG so it doesn't read as a wall of bullets. */
+.changelog-content[b-rzxy63p6fj]  h2 { margin-top: 1.5rem; }
+.changelog-content[b-rzxy63p6fj]  h2:first-of-type { margin-top: 0; }
+.changelog-content[b-rzxy63p6fj]  h3 { margin-top: 1rem; font-size: 1.05rem; opacity: 0.85; }
+.changelog-content[b-rzxy63p6fj]  ul { padding-left: 1.5rem; }
+.changelog-content[b-rzxy63p6fj]  li { margin: 0.25rem 0; }
+.changelog-content[b-rzxy63p6fj]  code { padding: 0 0.25rem; background: rgba(127,127,127,0.15); border-radius: 3px; }
