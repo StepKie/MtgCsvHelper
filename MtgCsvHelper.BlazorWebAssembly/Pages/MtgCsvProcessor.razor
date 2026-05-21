@@ -237,16 +237,30 @@
 						@foreach (var g in grouped)
 						{
 							var (severity, reason) = g.Key;
-							var rows = g.Select(i => i.RowNumber).OrderBy(rowNum => rowNum).ToList();
-							var preview = string.Join(", ", rows.Take(8));
-							if (rows.Count > 8) preview += $", … (+{rows.Count - 8} more)";
+							var issues = g.OrderBy(i => i.RowNumber).ToList();
 							<MudListItem T="object" Icon="@(severity == IssueSeverity.Error ? Icons.Material.Filled.Error : Icons.Material.Filled.Warning)"
 							             IconColor="@(severity == IssueSeverity.Error ? Color.Error : Color.Warning)">
 								<MudStack Row="true" AlignItems="AlignItems.Center" Spacing="2">
 									<MudText Typo="Typo.body2"><strong>@reason</strong></MudText>
-									<MudChip T="string" Size="Size.Small" Variant="Variant.Outlined">@g.Count() row@(g.Count() == 1 ? "" : "s")</MudChip>
+									<MudChip T="string" Size="Size.Small" Variant="Variant.Outlined">@issues.Count row@(issues.Count == 1 ? "" : "s")</MudChip>
 								</MudStack>
-								<MudText Typo="Typo.caption" Class="mud-text-secondary">@(rows.Count == 1 ? "row" : "rows"): @preview</MudText>
+								<div class="issue-row-list">
+									@foreach (var issue in issues.Take(MaxIssueRowsShown))
+									{
+										<div class="issue-row">
+											row @issue.RowNumber@if (!string.IsNullOrEmpty(issue.RawContent))
+											{
+												<text>: </text><code class="issue-row-raw">@issue.RawContent</code>
+											}
+										</div>
+									}
+									@if (issues.Count > MaxIssueRowsShown)
+									{
+										<MudText Typo="Typo.caption" Class="mud-text-secondary mt-1 d-block">
+											… and @(issues.Count - MaxIssueRowsShown) more (download the error report or report to GitHub for the full list)
+										</MudText>
+									}
+								</div>
 							</MudListItem>
 						}
 					</MudList>
@@ -346,6 +360,7 @@
 
 @code {
 	const int MaxFileSize = 5 * 1024 * 1024;
+	const int MaxIssueRowsShown = 25;
 	static readonly IReadOnlyList<string> _inputFormats = CardMapFactory.ReadableFormats;
 	static readonly IReadOnlyList<string> _outputFormats = CardMapFactory.WritableFormats;
 
