@@ -1,0 +1,25 @@
+/* Scoped to MtgCsvProcessor via Blazor CSS isolation. */
+
+/* Per-row detail block inside an Import-issue group. Shows the raw CSV row beneath the
+   reason in a muted, secondary-text color so it doesn't compete with the reason line.
+   Same tone as the "Source CSV formats are defined by third-party sites..." caption above. */
+.issue-row-list {
+	margin-top: 0.5rem;
+	display: flex;
+	flex-direction: column;
+	gap: 0.25rem;
+	color: var(--mud-palette-text-secondary);
+	font-size: 0.85rem;
+}
+
+.issue-row {
+	word-break: break-word;
+}
+
+.issue-row-raw {
+	font-family: ui-monospace, "Cascadia Code", Menlo, Consolas, monospace;
+	font-size: 0.8rem;
+	color: inherit;
+	background: none;
+	padding: 0;
+}

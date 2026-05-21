@@ -32,15 +32,18 @@ public sealed class SetInfoEnricher(IReferenceCardCatalog catalog) : PerCardEnri
 
 		if (!hadSetCode && !hadSetName)
 		{
-			issues.Add(new ImportIssue(IssueSeverity.Warning, row.RowNumber, "No set information found in row", CardName: p.Name));
+			issues.Add(new ImportIssue(IssueSeverity.Warning, row.RowNumber, "No set information found in row",
+				CardName: p.Name, RawContent: row.RawContent));
 		}
 		else if (hadSetCode && p.SetName is null)
 		{
-			issues.Add(new ImportIssue(IssueSeverity.Warning, row.RowNumber, $"Set code '{p.Set}' not found in Scryfall data", CardName: p.Name));
+			issues.Add(new ImportIssue(IssueSeverity.Warning, row.RowNumber, $"Set code '{p.Set}' not found in Scryfall data",
+				CardName: p.Name, RawContent: row.RawContent));
 		}
 		else if (hadSetName && p.Set is null)
 		{
-			issues.Add(new ImportIssue(IssueSeverity.Warning, row.RowNumber, $"Set name '{p.SetName}' not found in Scryfall data", CardName: p.Name));
+			issues.Add(new ImportIssue(IssueSeverity.Warning, row.RowNumber, $"Set name '{p.SetName}' not found in Scryfall data",
+				CardName: p.Name, RawContent: row.RawContent));
 		}
 
 		return true;

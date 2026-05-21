@@ -25,7 +25,8 @@ public sealed class CatalogValidator(IReferenceCardCatalog catalog) : PerCardEnr
 		if (match is null)
 		{
 			issues.Add(new ImportIssue(IssueSeverity.Error, row.RowNumber,
-				$"No printing at {p.Set} #{p.CollectorNumber} in Scryfall data", CardName: p.Name));
+				$"No printing at {p.Set} #{p.CollectorNumber} in Scryfall data",
+				CardName: p.Name, RawContent: row.RawContent));
 			return false;
 		}
 
@@ -33,14 +34,15 @@ public sealed class CatalogValidator(IReferenceCardCatalog catalog) : PerCardEnr
 		{
 			issues.Add(new ImportIssue(IssueSeverity.Error, row.RowNumber,
 				$"Name '{p.Name}' does not match printing at {p.Set} #{p.CollectorNumber} ('{match.Name}')",
-				CardName: p.Name));
+				CardName: p.Name, RawContent: row.RawContent));
 			return false;
 		}
 
 		if (row.Card.Foil is true && !HasFoilFinish(match.Finishes))
 		{
 			issues.Add(new ImportIssue(IssueSeverity.Error, row.RowNumber,
-				$"Printing {p.Set} #{p.CollectorNumber} was not released in foil", CardName: p.Name));
+				$"Printing {p.Set} #{p.CollectorNumber} was not released in foil",
+				CardName: p.Name, RawContent: row.RawContent));
 			return false;
 		}
 

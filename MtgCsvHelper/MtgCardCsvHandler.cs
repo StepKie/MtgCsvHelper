@@ -76,6 +76,7 @@ public class MtgCardCsvHandler
 			}
 
 			int rowNum = csv.Parser.Row;
+			var rawContent = csv.Parser.RawRecord?.TrimEnd();
 			try
 			{
 				var card = csv.GetRecord<PhysicalMtgCard>();
@@ -85,10 +86,10 @@ public class MtgCardCsvHandler
 						IssueSeverity.Error,
 						rowNum,
 						$"Count must be positive (got {card.Count})",
-						RawContent: csv.Parser.RawRecord?.TrimEnd()));
+						RawContent: rawContent));
 					continue;
 				}
-				rows.Add(new ParsedRow(card, rowNum));
+				rows.Add(new ParsedRow(card, rowNum, rawContent));
 			}
 			catch (TypeConverterException tcex)
 			{
@@ -98,7 +99,7 @@ public class MtgCardCsvHandler
 					IssueSeverity.Error,
 					rowNum,
 					$"Invalid value '{value}' for column '{memberName}'",
-					RawContent: csv.Parser.RawRecord?.TrimEnd()));
+					RawContent: rawContent));
 			}
 			catch (Exception ex)
 			{
@@ -106,7 +107,7 @@ public class MtgCardCsvHandler
 					IssueSeverity.Error,
 					rowNum,
 					ex.Message,
-					RawContent: csv.Parser.RawRecord?.TrimEnd()));
+					RawContent: rawContent));
 			}
 		}
 
