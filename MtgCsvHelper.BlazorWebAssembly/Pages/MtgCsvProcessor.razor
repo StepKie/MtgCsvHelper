@@ -196,10 +196,26 @@
 
 	@if (r.Issues.Count > 0)
 	{
-		var errorCount = r.Issues.Count(i => i.Severity == IssueSeverity.Error);
-		var warningCount = r.Issues.Count(i => i.Severity == IssueSeverity.Warning);
+		// Per-row deduplication: a row that ends up dropped (Error) often also collected a
+		// precondition Warning earlier in the pipeline (e.g. SetInfoEnricher's "Set code 'MB1'
+		// not found" + CatalogValidator's "No printing at MB1 #N"). Show only the most-severe
+		// issue per row — the Error already names the failure precisely; the Warning is just
+		// noise once we know the row was dropped. Chip counts are row-based for the same reason.
+		var rowsWithErrors = r.Issues
+			.Where(i => i.Severity == IssueSeverity.Error)
+			.Select(i => i.RowNumber)
+			.ToHashSet();
+		var displayedIssues = r.Issues
+			.Where(i => i.Severity == IssueSeverity.Error || !rowsWithErrors.Contains(i.RowNumber))
+			.ToList();
+		var errorCount = rowsWithErrors.Count;
+		var warningCount = displayedIssues
+			.Where(i => i.Severity == IssueSeverity.Warning)
+			.Select(i => i.RowNumber)
+			.Distinct()
+			.Count();
 		<MudExpansionPanels Class="mb-4" Elevation="1">
-			<MudExpansionPanel Expanded="@(r.Issues.Count <= 20)">
+			<MudExpansionPanel Expanded="@(displayedIssues.Count <= 20)">
 				<TitleContent>
 					<MudStack Row="true" AlignItems="AlignItems.Center" Spacing="2" Class="flex-wrap">
 						<MudIcon Icon="@Icons.Material.Filled.Warning" Color="@(errorCount > 0 ? Color.Error : Color.Warning)" />
@@ -227,7 +243,7 @@
 						</MudStack>
 					}
 					@{
-						var grouped = r.Issues
+						var grouped = displayedIssues
 							.GroupBy(i => (i.Severity, i.Reason))
 							.OrderByDescending(g => g.Key.Severity == IssueSeverity.Error)
 							.ThenByDescending(g => g.Count())
