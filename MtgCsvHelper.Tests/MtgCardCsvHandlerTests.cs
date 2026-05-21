@@ -35,7 +35,7 @@ public class MtgCardCsvHandlerTests(CatalogFixture fixture, ITestOutputHelper ou
 	[InlineData($"{TESTS_FOLDER}/moxfield-field-fidelity.csv", "MOXFIELD", "EUR")]
 	[InlineData($"{TESTS_FOLDER}/manabox-field-fidelity.csv", "MANABOX", "USD")]
 	[InlineData($"{TESTS_FOLDER}/topdecked-field-fidelity.csv", "TOPDECKED", "USD")]
-	//[InlineData($"{TESTS_FOLDER}/deckbox-field-fidelity.csv", "DECKBOX", "USD")] // TODO #31 (Deckbox set-name aliases).
+	[InlineData($"{TESTS_FOLDER}/deckbox-field-fidelity.csv", "DECKBOX", "USD")]
 	public void ParseSampleCsv_WithValidInput_ParsesCards(string csvFilePath, string deckFormatName, string currency)
 	{
 		// Arrange

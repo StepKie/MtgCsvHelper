@@ -53,15 +53,17 @@ public class TestCollectionFixtureTests(CatalogFixture fixture, ITestOutputHelpe
 		result.Issues.Should().AllSatisfy(i => i.Severity.Should().Be(IssueSeverity.Error));
 	}
 
-	// Fixtures with documented site-specific set-code divergence from Scryfall. Each row in these
+	// Fixtures with documented site-specific divergence from Scryfall. Each row in these
 	// files that errors out is tracked by the named follow-up issue. The mixed-assertion below
 	// still enforces "no silent drops" (cards + errors == data rows).
 	static readonly IReadOnlyDictionary<string, (int ExpectedErrors, string TrackingIssue)> KnownDivergence = new Dictionary<string, (int, string)>
 	{
-		// Deckbox emits internal token codes (EX_127, EX_145), legacy aliases (PLIST x2, 1E, AP),
-		// and renamed list code PLIST → Scryfall plst. The MTGO alias map now rescues one of the
-		// originally-8 errors (AL → ALL via mtgo_code); remaining aliasing tracked by #31.
-		["deckbox-reference-collection.csv"] = (ExpectedErrors: 7, TrackingIssue: "#31"),
+		// Deckbox set-name + edition-code aliasing (#31) now covers the EX_NN tokens, PP_NEO-style
+		// promos, legacy regular-set codes (1E↔LEA, AL↔ALL, PLIST↔PLST), and the renamed-set name
+		// divergences. Remaining 5 errors are *collector-number* divergences in legacy sets — Deckbox
+		// numbers old reprint products (The List, Alpha, Alliances, Ultimate Box Toppers) differently
+		// from Scryfall. Tracked in #87.
+		["deckbox-reference-collection.csv"] = (ExpectedErrors: 5, TrackingIssue: "#87"),
 	};
 
 	[Theory]

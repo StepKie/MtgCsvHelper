@@ -1,9 +1,12 @@
 namespace MtgCsvHelper.Enrichment;
 
 /// <summary>
-/// Backfills the missing side of (Set ↔ SetName) from the catalog, rewrites Set to canonical
-/// Scryfall casing (catches lowercase input and MTGO 2-letter aliases). Adds a Warning when
-/// the row has no set information at all, or when the supplied code/name doesn't resolve.
+/// Canonicalizes (Set ↔ SetName) against the catalog. When the set code resolves, SetName is
+/// rewritten to the Scryfall canonical name even if the CSV supplied something else (Deckbox's
+/// "Extras: …" / "Promo Pack: …" curated names round-trip back to canonical that way).
+/// When only the name is supplied, Set is filled in from the reverse lookup. The catalog is
+/// authoritative; the CSV values are hints. Adds a Warning when the row has no set information
+/// at all, or when neither side resolves.
 /// </summary>
 public sealed class SetInfoEnricher(IReferenceCardCatalog catalog) : PerCardEnricher
 {
@@ -19,7 +22,9 @@ public sealed class SetInfoEnricher(IReferenceCardCatalog catalog) : PerCardEnri
 		bool hadSetName = p.SetName is not null;
 
 		// Both directions are O(1) — the catalog maintains forward (code → name) and reverse (name → code) indexes.
-		if (hadSetCode) { p.SetName ??= catalog.GetSetNameByCode(p.Set!); }
+		// Prefer the catalog's canonical name over whatever the CSV supplied: keeps the in-memory model
+		// stable across formats, so a Deckbox import doesn't leave "Extras: Foo" sitting in SetName.
+		if (hadSetCode) { p.SetName = catalog.GetSetNameByCode(p.Set!) ?? p.SetName; }
 		if (hadSetName) { p.Set ??= catalog.GetSetCodeByName(p.SetName!); }
 		// Rewrite Set to its canonical Scryfall form once SetName is known. Catches MTGO aliases
 		// (MI → MIR) and any lowercase input so downstream writes emit the code other tools expect.
