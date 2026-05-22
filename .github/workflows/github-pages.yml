@@ -27,18 +27,12 @@ jobs:
 
       # Refresh the bundled Scryfall reference catalog so the deployed app
       # ships with up-to-date data. Output goes to wwwroot/data/cards.min.json.gz.
-      # `continue-on-error: true` keeps deploys working when Scryfall's bulk-data
-      # endpoint is degraded — the previously committed bundle is used as fallback.
+      # The bundle is gitignored, so a failure here means publish would ship a
+      # site without `data/` and the app would 404 on card lookup — fail the
+      # workflow instead of deploying a broken site.
       - name: Refresh reference card bundle
-        id: refresh-bundle
-        continue-on-error: true
+        timeout-minutes: 10
         run: dotnet run --project tools/MtgCsvHelper.RefreshReferenceData -c Release
-
-      # Surface a stale-bundle deploy as a workflow warning so a green CI run
-      # doesn't hide the fact that we shipped yesterday's catalog.
-      - name: Warn on stale bundle
-        if: steps.refresh-bundle.outcome == 'failure'
-        run: echo "::warning::Reference card bundle refresh failed — deploying with the previously committed bundle (may be stale)."
 
       # Publishes Blazor project to the release-folder
       - name: Publish BlazorWebAssembly Project
