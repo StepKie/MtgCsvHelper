@@ -71,6 +71,17 @@ jobs:
             - Security implications
             - Test coverage
 
+            Also flag these convention violations:
+            - PR / issue / ticket-number references in source code (test names, assertion messages, comments) — those belong in commit messages and PR descriptions, not in code.
+            - Multi-line inline `//` comment blocks. We cap inline comments at one line; the "why" belongs in the commit message.
+            - Explanatory clauses or policy disclaimers in log / exception / error-toast messages (e.g. `"X (not a crash; default policy swallows)"`) — keep them bare-fact.
+
+            Don't flag (single-dev project; these get routinely denied):
+            - Speculative-defensive concerns ("what if someone later passes null", "in case this is reused elsewhere", "for robustness against unexpected inputs", "future maintainers might not realize…") unless you name a SPECIFIC reachable execution path. The tell: "X could happen at line N because Y" (real) vs "someone might" (skip).
+            - Defensive guards for conditions that cannot legitimately occur given how the code is reached. We trust internal invariants. Only flag boundary validation (user input, external APIs, network we don't own).
+            - Suggestions to add inline `[SuppressMessage]` attributes or `#pragma warning disable` blocks. We centralize in `GlobalSuppressions.cs` / `.editorconfig`.
+            - Suggestions to expand same-line braced guards (`if (cond) { return; }`) to multi-line Allman. We accept the one-liner form.
+
             Use inline comments for specific issues. ${{ github.event.action == 'opened' && 'Add a single summary comment with the overall assessment.' || 'Do NOT post a summary / overall-assessment comment — this is a re-review on push and the initial review already has one; another summary would duplicate it. Focus on issues introduced by the new commits.' }}
             You are running in CI with no interactive user — never call AskUserQuestion. If a
             tool you need is not allowed, post a single comment via `gh pr comment` explaining
