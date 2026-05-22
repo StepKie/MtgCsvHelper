@@ -31,6 +31,7 @@ jobs:
       # site without `data/` and the app would 404 on card lookup — fail the
       # workflow instead of deploying a broken site.
       - name: Refresh reference card bundle
+        timeout-minutes: 10
         run: dotnet run --project tools/MtgCsvHelper.RefreshReferenceData -c Release
 
       # Publishes Blazor project to the release-folder
