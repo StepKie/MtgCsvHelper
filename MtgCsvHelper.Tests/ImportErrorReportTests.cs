@@ -7,7 +7,13 @@ public class ImportErrorReportTests
 	static ImportIssue Error(int row, string reason, string raw) =>
 		new(IssueSeverity.Error, row, reason, RawContent: raw);
 
-	static string BodyOf((string IssueUrl, bool Trimmed) report) => Uri.UnescapeDataString(report.IssueUrl);
+	// Extract just the body= query parameter (the last one) so assertions can't pass on title text.
+	static string BodyOf((string IssueUrl, bool Trimmed) report)
+	{
+		const string marker = "&body=";
+		var start = report.IssueUrl.IndexOf(marker, StringComparison.Ordinal) + marker.Length;
+		return Uri.UnescapeDataString(report.IssueUrl[start..]);
+	}
 
 	[Fact]
 	public void ReasonHistogram_NormalizesCollectorNumbers_SoSameSetAggregates()
