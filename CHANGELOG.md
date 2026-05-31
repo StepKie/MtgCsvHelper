@@ -6,6 +6,21 @@ Unreleased work targets the next minor version once a coherent feature set is re
 
 ## [Unreleased]
 
+## [1.4.1] — 2026-05-31
+
+### Fixed
+
+- **Dragon Shield Ravnica Guild Kit set codes** ([#102](https://github.com/StepKie/MtgCsvHelper/issues/102), PR [#105](https://github.com/StepKie/MtgCsvHelper/pull/105)). Dragon Shield emits per-guild codes (`GK1_DIMIR`, `GK2_AZORIU`, …) for the Ravnica guild kits; the Scryfall set is a single `gk1`/`gk2` sharing collector numbers across guilds. These codes no longer fail catalog validation — `DragonShieldCodeReadConverter` collapses `GK[12]_*` to the canonical code on read (the guild suffix is cosmetic), so the cards import instead of being dropped.
+- **Dragon Shield variant foil treatments** ([#102](https://github.com/StepKie/MtgCsvHelper/issues/102), PR [#105](https://github.com/StepKie/MtgCsvHelper/pull/105)). `FinishConverter` now treats any value containing "foil" (`Surge Foil`, `Step and Compleat Foil`, …) as foil, instead of matching a fixed allowlist that went stale with each new WotC treatment.
+
+### Changed
+
+- **"Report to GitHub" embeds the error data inline** (PR [#107](https://github.com/StepKie/MtgCsvHelper/pull/107)). The prefilled issue now carries a normalized reason histogram (per-row `#N` collapsed so the same set/value aggregates) plus the failing rows, so there's nothing to attach in the common case; large reports fall back to the downloadable CSV. Extracted into a unit-tested `ImportErrorReport`.
+
+### Internal
+
+- **Site-behavior documentation** (PR [#105](https://github.com/StepKie/MtgCsvHelper/pull/105)). Recorded the observed Dragon Shield behaviors — Guild Kit codes, variant foils, and the export-side CSV importer matching by name rather than honoring canonical set codes. Follow-ups filed: [#103](https://github.com/StepKie/MtgCsvHelper/issues/103) (foreign-language imports), [#104](https://github.com/StepKie/MtgCsvHelper/issues/104) (Dragon Shield export native codes).
+
 ## [1.4.0] — 2026-05-21
 
 ### Added
@@ -107,7 +122,9 @@ First stable release. Web app + Console app.
 - [0.1.0] — 2022-12-02
 - [0.0.3] — 2022-11-15
 
-[Unreleased]: https://github.com/StepKie/MtgCsvHelper/compare/1.3.0...HEAD
+[Unreleased]: https://github.com/StepKie/MtgCsvHelper/compare/1.4.1...HEAD
+[1.4.1]: https://github.com/StepKie/MtgCsvHelper/compare/1.4.0...1.4.1
+[1.4.0]: https://github.com/StepKie/MtgCsvHelper/compare/1.3.0...1.4.0
 [1.3.0]: https://github.com/StepKie/MtgCsvHelper/compare/1.2.0...1.3.0
 [1.2.0]: https://github.com/StepKie/MtgCsvHelper/compare/1.1.0...1.2.0
 [1.1.0]: https://github.com/StepKie/MtgCsvHelper/compare/1.0.7...1.1.0
