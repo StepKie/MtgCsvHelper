@@ -150,7 +150,7 @@
 			           StartIcon="@Icons.Material.Filled.ReportProblem" OnClick="DownloadErrorCsv">
 				Error report
 			</MudButton>
-			<MudTooltip Text="Downloads the error CSV and opens a pre-filled GitHub issue. Drag the downloaded file into the issue to attach.">
+			<MudTooltip Text="Opens a pre-filled GitHub issue with the error details included inline. For very large reports, also attach the downloaded CSV.">
 				<MudButton Variant="Variant.Outlined" Color="Color.Default"
 				           StartIcon="@Icons.Custom.Brands.GitHub" OnClick="ReportErrorsOnGitHub">
 					Report to GitHub
@@ -595,58 +595,24 @@
 		var errors = _result.Issues.Where(i => i.Severity == IssueSeverity.Error).ToList();
 		if (errors.Count == 0) return;
 
-		var sb = new StringBuilder();
-		sb.AppendLine("RowNumber,RawContent,Reason");
-		foreach (var e in errors)
-		{
-			sb.AppendLine($"{e.RowNumber},{Csv(e.RawContent)},{Csv(e.Reason)}");
-		}
-
-		var bytes = Encoding.UTF8.GetBytes(sb.ToString());
+		var bytes = Encoding.UTF8.GetBytes(ImportErrorReport.BuildCsv(errors));
 		using var stream = new MemoryStream(bytes);
 		using var streamRef = new DotNetStreamReference(stream, leaveOpen: false);
 		await JS.InvokeVoidAsync("downloadFileFromStream", $"{_result.InputFormat}-import-errors-{DateTime.Now:yyyy-MM-dd_HH-mm-ss}.csv", streamRef);
-
-		static string Csv(string? value) => value is null ? "" : $"\"{value.Replace("\"", "\"\"")}\"";
 	}
 
 	async Task ReportErrorsOnGitHub()
 	{
 		if (_result is null) return;
-		var errors = _result.Issues.Where(i => i.Severity == IssueSeverity.Error).ToList();
-		if (errors.Count == 0) return;
+		if (!_result.Issues.Any(i => i.Severity == IssueSeverity.Error)) return;
 
-		// Download the error CSV so the user can drag it into the issue.
-		await DownloadErrorCsv();
+		var report = ImportErrorReport.Build(
+			_result.InputFormat, _result.OutputFormat, _result.ImportedAt, _result.Summary.UniqueCount, _result.Issues);
 
-		// Top 5 distinct error reasons by frequency, for an at-a-glance summary in the body.
-		var topReasons = errors
-			.GroupBy(e => e.Reason)
-			.OrderByDescending(g => g.Count())
-			.Take(5)
-			.Select(g => $"- {g.Count()}× {g.Key}");
+		// A downloaded file to attach is only needed when the inline data didn't all fit.
+		if (report.Trimmed) { await DownloadErrorCsv(); }
 
-		var warningCount = _result.Issues.Count(i => i.Severity == IssueSeverity.Warning);
-		var body = $"## Import errors\n\n" +
-			$"- **Input format**: {_result.InputFormat}\n" +
-			$"- **Output format**: {_result.OutputFormat}\n" +
-			$"- **When**: {_result.ImportedAt:yyyy-MM-dd HH:mm}\n" +
-			$"- **Rows imported successfully**: {_result.Summary.UniqueCount}\n" +
-			$"- **Errors (rows skipped)**: {errors.Count}\n" +
-			$"- **Warnings (imported with notes)**: {warningCount}\n\n" +
-			$"### Top error reasons\n\n{string.Join("\n", topReasons)}\n\n" +
-			$"### Attached CSV\n\n" +
-			$"Please drag the just-downloaded `{_result.InputFormat}-import-errors-*.csv` file into this issue to attach the full error data.\n\n" +
-			$"### Additional context\n\n" +
-			$"_Describe what you were trying to do — which source CSV, anything unusual about the data._\n";
-
-		var title = $"Import errors: {FormatDisplay.For(_result.InputFormat)} → {FormatDisplay.For(_result.OutputFormat)}";
-		var url = $"https://github.com/StepKie/MtgCsvHelper/issues/new"
-			+ $"?title={Uri.EscapeDataString(title)}"
-			+ $"&labels={Uri.EscapeDataString("bug,import-error")}"
-			+ $"&body={Uri.EscapeDataString(body)}";
-
-		await JS.InvokeVoidAsync("open", url, "_blank", "noopener,noreferrer");
+		await JS.InvokeVoidAsync("open", report.IssueUrl, "_blank", "noopener,noreferrer");
 	}
 
 	public void Dispose()
