@@ -7,13 +7,6 @@ public class FinishConverter(FinishConfiguration configuration) : ITypeConverter
 {
 	readonly FinishConfiguration _finishConfig = configuration;
 
-	// DragonShield-specific variant foil treatments. Hardcoded here because no other format
-	// in the repo emits these strings; widening this list silently re-routes other formats'
-	// values, so per-format config aliases are the right long-term fix (tracked as a follow-up
-	// to the tri-state Foil enum below).
-	static readonly HashSet<string> FoilVariants = new(StringComparer.OrdinalIgnoreCase)
-		{ "Rainbow Foil", "Double Rainbow Foil", "Gilded Foil" };
-
 	public object? ConvertFromString(string? text, IReaderRow row, MemberMapData memberMapData)
 	{
 		if (string.IsNullOrWhiteSpace(text)) { return false; }
@@ -22,7 +15,8 @@ public class FinishConverter(FinishConfiguration configuration) : ITypeConverter
 		// Tri-state Foil enum is the planned follow-up; see ConvertToString for the matching write-side data loss.
 		if (text.MatchesConfig(_finishConfig.Etched)) { return true; }
 		if (text.MatchesConfig(_finishConfig.Normal)) { return false; }
-		if (FoilVariants.Contains(text)) { return true; }
+		// Variant treatments (Surge Foil, Step and Compleat Foil, …) all carry the word "Foil".
+		if (text.Contains("foil", StringComparison.OrdinalIgnoreCase)) { return true; }
 
 		throw new TypeConverterException(this, memberMapData, text, row.Context, $"Unrecognized Foil value '{text}'");
 	}

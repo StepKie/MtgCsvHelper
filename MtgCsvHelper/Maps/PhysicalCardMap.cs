@@ -10,7 +10,7 @@ namespace MtgCsvHelper.Maps;
 // so the body reads as a flat list of mappings rather than a forest of null checks.
 public class PhysicalCardMap : ClassMap<PhysicalMtgCard>
 {
-	public PhysicalCardMap(FormatConfig cfg, IReferenceCardCatalog catalog)
+	public PhysicalCardMap(FormatConfig cfg, IReferenceCardCatalog catalog, ITypeConverter? setCodeConverter = null)
 	{
 		// Explicit indices override CsvHelper's clustering of nested-member maps
 		// (Printing.Name, Printing.Set, …) — registration order alone interleaves
@@ -39,7 +39,7 @@ public class PhysicalCardMap : ClassMap<PhysicalMtgCard>
 		// At least one of SetCode / SetName is expected per format (sites differ on which they include).
 		// CollectorNumberConverter is applied universally (not MTGO-specific) — it's a no-op for any
 		// collector number without a "/", and "/" doesn't appear in Scryfall data.
-		MapOptional(c => c.Printing.Set, cfg.SetCode)?.TypeConverter<UpperCaseConverter>().Index(4);
+		MapOptional(c => c.Printing.Set, cfg.SetCode)?.TypeConverter(setCodeConverter ?? new UpperCaseConverter()).Index(4);
 		MapOptional(c => c.Printing.SetName, cfg.SetName)?.Index(5);
 		MapOptional(c => c.Printing.CollectorNumber, cfg.SetNumber)?.TypeConverter<CollectorNumberConverter>().Index(6);
 

@@ -108,6 +108,20 @@ public class FaultToleranceTests(CatalogFixture fixture, ITestOutputHelper outpu
 	}
 
 	[Fact]
+	public void DragonShieldGuildKitCode_ResolvesToScryfallSet()
+	{
+		var csv = "\"sep=,\"\n"
+			+ "Folder Name,Quantity,Trade Quantity,Card Name,Set Code,Set Name,Card Number,Condition,Printing,Language,Price Bought,Date Bought\n"
+			+ "Test,1,0,Azorius Herald,GK2_AZORIU,Guild Kit: Azorius,2,NearMint,Normal,English,0.00,2026-05-15\n";
+
+		var result = Handler("DRAGONSHIELD").ParseCollectionCsv(CsvStream(csv));
+
+		result.Issues.Should().NotContain(i => i.Severity == IssueSeverity.Error);
+		result.Collection.Cards.Should().ContainSingle()
+			.Which.Printing.Set.Should().Be("GK2");
+	}
+
+	[Fact]
 	public void BlankAndDelimiterOnlyRows_SkippedSilently()
 	{
 		var csv = MoxHeader + "\n"
