@@ -41,6 +41,7 @@ public class CardMapFactory(IConfiguration config, IReferenceCardCatalog catalog
 			throw new InvalidOperationException($"Format '{format}' is write-only and cannot be parsed.");
 		}
 		if (format.Equals("DECKBOX", StringComparison.OrdinalIgnoreCase)) { return new DeckboxMap(cfg, catalog); }
+		if (format.Equals("DRAGONSHIELD", StringComparison.OrdinalIgnoreCase)) { return new DragonShieldMap(cfg, catalog); }
 		return new PhysicalCardMap(cfg, catalog);
 	}
 
@@ -53,6 +54,7 @@ public class CardMapFactory(IConfiguration config, IReferenceCardCatalog catalog
 		}
 		if (format.Equals("CARDKINGDOM", StringComparison.OrdinalIgnoreCase)) { return new CardKingdomWriteMap(cfg, catalog); }
 		if (format.Equals("DECKBOX", StringComparison.OrdinalIgnoreCase)) { return new DeckboxMap(cfg, catalog); }
+		if (format.Equals("DRAGONSHIELD", StringComparison.OrdinalIgnoreCase)) { return new DragonShieldMap(cfg, catalog); }
 		return new PhysicalCardMap(cfg, catalog);
 	}
 
