@@ -85,7 +85,7 @@ public class ImportErrorReportTests
 		var body = BodyOf(report);
 
 		report.Trimmed.Should().BeTrue();
-		(report.IssueUrl.Length <= maxUrl).Should().BeTrue("the prefilled URL must stay under GitHub's length cap");
+		report.IssueUrl.Length.Should().BeLessThanOrEqualTo(maxUrl, "the prefilled URL must stay under GitHub's length cap");
 		body.Should().Contain("was downloaded"); // attach-fallback note present when trimmed
 		body.Should().Contain("### Error reasons"); // the histogram always survives trimming
 	}
