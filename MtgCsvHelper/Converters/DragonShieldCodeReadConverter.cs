@@ -3,11 +3,7 @@ using CsvHelper.TypeConversion;
 
 namespace MtgCsvHelper.Converters;
 
-/// <summary>
-/// On read from a Dragon Shield CSV, collapses its Ravnica Guild Kit set codes (GK1_DIMIR,
-/// GK2_AZORIU, …) to the canonical Scryfall code (GK1/GK2); the guild suffix is cosmetic and
-/// collector numbers are shared across the kit. All other codes pass through to UpperCaseConverter.
-/// </summary>
+/// <summary>On read from a Dragon Shield CSV, collapses GK1_*/GK2_* guild-kit codes to the canonical Scryfall code (GK1/GK2); all other codes pass through to UpperCaseConverter.</summary>
 internal sealed class DragonShieldCodeReadConverter : UpperCaseConverter
 {
 	public override object? ConvertFromString(string? text, IReaderRow row, MemberMapData memberMapData)

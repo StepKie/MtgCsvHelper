@@ -110,7 +110,6 @@ public class FaultToleranceTests(CatalogFixture fixture, ITestOutputHelper outpu
 	[Fact]
 	public void DragonShieldGuildKitCode_ResolvesToScryfallSet()
 	{
-		// Dragon Shield's per-guild codes collapse to one Scryfall set: GK2_AZORIU #2 is gk2 #2 (Azorius Herald).
 		var csv = "\"sep=,\"\n"
 			+ "Folder Name,Quantity,Trade Quantity,Card Name,Set Code,Set Name,Card Number,Condition,Printing,Language,Price Bought,Date Bought\n"
 			+ "Test,1,0,Azorius Herald,GK2_AZORIU,Guild Kit: Azorius,2,NearMint,Normal,English,0.00,2026-05-15\n";
