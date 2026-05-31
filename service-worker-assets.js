@@ -117,12 +117,12 @@
       "url": "_framework\/Microsoft.JSInterop.ifnm5tv8of.wasm.br"
     },
     {
-      "hash": "sha256-0DobBFhun9xvRLTD+ZYXM\/nGzt0xPhm1aJfhELQoWdI=",
-      "url": "_framework\/MtgCsvHelper.64px4txz67.wasm.br"
+      "hash": "sha256-VQHUOZ8Je+4TAnHWzVaLcRSwNmFzgTr7jurzhGSEit8=",
+      "url": "_framework\/MtgCsvHelper.BlazorWebAssembly.b675aoiw71.wasm.br"
     },
     {
-      "hash": "sha256-emuHT\/jwOD1YjxtMGACfn8SGrLdZwAG0G7iEjvwW914=",
-      "url": "_framework\/MtgCsvHelper.BlazorWebAssembly.5ylsgwwjy8.wasm.br"
+      "hash": "sha256-PFjKDYr0ZDgWjp6bfQdVLj+V6EQZ92ojgKW+eGcJcEE=",
+      "url": "_framework\/MtgCsvHelper.t86ff06lve.wasm.br"
     },
     {
       "hash": "sha256-z6OLFhcTK2xMFnoNusgUIMKqwxEUNj6eq5siwwrfODI=",
@@ -325,16 +325,16 @@
       "url": "_framework\/blazor.webassembly.js"
     },
     {
-      "hash": "sha256-UnccaX++i9NSzYp07ZIyyY6Y48gjdgjiuRWWqaYuVqk=",
+      "hash": "sha256-VJNnsQSN02TmL0D9sLmHjA0mMjgc73T3mcJaSqKwXVU=",
       "url": "_framework\/dotnet.js"
+    },
+    {
+      "hash": "sha256-AIkO3QEy2gt4ETMS04s4CiQ+1URXbThuC1vKJVFenOI=",
+      "url": "_framework\/dotnet.native.93sgj2srul.wasm.br"
     },
     {
       "hash": "sha256-okFXds2vNJzYKB55NsSY9eGKjd1yoW0B+oOqjV6Bwlk=",
       "url": "_framework\/dotnet.native.at4snspvvz.js"
-    },
-    {
-      "hash": "sha256-+BGggWhoCpoFquZtv2b8Uw7\/HlqATqurNynTckeaHP4=",
-      "url": "_framework\/dotnet.native.nbct4duyuf.wasm.br"
     },
     {
       "hash": "sha256-YyudibIWETMKrLb+nAZdJ+xDY7HY6BWf6s32UAdcvCU=",
@@ -373,7 +373,7 @@
       "url": "css\/bootstrap\/bootstrap.min.css.map"
     },
     {
-      "hash": "sha256-Ugkt\/ivZkdcbN6JCUcc5IjU3CxEx1BJfCcKP9hsmgYo=",
+      "hash": "sha256-DGxmhl7JjAalsv878IuZxkjMv2GHz8awkPd+8ts+IBo=",
       "url": "data\/cards.min.json.gz"
     },
     {
@@ -401,5 +401,5 @@
       "url": "brotliloader.min.js"
     }
   ],
-  "version": "6nuvY5P1"
+  "version": "gcrDF3pI"
 };
