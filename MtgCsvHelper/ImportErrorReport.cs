@@ -47,12 +47,16 @@ public static class ImportErrorReport
 		var header = csv[0];
 		var rows = csv.Skip(1).ToList();
 
-		// Embed every row, then drop from the end until the URL fits. The summary and reason
-		// histogram always fit, so the worst case is zero embedded rows.
-		var shown = rows.Count;
-		while (shown > 0 && Url(Compose(shown)).Length > maxUrlLength) { shown--; }
+		// Largest row count whose URL still fits the cap (URL length is monotonic in row count).
+		var lo = 0;
+		var hi = rows.Count;
+		while (lo < hi)
+		{
+			var mid = (lo + hi + 1) / 2;
+			if (Url(Compose(mid)).Length <= maxUrlLength) { lo = mid; } else { hi = mid - 1; }
+		}
 
-		return (Url(Compose(shown)), Trimmed: shown < rows.Count);
+		return (Url(Compose(lo)), Trimmed: lo < rows.Count);
 
 		string Compose(int rowCount) => string.Join("\n", new[]
 		{
@@ -94,8 +98,7 @@ public static class ImportErrorReport
 		return block;
 	}
 
-	// Distinct error causes, most frequent first. Per-row collector numbers (#2, #3, …) are
-	// normalized to "#N" so repeats of the same set/value collapse into one line.
+	// Error causes most-frequent-first, with per-row collector numbers (#2, #3, …) normalized to "#N" so the same set/value aggregates.
 	internal static string ReasonHistogram(IReadOnlyList<ImportIssue> errors, int maxReasons)
 	{
 		var groups = errors
