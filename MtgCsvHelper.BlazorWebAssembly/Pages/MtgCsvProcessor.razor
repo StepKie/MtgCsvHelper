@@ -609,7 +609,6 @@
 		var report = ImportErrorReport.Build(
 			_result.InputFormat, _result.OutputFormat, _result.ImportedAt, _result.Summary.UniqueCount, _result.Issues);
 
-		// A downloaded file to attach is only needed when the inline data didn't all fit.
 		if (report.Trimmed) { await DownloadErrorCsv(); }
 
 		await JS.InvokeVoidAsync("open", report.IssueUrl, "_blank", "noopener,noreferrer");

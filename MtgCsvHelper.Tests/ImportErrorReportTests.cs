@@ -34,14 +34,16 @@ public class ImportErrorReportTests
 	[Fact]
 	public void ReasonHistogram_CapsAtMaxReasons_WithOverflowLine()
 	{
-		var errors = Enumerable.Range(0, 25)
+		const int distinctReasons = 25;
+		const int maxReasons = 20;
+		var errors = Enumerable.Range(0, distinctReasons)
 			.Select(i => Error(i, $"Invalid value 'V{i}' for column 'Foil'", "x"))
 			.ToList();
 
-		var histogram = ImportErrorReport.ReasonHistogram(errors, maxReasons: 20);
+		var histogram = ImportErrorReport.ReasonHistogram(errors, maxReasons);
 
-		histogram.Should().Contain("… and 5 more distinct reasons");
-		histogram.Split('\n').Should().HaveCount(21); // 20 reasons + overflow line
+		histogram.Should().Contain($"… and {distinctReasons - maxReasons} more distinct reasons");
+		histogram.Split('\n').Should().HaveCount(maxReasons + 1);
 	}
 
 	[Fact]

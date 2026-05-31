@@ -86,7 +86,6 @@ public static class ImportErrorReport
 			+ $"&body={Uri.EscapeDataString(body)}";
 	}
 
-	// Fenced CSV block of the error rows, plus an attach-the-download note when not all rows fit.
 	static string ErrorDataBlock(string header, IReadOnlyList<string> rows, int rowCount, string inputFormat)
 	{
 		var block = $"### Error data\n\n```csv\n{header}\n{string.Join("\n", rows.Take(rowCount))}\n```\n";
