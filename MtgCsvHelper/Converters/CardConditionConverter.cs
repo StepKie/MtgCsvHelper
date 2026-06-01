@@ -19,34 +19,35 @@ public class CardConditionConverter(ConditionConfiguration configuration) : ITyp
 #pragma warning disable format
 			return text switch
 			{
-				_ when text.MatchesConfig(_conditionConfig.Mint)			=> CardCondition.MINT,
-				_ when text.MatchesConfig(_conditionConfig.NearMint)		=> CardCondition.NEAR_MINT,
-				_ when text.MatchesConfig(_conditionConfig.Excellent)		=> CardCondition.EXCELLENT,
-				_ when text.MatchesConfig(_conditionConfig.Good)			=> CardCondition.GOOD,
-				_ when text.MatchesConfig(_conditionConfig.LightlyPlayed)	=> CardCondition.LIGHTLY_PLAYED,
-				_ when text.MatchesConfig(_conditionConfig.Played)			=> CardCondition.PLAYED,
-				_ when text.MatchesConfig(_conditionConfig.Poor)			=> CardCondition.POOR,
-				_															=> CardCondition.UNKNOWN,
+				_ when text.MatchesConfig(_conditionConfig.Mint)			=> CardCondition.Mint,
+				_ when text.MatchesConfig(_conditionConfig.NearMint)		=> CardCondition.NearMint,
+				_ when text.MatchesConfig(_conditionConfig.Excellent)		=> CardCondition.Excellent,
+				_ when text.MatchesConfig(_conditionConfig.Good)			=> CardCondition.Good,
+				_ when text.MatchesConfig(_conditionConfig.LightlyPlayed)	=> CardCondition.LightlyPlayed,
+				_ when text.MatchesConfig(_conditionConfig.Played)			=> CardCondition.Played,
+				_ when text.MatchesConfig(_conditionConfig.Poor)			=> CardCondition.Poor,
+				_															=> CardCondition.Unknown,
 			};
 
 		}
 
 		public string? ConvertToString(object? value, IWriterRow row, MemberMapData memberMapData)
 		{
-			// Mint and Excellent fall back to NearMint when the format has no separate tier for
-			// them (Archidekt, Moxfield, TopDecked, Deckbox). The format's appsettings.json
-			// declares those entries as null; this `??` chain emits the NearMint string instead.
-			return (value as CardCondition) switch
-			{
-				{ Name: "Mint" }          => _conditionConfig.Mint      ?? _conditionConfig.NearMint,
-				{ Name: "NearMint" }      => _conditionConfig.NearMint,
-				{ Name: "Excellent" }     => _conditionConfig.Excellent ?? _conditionConfig.NearMint,
-				{ Name: "Good" }          => _conditionConfig.Good,
-				{ Name: "LightlyPlayed" } => _conditionConfig.LightlyPlayed,
-				{ Name: "Played" }        => _conditionConfig.Played,
-				{ Name: "Poor" }          => _conditionConfig.Poor,
-				_						  => ""
-			};
+			// Mint/Excellent fall back to NearMint when the format config declares no separate tier (null → NearMint).
+			return value is CardCondition condition
+				? condition switch
+				{
+					CardCondition.Mint          => _conditionConfig.Mint      ?? _conditionConfig.NearMint,
+					CardCondition.NearMint      => _conditionConfig.NearMint,
+					CardCondition.Excellent     => _conditionConfig.Excellent ?? _conditionConfig.NearMint,
+					CardCondition.Good          => _conditionConfig.Good,
+					CardCondition.LightlyPlayed => _conditionConfig.LightlyPlayed,
+					CardCondition.Played        => _conditionConfig.Played,
+					CardCondition.Poor          => _conditionConfig.Poor,
+					CardCondition.Unknown       => "",
+					_                           => "",
+				}
+				: "";
 		}
 #pragma warning restore format
 	}

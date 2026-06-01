@@ -164,7 +164,7 @@ public class MtgCardCsvHandlerTests(CatalogFixture fixture, ITestOutputHelper ou
 		var card1 = new PhysicalMtgCard
 		{
 			Count = 1,
-			Condition = CardCondition.MINT,
+			Condition = CardCondition.Mint,
 			Foil = false,
 			Printing = new Card
 			{
@@ -182,22 +182,22 @@ public class MtgCardCsvHandlerTests(CatalogFixture fixture, ITestOutputHelper ou
         var card3 = card1 with
 		{
 			Count = 2,
-			Condition = CardCondition.NEAR_MINT,
+			Condition = CardCondition.NearMint,
 			Foil = true,
 			Language = "de",
 			PriceBought = new Money(0.20m, currency),
 		};
 
         // There is no test for excellent, since some sites only have six conditions (e.g. Moxfield)
-        var card4 = card1 with { Condition = CardCondition.GOOD };
-		var card5 = card1 with { Condition = CardCondition.LIGHTLY_PLAYED };
-		var card6 = card1 with { Condition = CardCondition.PLAYED };
-		var card7 = card1 with { Condition = CardCondition.POOR };
+        var card4 = card1 with { Condition = CardCondition.Good };
+		var card5 = card1 with { Condition = CardCondition.LightlyPlayed };
+		var card6 = card1 with { Condition = CardCondition.Played };
+		var card7 = card1 with { Condition = CardCondition.Poor };
 
 		var card8 = new PhysicalMtgCard
 		{
 			Count = 1,
-			Condition = CardCondition.NEAR_MINT,
+			Condition = CardCondition.NearMint,
 			Foil = false,
 			Printing = new Card
 			{
@@ -213,7 +213,7 @@ public class MtgCardCsvHandlerTests(CatalogFixture fixture, ITestOutputHelper ou
 		var card9 = new PhysicalMtgCard
 		{
 			Count = 1,
-			Condition = CardCondition.NEAR_MINT,
+			Condition = CardCondition.NearMint,
 			Foil = false,
 			Printing = new Card
 			{

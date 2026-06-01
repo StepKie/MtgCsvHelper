@@ -9,7 +9,7 @@ public class TcgplayerWriteTests(CatalogFixture fixture, ITestOutputHelper outpu
 	static PhysicalMtgCard Card(string name, string set, string collectorNumber) => new()
 	{
 		Count = 1,
-		Condition = CardCondition.NEAR_MINT,
+		Condition = CardCondition.NearMint,
 		Foil = false,
 		Language = "en",
 		Printing = new Card { Name = name, Set = set, SetName = "", CollectorNumber = collectorNumber },
