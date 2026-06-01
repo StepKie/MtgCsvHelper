@@ -361,7 +361,7 @@
 								<MudChip T="string" Size="Size.Small" Color="Color.Warning" Variant="Variant.Filled">F</MudChip>
 							}
 						</MudTd>
-						<MudTd DataLabel="Condition">@(card.Condition == CardCondition.UNKNOWN ? "" : card.Condition.ToString())</MudTd>
+						<MudTd DataLabel="Condition">@(card.Condition == CardCondition.Unknown ? "" : card.Condition.ToString())</MudTd>
 						<MudTd DataLabel="Lang">@(card.Language ?? "")</MudTd>
 						<MudTd DataLabel="Price">@(card.PriceBought?.Print() ?? "")</MudTd>
 					</RowTemplate>

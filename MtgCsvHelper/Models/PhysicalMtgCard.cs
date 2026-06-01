@@ -17,7 +17,7 @@ public record PhysicalMtgCard
 
 	public required Card Printing { get; init; }
 
-	public CardCondition Condition { get; init; } = CardCondition.UNKNOWN;
+	public CardCondition Condition { get; init; } = CardCondition.Unknown;
 
 	public bool? Foil { get; init; }
 

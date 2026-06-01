@@ -51,9 +51,9 @@ public class CardmarketTests(CatalogFixture fixture, ITestOutputHelper output) :
 		var result = await Handler().ParseCollectionCsvAsync(SamplePath);
 		var byName = result.Collection.Cards.ToDictionary(c => c.Printing.Name);
 
-		byName["Pillory of the Sleepless"].Condition.Should().Be(CardCondition.EXCELLENT); // condition=3
-		byName["Putrid Leech"].Condition.Should().Be(CardCondition.NEAR_MINT);             // condition=2
-		byName["Serrated Arrows"].Condition.Should().Be(CardCondition.EXCELLENT);          // condition=3
+		byName["Pillory of the Sleepless"].Condition.Should().Be(CardCondition.Excellent); // condition=3
+		byName["Putrid Leech"].Condition.Should().Be(CardCondition.NearMint);              // condition=2
+		byName["Serrated Arrows"].Condition.Should().Be(CardCondition.Excellent);          // condition=3
 	}
 
 	[Fact]
