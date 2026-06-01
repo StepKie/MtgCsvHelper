@@ -6,8 +6,9 @@ namespace MtgCsvHelper.Enrichment;
 /// <summary>
 /// The one validator in the post-parse pipeline. Drops rows whose (Set, CollectorNumber)
 /// doesn't resolve, whose Name doesn't match the resolved printing, or whose Foil flag
-/// claims an unsupported finish. Named "Validator" rather than "Enricher" because it
-/// checks-and-drops; the only mutation it makes is to the issues collection.
+/// claims an unsupported finish. Named "Validator" rather than "Enricher" because it mainly
+/// checks-and-drops; its only mutations are the issues collection and canonicalizing the
+/// name of a short-named or front-face-ambiguous double-faced card to the resolved printing.
 /// </summary>
 public sealed class CatalogValidator(IReferenceCardCatalog catalog) : PerCardEnricher
 {
@@ -30,12 +31,17 @@ public sealed class CatalogValidator(IReferenceCardCatalog catalog) : PerCardEnr
 			return false;
 		}
 
-		if (!NamesMatch(p.Name, match.Name, catalog))
+		if (!EqualsNormalized(p.Name, match.Name))
 		{
-			issues.Add(new ImportIssue(IssueSeverity.Error, row.RowNumber,
-				$"Name '{p.Name}' does not match printing at {p.Set} #{p.CollectorNumber} ('{match.Name}')",
-				CardName: p.Name, RawContent: row.RawContent));
-			return false;
+			if (!EqualsNormalized(FrontFace(p.Name), FrontFace(match.Name)))
+			{
+				issues.Add(new ImportIssue(IssueSeverity.Error, row.RowNumber,
+					$"Name '{p.Name}' does not match printing at {p.Set} #{p.CollectorNumber} ('{match.Name}')",
+					CardName: p.Name, RawContent: row.RawContent));
+				return false;
+			}
+			// (Set, #) already pins the printing; adopt its canonical name for a short or shared-front-face import.
+			p.Name = match.Name;
 		}
 
 		if (row.Card.Foil is true && !HasFoilFinish(match.Finishes))
@@ -49,13 +55,8 @@ public sealed class CatalogValidator(IReferenceCardCatalog catalog) : PerCardEnr
 		return true;
 	}
 
-	static bool NamesMatch(string imported, string referenceName, IReferenceCardCatalog catalog)
-	{
-		if (EqualsNormalized(imported, referenceName)) { return true; }
-		// Front-face-only imports (Moxfield's ShortNames=false formats) match the full Scryfall name.
-		var expanded = catalog.ExpandFrontFaceToFullName(imported);
-		return expanded is not null && EqualsNormalized(expanded, referenceName);
-	}
+	// Front face of a DFC name ("A // B" → "A"); a name without " // " is its own front face.
+	static string FrontFace(string name) => name.Split(" // ")[0];
 
 	// Compares with Unicode diacritic stripping (NFD + remove combining marks). TCGPlayer and a
 	// few other sites normalize "Lim-Dûl's Vault" → "Lim-Dul's Vault" on export; Scryfall keeps the
