@@ -11,10 +11,7 @@ public class CardMapFactory(IConfiguration config, IReferenceCardCatalog catalog
 	public static IReadOnlyList<string> Supported { get; } = ["MOXFIELD", "DRAGONSHIELD", "MANABOX", "TOPDECKED", "DECKBOX", "CARDKINGDOM", "MTGGOLDFISH", "TCGPLAYER", "CARDMARKET", "ARCHIDEKT", "MTGO"];
 	public static IReadOnlyList<string> NotYetFullySupported { get; } = ["URZAGATHERER"];
 
-	// Formats whose CSV doesn't carry enough info to populate a complete card without external lookups,
-	// or that don't make sense as targets for our writers. Internal so tests can derive expectations
-	// from the same source of truth as the Readable/Writable filters below. Declared as IReadOnlySet
-	// so the assembly-internal exposure can't accidentally mutate the contents.
+	// Write-only / read-only format sets; internal so tests derive expectations from the same source of truth.
 	internal static readonly IReadOnlySet<string> WriteOnlyFormats = new HashSet<string>(StringComparer.OrdinalIgnoreCase) { "CARDKINGDOM" };
 	internal static readonly IReadOnlySet<string> ReadOnlyFormats = new HashSet<string>(StringComparer.OrdinalIgnoreCase) { "CARDMARKET" };
 
@@ -55,6 +52,7 @@ public class CardMapFactory(IConfiguration config, IReferenceCardCatalog catalog
 		if (format.Equals("CARDKINGDOM", StringComparison.OrdinalIgnoreCase)) { return new CardKingdomWriteMap(cfg, catalog); }
 		if (format.Equals("DECKBOX", StringComparison.OrdinalIgnoreCase)) { return new DeckboxMap(cfg, catalog); }
 		if (format.Equals("DRAGONSHIELD", StringComparison.OrdinalIgnoreCase)) { return new DragonShieldMap(cfg, catalog); }
+		if (format.Equals("TCGPLAYER", StringComparison.OrdinalIgnoreCase)) { return new TCGPlayerWriteMap(cfg, catalog); }
 		return new PhysicalCardMap(cfg, catalog);
 	}
 

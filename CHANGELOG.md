@@ -6,6 +6,10 @@ Unreleased work targets the next minor version once a coherent feature set is re
 
 ## [Unreleased]
 
+### Added
+
+- **TCGplayer variant names on export** ([#23](https://github.com/StepKie/MtgCsvHelper/issues/23)). Borderless / Showcase / Extended Art printings now get TCGplayer's parenthetical suffix appended to a `Name` column (`Orcish Bowmasters (Borderless)`), so TCGplayer's name-matching importer resolves the correct printing instead of the default one; `Simple Name` stays plain. Derived from the bundled catalog's `border_color` / `frame_effects` — no extra lookups. (Pending verification against a real TCGplayer import; foil treatments and Retro Frame are follow-ups.)
+
 ## [1.4.1] — 2026-05-31
 
 ### Fixed
