@@ -31,21 +31,17 @@ public sealed class CatalogValidator(IReferenceCardCatalog catalog) : PerCardEnr
 			return false;
 		}
 
-		if (EqualsNormalized(p.Name, match.Name))
+		if (!EqualsNormalized(p.Name, match.Name))
 		{
-			// Names already agree (diacritics aside) — keep the imported spelling for round-trip safety.
-		}
-		else if (EqualsNormalized(FrontFace(p.Name), FrontFace(match.Name)))
-		{
+			if (!EqualsNormalized(FrontFace(p.Name), FrontFace(match.Name)))
+			{
+				issues.Add(new ImportIssue(IssueSeverity.Error, row.RowNumber,
+					$"Name '{p.Name}' does not match printing at {p.Set} #{p.CollectorNumber} ('{match.Name}')",
+					CardName: p.Name, RawContent: row.RawContent));
+				return false;
+			}
 			// (Set, #) already pins the printing; adopt its canonical name for a short or shared-front-face import.
 			p.Name = match.Name;
-		}
-		else
-		{
-			issues.Add(new ImportIssue(IssueSeverity.Error, row.RowNumber,
-				$"Name '{p.Name}' does not match printing at {p.Set} #{p.CollectorNumber} ('{match.Name}')",
-				CardName: p.Name, RawContent: row.RawContent));
-			return false;
 		}
 
 		if (row.Card.Foil is true && !HasFoilFinish(match.Finishes))
