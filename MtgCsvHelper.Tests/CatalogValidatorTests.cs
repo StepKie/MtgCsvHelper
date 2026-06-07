@@ -65,6 +65,19 @@ public class CatalogValidatorTests(CatalogFixture fixture)
 		kept.Should().ContainSingle().Which.Card.Printing.Name.Should().Be(canonical);
 	}
 
+	// Real Dragon Shield decorations: "Morph Creature" (TKTK #11) and "Beast Token (4/4)" (TMH2 #9; " Token" is stripped before validation).
+	[Theory]
+	[InlineData("TKTK", "11", " Creature")]
+	[InlineData("TMH2", "9", " (4/4)")]
+	public async Task DecoratedName_ExtendingCanonical_IsAcceptedAndCanonicalized(string set, string number, string decoration)
+	{
+		var canonical = fixture.Catalog.FindBySetAndCollectorNumber(set, number)!.Name;
+		var (kept, issues) = await Validate(Row(canonical + decoration, set, number));
+
+		issues.Should().BeEmpty();
+		kept.Should().ContainSingle().Which.Card.Printing.Name.Should().Be(canonical);
+	}
+
 	[Fact]
 	public async Task ValidatedRow_GetsRarityBackfilledFromCatalog()
 	{
