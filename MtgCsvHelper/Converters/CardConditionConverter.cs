@@ -1,4 +1,4 @@
-﻿using CsvHelper.Configuration;
+using CsvHelper.Configuration;
 using CsvHelper.TypeConversion;
 
 namespace MtgCsvHelper.Converters;
@@ -9,46 +9,44 @@ public class CardConditionConverter(ConditionConfiguration configuration) : ITyp
 
 	public object? ConvertFromString(string? text, IReaderRow row, MemberMapData memberMapData)
 	{
-		// TODO: tighten to reject unmapped values once appsettings supports per-enum aliases —
-		// real Moxfield exports use both "Near Mint" (binder export) and "NM" (collection export).
-		//
+		// Blank means the export carries no condition info — not a vocabulary error.
+		if (string.IsNullOrWhiteSpace(text)) { return CardCondition.Unknown; }
+
 		// Duplicate-string collisions are handled at the config level: formats whose Mint or
 		// Excellent collapses to the same string as NearMint declare those fields as `null` in
 		// appsettings.json, so only the NearMint arm matches and switch order is irrelevant.
 		// See CardConditionConverterTests.AmbiguousString_ResolvesToNearMint for the invariant.
 #pragma warning disable format
-			return text switch
-			{
-				_ when text.MatchesConfig(_conditionConfig.Mint)			=> CardCondition.Mint,
-				_ when text.MatchesConfig(_conditionConfig.NearMint)		=> CardCondition.NearMint,
-				_ when text.MatchesConfig(_conditionConfig.Excellent)		=> CardCondition.Excellent,
-				_ when text.MatchesConfig(_conditionConfig.Good)			=> CardCondition.Good,
-				_ when text.MatchesConfig(_conditionConfig.LightlyPlayed)	=> CardCondition.LightlyPlayed,
-				_ when text.MatchesConfig(_conditionConfig.Played)			=> CardCondition.Played,
-				_ when text.MatchesConfig(_conditionConfig.Poor)			=> CardCondition.Poor,
-				_															=> CardCondition.Unknown,
-			};
-
-		}
-
-		public string? ConvertToString(object? value, IWriterRow row, MemberMapData memberMapData)
+		return text switch
 		{
-			// Mint/Excellent fall back to NearMint when the format config declares no separate tier (null → NearMint).
-			return value is CardCondition condition
-				? condition switch
-				{
-					CardCondition.Mint          => _conditionConfig.Mint      ?? _conditionConfig.NearMint,
-					CardCondition.NearMint      => _conditionConfig.NearMint,
-					CardCondition.Excellent     => _conditionConfig.Excellent ?? _conditionConfig.NearMint,
-					CardCondition.Good          => _conditionConfig.Good,
-					CardCondition.LightlyPlayed => _conditionConfig.LightlyPlayed,
-					CardCondition.Played        => _conditionConfig.Played,
-					CardCondition.Poor          => _conditionConfig.Poor,
-					CardCondition.Unknown       => "",
-					_                           => "",
-				}
-				: "";
-		}
-#pragma warning restore format
+			_ when text.MatchesConfig(_conditionConfig.Mint)			=> CardCondition.Mint,
+			_ when text.MatchesConfig(_conditionConfig.NearMint)		=> CardCondition.NearMint,
+			_ when text.MatchesConfig(_conditionConfig.Excellent)		=> CardCondition.Excellent,
+			_ when text.MatchesConfig(_conditionConfig.Good)			=> CardCondition.Good,
+			_ when text.MatchesConfig(_conditionConfig.LightlyPlayed)	=> CardCondition.LightlyPlayed,
+			_ when text.MatchesConfig(_conditionConfig.Played)			=> CardCondition.Played,
+			_ when text.MatchesConfig(_conditionConfig.Poor)			=> CardCondition.Poor,
+			_ => throw new TypeConverterException(this, memberMapData, text, row.Context, $"Unrecognized Condition value '{text}'"),
+		};
 	}
 
+	public string? ConvertToString(object? value, IWriterRow row, MemberMapData memberMapData)
+	{
+		// Mint/Excellent fall back to NearMint when the format config declares no separate tier (null → NearMint).
+		return value is CardCondition condition
+			? condition switch
+			{
+				CardCondition.Mint          => _conditionConfig.Mint      ?? _conditionConfig.NearMint,
+				CardCondition.NearMint      => _conditionConfig.NearMint,
+				CardCondition.Excellent     => _conditionConfig.Excellent ?? _conditionConfig.NearMint,
+				CardCondition.Good          => _conditionConfig.Good,
+				CardCondition.LightlyPlayed => _conditionConfig.LightlyPlayed,
+				CardCondition.Played        => _conditionConfig.Played,
+				CardCondition.Poor          => _conditionConfig.Poor,
+				CardCondition.Unknown       => "",
+				_                           => "",
+			}
+			: "";
+	}
+#pragma warning restore format
+}
