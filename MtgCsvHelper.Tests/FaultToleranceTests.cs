@@ -1,3 +1,4 @@
+using System.IO.Compression;
 using System.Text;
 using CsvHelper;
 
@@ -119,6 +120,17 @@ public class FaultToleranceTests(CatalogFixture fixture, ITestOutputHelper outpu
 		result.Issues.Should().NotContain(i => i.Severity == IssueSeverity.Error);
 		result.Collection.Cards.Should().ContainSingle()
 			.Which.Printing.Set.Should().Be("GK2");
+	}
+
+	[Fact]
+	public void NonSeekableStream_ThrowsArgumentExceptionEarly()
+	{
+		// GZipStream is the canonical non-seekable stream; the guard must fire before any read.
+		using var nonSeekable = new GZipStream(new MemoryStream(), CompressionMode.Decompress);
+
+		var act = () => Handler().ParseCollectionCsv(nonSeekable);
+
+		act.Should().Throw<ArgumentException>().WithParameterName("csvStream").WithMessage("*seekable*");
 	}
 
 	[Fact]
