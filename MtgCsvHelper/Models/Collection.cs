@@ -25,13 +25,15 @@ public record Collection
 			sb.AppendLine($"Most expensive card: {mostExpensive.Printing.Name} ({mostExpensive.PriceBought.Print()})");
 		}
 
-		// TODO Will work when we have queried data from Scryfall regarding the cards
-		//Dictionary<string, int> cardsByRarity = Cards.GroupBy(c => c.Printing.Rarity).ToDictionary(g => g.Key, g => g.Sum(c => c.Count));
+		var rarityCounts = Cards
+			.Where(c => c.Rarity != CardRarity.Unknown)
+			.GroupBy(c => c.Rarity, (rarity, group) => (Rarity: rarity, Amount: group.Sum(c => c.Count)))
+			.OrderBy(rc => rc.Rarity);
 
-		//foreach (var (rarity, amount) in cardsByRarity)
-		//{
-		//	sb.AppendLine($"{rarity}: {amount}");
-		//}
+		foreach (var (rarity, amount) in rarityCounts)
+		{
+			sb.AppendLine($"{rarity}: {amount}");
+		}
 
 		sb.AppendLine("-------------------");
 

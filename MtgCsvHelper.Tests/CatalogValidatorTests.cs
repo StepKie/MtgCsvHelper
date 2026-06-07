@@ -66,6 +66,18 @@ public class CatalogValidatorTests(CatalogFixture fixture)
 	}
 
 	[Fact]
+	public async Task ValidatedRow_GetsRarityBackfilledFromCatalog()
+	{
+		var expected = fixture.Catalog.FindBySetAndCollectorNumber(SharedFrontSet, SharedFrontNumber)!.Rarity;
+		expected.Should().NotBe(CardRarity.Unknown, because: "the bundle carries rarity for every printing");
+
+		var (kept, issues) = await Validate(Row(SharedFront, SharedFrontSet, SharedFrontNumber));
+
+		issues.Should().BeEmpty();
+		kept.Should().ContainSingle().Which.Card.Rarity.Should().Be(expected);
+	}
+
+	[Fact]
 	public async Task WrongName_AtValidSetAndNumber_IsDropped()
 	{
 		var (kept, issues) = await Validate(Row("Lightning Bolt", SharedFrontSet, SharedFrontNumber));

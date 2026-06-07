@@ -13,7 +13,12 @@ public abstract class PerCardEnricher : IEnricher
 		for (int i = rows.Count - 1; i >= 0; i--)
 		{
 			ct.ThrowIfCancellationRequested();
-			if (!EnrichOne(rows[i], issues))
+			var row = rows[i];
+			if (EnrichOne(ref row, issues))
+			{
+				rows[i] = row;
+			}
+			else
 			{
 				rows.RemoveAt(i);
 			}
@@ -21,6 +26,7 @@ public abstract class PerCardEnricher : IEnricher
 		return Task.CompletedTask;
 	}
 
+	/// <summary> The row is passed by reference so implementations can replace it (records are immutable). </summary>
 	/// <returns><c>true</c> to keep the row, <c>false</c> to drop it.</returns>
-	protected abstract bool EnrichOne(ParsedRow row, ICollection<ImportIssue> issues);
+	protected abstract bool EnrichOne(ref ParsedRow row, ICollection<ImportIssue> issues);
 }

@@ -7,12 +7,13 @@ namespace MtgCsvHelper.Enrichment;
 /// The one validator in the post-parse pipeline. Drops rows whose (Set, CollectorNumber)
 /// doesn't resolve, whose Name doesn't match the resolved printing, or whose Foil flag
 /// claims an unsupported finish. Named "Validator" rather than "Enricher" because it mainly
-/// checks-and-drops; its only mutations are the issues collection and canonicalizing the
-/// name of a short-named or front-face-ambiguous double-faced card to the resolved printing.
+/// checks-and-drops; its only mutations are the issues collection, canonicalizing the
+/// name of a short-named or front-face-ambiguous double-faced card to the resolved printing,
+/// and backfilling Rarity from the resolved printing (no import format feeds it).
 /// </summary>
 public sealed class CatalogValidator(IReferenceCardCatalog catalog) : PerCardEnricher
 {
-	protected override bool EnrichOne(ParsedRow row, ICollection<ImportIssue> issues)
+	protected override bool EnrichOne(ref ParsedRow row, ICollection<ImportIssue> issues)
 	{
 		var p = row.Card.Printing;
 		// No catalog lookup is possible without (Name, Set, CollectorNumber). Rows missing any
@@ -51,6 +52,8 @@ public sealed class CatalogValidator(IReferenceCardCatalog catalog) : PerCardEnr
 				CardName: p.Name, RawContent: row.RawContent));
 			return false;
 		}
+
+		row = row with { Card = row.Card with { Rarity = match.Rarity } };
 
 		return true;
 	}

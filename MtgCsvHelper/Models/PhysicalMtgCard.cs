@@ -29,4 +29,7 @@ public record PhysicalMtgCard
 	public DateTime? DateBought { get; init; }
 
 	public bool? TradeListed { get; init; }
+
+	// No format maps a rarity column; backfilled from the catalog once the printing resolves.
+	public CardRarity Rarity { get; init; } = CardRarity.Unknown;
 }
