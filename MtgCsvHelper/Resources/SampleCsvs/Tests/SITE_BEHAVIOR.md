@@ -39,6 +39,11 @@ Status: 41/41 rows round-trip cleanly (May 2026).
 - Etched is supported in the Foil column (`etched` string). Preserved on round-trip. Our `appsettings.json` encodes this; etched data still collapses to `bool Foil` in our internal model — follow-up.
 - The `Folder Name` column in the collection-export form is critical for grouping; absent from binder exports.
 
+**Tokens (verified by round-trip, June 2026):**
+- Import wants plain Scryfall names with the Scryfall token-set code: `Beast` / `tmh2` / #9, `Clue` / `tmh2` / #15, `Morph` / `tktk` / #11 all import cleanly.
+- Decorated names are rejected: `Beast Token`, `Clue Token`, `Morph Creature` each produce `Could not find card named "<Name>" in edition "<set>"`.
+- Re-export preserves plain names, lowercase set codes, and collector numbers exactly — so the MOXFIELD writer must emit plain names (`EncodeToken` stays unset; only DragonShield decorates).
+
 ---
 
 ## Manabox
