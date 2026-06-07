@@ -174,6 +174,7 @@ public class MtgCardCsvHandlerTests(CatalogFixture fixture, ITestOutputHelper ou
 				SetName = "Innistrad: Midnight Hunt",
 			},
 			Language = "en",
+			Rarity = CardRarity.Uncommon,
 		};
 
         var card2 = card1 with { Language = "zht" };
@@ -208,6 +209,7 @@ public class MtgCardCsvHandlerTests(CatalogFixture fixture, ITestOutputHelper ou
 			},
 			Language = "en",
 			PriceBought = new Money(0.15m, currency),
+			Rarity = CardRarity.Common,
 		};
 
 		var card9 = new PhysicalMtgCard
@@ -224,6 +226,7 @@ public class MtgCardCsvHandlerTests(CatalogFixture fixture, ITestOutputHelper ou
 			},
 			Language = "en",
 			PriceBought = new Money(0.11m, currency),
+			Rarity = CardRarity.Common,
 		};
 
 		return [card1, card2, card3, card4, card5, card6, card7, card8, card9];

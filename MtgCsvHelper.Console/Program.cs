@@ -124,4 +124,5 @@ void RunWithOptions(CommandLineOptions opts)
 
 	writer.WriteCollectionCsv(cardsFound);
 }
-void HandleParseError(IEnumerable<Error> errs) => Console.WriteLine(string.Join(",", errs)); // TODO: handle errors
+// Parser.Default already printed usage/help to stderr; our job is just the exit code (0 for --help/--version, 1 for real parse errors so CI fails).
+void HandleParseError(IEnumerable<Error> errs) => Environment.Exit(errs.All(e => e.Tag is ErrorType.HelpRequestedError or ErrorType.VersionRequestedError) ? 0 : 1);

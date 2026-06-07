@@ -46,6 +46,7 @@ public sealed class CardmarketIdEnricher(ICardmarketResolver resolver) : IEnrich
 				row.Card.Printing.Set = full.Set;
 				row.Card.Printing.SetName = full.SetName;
 				row.Card.Printing.CollectorNumber = full.CollectorNumber;
+				rows[i] = row with { Card = row.Card with { Rarity = full.Rarity } };
 			}
 			else
 			{

@@ -10,7 +10,7 @@ namespace MtgCsvHelper.Enrichment;
 /// </summary>
 public sealed class SetInfoEnricher(IReferenceCardCatalog catalog) : PerCardEnricher
 {
-	protected override bool EnrichOne(ParsedRow row, ICollection<ImportIssue> issues)
+	protected override bool EnrichOne(ref ParsedRow row, ICollection<ImportIssue> issues)
 	{
 		var p = row.Card.Printing;
 		// Skip rows that have no Name — there's nothing meaningful to enrich without a card

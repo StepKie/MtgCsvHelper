@@ -2,6 +2,7 @@ using System.Globalization;
 using System.Text;
 using Microsoft.Extensions.Configuration;
 using MtgCsvHelper;
+using MtgCsvHelper.Models;
 using MtgCsvHelper.Services;
 
 namespace MtgCsvHelper.RefreshReferenceData;
@@ -32,17 +33,16 @@ internal static class CardmarketFixtureGenerator
 
 	// Cardmarket condition values in the "Manage Stock" CSV. Natural ordering of the REST API's
 	// string codes (MT/NM/EX/GD/LP/PL/PO); see SITE_BEHAVIOR.md > Cardmarket for verification.
-	// Kept explicit (rather than relying on CardCondition.Id matching by coincidence) so the
-	// generator survives any future renumbering of the enum.
-	static readonly Dictionary<string, string> ConditionToId = new()
+	// Kept explicit (rather than casting the enum's numeric value) so the generator survives any future renumbering.
+	static readonly Dictionary<CardCondition, string> ConditionToId = new()
 	{
-		["Mint"] = "1",
-		["NearMint"] = "2",
-		["Excellent"] = "3",
-		["Good"] = "4",
-		["LightlyPlayed"] = "5",
-		["Played"] = "6",
-		["Poor"] = "7",
+		[CardCondition.Mint] = "1",
+		[CardCondition.NearMint] = "2",
+		[CardCondition.Excellent] = "3",
+		[CardCondition.Good] = "4",
+		[CardCondition.LightlyPlayed] = "5",
+		[CardCondition.Played] = "6",
+		[CardCondition.Poor] = "7",
 	};
 
 	public static async Task RunAsync()
@@ -98,9 +98,9 @@ internal static class CardmarketFixtureGenerator
 				continue;
 			}
 
-			if (!ConditionToId.TryGetValue(card.Condition.Name, out var condition))
+			if (!ConditionToId.TryGetValue(card.Condition, out var condition))
 			{
-				Console.WriteLine($"  skip: unmapped condition '{card.Condition.Name}' for {card.Printing.Name} ({setCode} #{collectorNumber})");
+				Console.WriteLine($"  skip: unmapped condition '{card.Condition}' for {card.Printing.Name} ({setCode} #{collectorNumber})");
 				skipped++;
 				continue;
 			}

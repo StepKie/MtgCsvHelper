@@ -1,5 +1,6 @@
 using System.IO.Compression;
 using System.Text.Json;
+using System.Text.Json.Serialization;
 
 namespace MtgCsvHelper;
 
@@ -123,5 +124,7 @@ public sealed class ReferenceCardCatalog : IReferenceCardCatalog
 	{
 		PropertyNamingPolicy = JsonNamingPolicy.SnakeCaseLower,
 		PropertyNameCaseInsensitive = true,
+		// Enums (CardRarity) are stored as Scryfall's lowercase strings so the bundle stays greppable.
+		Converters = { new JsonStringEnumConverter(JsonNamingPolicy.SnakeCaseLower) },
 	};
 }
