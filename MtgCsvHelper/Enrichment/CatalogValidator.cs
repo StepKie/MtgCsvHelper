@@ -34,14 +34,14 @@ public sealed class CatalogValidator(IReferenceCardCatalog catalog) : PerCardEnr
 
 		if (!EqualsNormalized(p.Name, match.Name))
 		{
-			if (!EqualsNormalized(FrontFace(p.Name), FrontFace(match.Name)))
+			if (!EqualsNormalized(FrontFace(p.Name), FrontFace(match.Name)) && !ExtendsCanonicalName(p.Name, match.Name))
 			{
 				issues.Add(new ImportIssue(IssueSeverity.Error, row.RowNumber,
 					$"Name '{p.Name}' does not match printing at {p.Set} #{p.CollectorNumber} ('{match.Name}')",
 					CardName: p.Name, RawContent: row.RawContent));
 				return false;
 			}
-			// (Set, #) already pins the printing; adopt its canonical name for a short or shared-front-face import.
+			// (Set, #) already pins the printing; adopt its canonical name for a short, shared-front-face, or decorated import.
 			p.Name = match.Name;
 		}
 
@@ -60,6 +60,10 @@ public sealed class CatalogValidator(IReferenceCardCatalog catalog) : PerCardEnr
 
 	// Front face of a DFC name ("A // B" → "A"); a name without " // " is its own front face.
 	static string FrontFace(string name) => name.Split(" // ")[0];
+
+	// Exporter decorations ("Beast Token (4/4)", "Morph Creature") merely extend the canonical name; the name check stays a corruption guard.
+	static bool ExtendsCanonicalName(string imported, string canonical) =>
+		StripDiacritics(imported).StartsWith(StripDiacritics(canonical) + " ", StringComparison.OrdinalIgnoreCase);
 
 	// Compares with Unicode diacritic stripping (NFD + remove combining marks). TCGPlayer and a
 	// few other sites normalize "Lim-Dûl's Vault" → "Lim-Dul's Vault" on export; Scryfall keeps the
