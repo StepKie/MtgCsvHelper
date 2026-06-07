@@ -37,8 +37,7 @@ public class CardNameConverter(CardNameConfiguration configuration, IReferenceCa
 			}
 		}
 
-		// Remove " Token" from the end of the card name to adhere to Scryfall's naming convention
-		// TODO When converting to Moxfield, we would need to add it back in. The only way to detect this is to check if SetID has 4 characters, starting with a "T" (e.g. TMH2 or similar)
+		// Formats with EncodeToken decorate token names (e.g. Dragon Shield's "Beast Token"); re-add the suffix the read path stripped.
 		if (_encodeToken && catalog.IsTokenName(cardName)) { cardName += " Token"; }
 
 		return cardName;
