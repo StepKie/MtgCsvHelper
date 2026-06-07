@@ -123,6 +123,20 @@ public class FaultToleranceTests(CatalogFixture fixture, ITestOutputHelper outpu
 	}
 
 	[Fact]
+	public void UnrecognizedCondition_RaisesError_RowDropped()
+	{
+		// "Pristine" is not in any format's condition vocabulary.
+		var csv = MoxHeader + "\n"
+			+ "1,Lightning Bolt,M11,149,,Pristine,English,\n";
+
+		var result = Handler().ParseCollectionCsv(CsvStream(csv));
+
+		result.Collection.Cards.Should().BeEmpty();
+		result.ErrorCount.Should().Be(1);
+		result.Issues[0].Reason.Should().Contain("Pristine").And.Contain("Condition");
+	}
+
+	[Fact]
 	public void NonSeekableStream_ThrowsArgumentExceptionEarly()
 	{
 		// GZipStream is the canonical non-seekable stream; the guard must fire before any read.

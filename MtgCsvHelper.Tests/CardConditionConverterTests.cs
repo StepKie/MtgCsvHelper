@@ -69,4 +69,17 @@ public class CardConditionConverterTests : BaseTest
 
 		output.Should().Be("Mint", "formats with a distinct Mint tier keep the original mapping");
 	}
+
+	[Theory]
+	[InlineData("")]
+	[InlineData("   ")]
+	[InlineData(null)]
+	public void ReadBlank_ResolvesToUnknown(string? text)
+	{
+		var converter = ConverterFor(mint: "Mint", nearMint: "Near Mint", excellent: null);
+
+		var result = converter.ConvertFromString(text, row: null!, memberMapData: null!) as CardCondition?;
+
+		result.Should().Be(CardCondition.Unknown, "a blank cell carries no condition info and is not a vocabulary error");
+	}
 }

@@ -19,7 +19,7 @@ Status: 41/41 rows round-trip cleanly (May 2026).
 
 **Schema:** binder and collection exports differ.
 - Binder export (the `moxfield_haves_*.csv` form): `Count,Tradelist Count,Name,Edition,Condition,Language,Foil,Tags,Last Modified,Collector Number,Alter,Proxy,Purchase Price`.
-- Collection export (`moxfield-collection.csv`): different column set including `Folder Name`, `Trade Quantity`, `Set Name`, `AVG`/`LOW`/`TREND`. Importantly: uses `Condition = NM` (abbreviation), not `Near Mint`. Our `appsettings.json` only encodes the binder form; this is why `CardConditionConverter` stays lenient (follow-up: per-enum aliases).
+- Historical note: the 2022-era `moxfield-collection.csv` fixture (deleted in the Dragon Shield 12-column rework) carried shorthand conditions (`NM`/`LP`/`D`) in a Moxfield-shaped header with Dragon Shield columns (`Folder Name`, `AVG`/`LOW`/`TREND`) — most likely Dragon Shield's Moxfield-format export, not Moxfield's own. Neither site emits that shorthand as of June 2026 (verified by fresh exports of both Moxfield forms); `CardConditionConverter` is strict and rejects it.
 - `Tradelist Count` is an independent value from `Count` — it tracks "how many of this row you're willing to trade", separate from "how many you own". Both are first-class columns.
 
 **Enriches on import:**
