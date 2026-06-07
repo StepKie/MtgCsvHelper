@@ -104,7 +104,7 @@ internal static class CardmarketFixtureGenerator
 				skipped++;
 				continue;
 			}
-			var isFoil = card.Foil == true ? "1" : "";
+			var isFoil = card.Finish is CardFinish.Foil or CardFinish.Etched ? "1" : "";
 			var groupCount = card.Count.ToString(CultureInfo.InvariantCulture);
 			var price = card.PriceBought is { Value: > 0 } money
 				? money.Value.ToString("0.00", CultureInfo.InvariantCulture)

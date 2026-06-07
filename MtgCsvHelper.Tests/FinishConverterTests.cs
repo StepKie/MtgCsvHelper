@@ -4,11 +4,14 @@ namespace MtgCsvHelper.Tests;
 
 public class FinishConverterTests
 {
-	// DragonShield's "Printing" column: Normal / Foil plus an open-ended set of variant treatments.
-	static readonly FinishConverter Converter = new(new FinishConfiguration("Printing", Foil: "Foil", Normal: "Normal", Etched: null));
+	// DragonShield's "Printing" column: Normal / Foil plus an open-ended set of variant treatments; no etched tier.
+	static readonly FinishConverter DragonShield = new(new FinishConfiguration("Printing", Foil: "Foil", Normal: "Normal", Etched: null));
+	// Manabox-style: a distinct etched string.
+	static readonly FinishConverter WithEtched = new(new FinishConfiguration("Foil", Foil: "foil", Normal: "normal", Etched: "etched"));
 
-	// The accept/normal branches never touch row or memberMapData; only the throw path does.
-	static object? Convert(string text) => Converter.ConvertFromString(text, null!, null!);
+	// The accept branches never touch row or memberMapData; only the throw path does.
+	static object? Read(FinishConverter c, string text) => c.ConvertFromString(text, null!, null!);
+	static string? Write(FinishConverter c, CardFinish f) => c.ConvertToString(f, null!, null!);
 
 	[Theory]
 	[InlineData("Foil")]
@@ -20,12 +23,29 @@ public class FinishConverterTests
 	[InlineData("Galaxy Foil")]
 	[InlineData("surge foil")]
 	public void VariantFoilTreatments_MapToFoil(string printing) =>
-		Convert(printing).Should().Be(true);
+		Read(DragonShield, printing).Should().Be(CardFinish.Foil);
 
 	[Theory]
 	[InlineData("Normal")]
 	[InlineData("")]
 	[InlineData("   ")]
-	public void NonFoilTreatments_MapToNonFoil(string printing) =>
-		Convert(printing).Should().Be(false);
+	public void NonFoilTreatments_MapToNormal(string printing) =>
+		Read(DragonShield, printing).Should().Be(CardFinish.Normal);
+
+	[Fact]
+	public void EtchedString_MapsToEtched_WhenFormatHasEtchedTier() =>
+		Read(WithEtched, "etched").Should().Be(CardFinish.Etched);
+
+	[Fact]
+	public void WriteEtched_WithEtchedTier_EmitsEtchedString() =>
+		Write(WithEtched, CardFinish.Etched).Should().Be("etched");
+
+	[Fact]
+	public void WriteEtched_WithoutEtchedTier_FallsBackToFoilString() =>
+		Write(DragonShield, CardFinish.Etched).Should().Be("Foil", "DragonShield has no etched tier; etched collapses to its Foil string");
+
+	[Fact]
+	public void WriteUnknown_EmitsEmptyCell() =>
+		// Empty string, NOT null: a null return makes CsvHelper drop the field and shift later columns.
+		Write(DragonShield, CardFinish.Unknown).Should().BeEmpty("a finish we never learned writes blank rather than asserting Normal");
 }

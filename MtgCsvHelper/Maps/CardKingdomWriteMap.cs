@@ -14,7 +14,7 @@ public class CardKingdomWriteMap : ClassMap<PhysicalMtgCard>
 
 		Map(card => card.Printing.Name).TypeConverter(new CardNameConverter(columnConfig.CardName, catalog)).Name(columnConfig.CardName.HeaderName).Index(0);
 		if (columnConfig.SetName is not null) { Map(card => card.Printing.SetName).TypeConverter<UpperCaseConverter>().Name(columnConfig.SetName).Index(1); }
-		Map(card => card.Foil).TypeConverter(new FinishConverter(columnConfig.Finish)).Name(columnConfig.Finish.HeaderName).Index(2);
+		Map(card => card.Finish).TypeConverter(new FinishConverter(columnConfig.Finish)).Name(columnConfig.Finish.HeaderName).Index(2);
 		Map(card => card.Count).Name(columnConfig.Quantity).Index(3);
 	}
 }

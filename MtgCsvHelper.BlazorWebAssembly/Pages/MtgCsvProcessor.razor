@@ -356,9 +356,13 @@
 							}
 						</MudTd>
 						<MudTd DataLabel="Foil">
-							@if (card.Foil is true)
+							@if (card.Finish is CardFinish.Foil)
 							{
 								<MudChip T="string" Size="Size.Small" Color="Color.Warning" Variant="Variant.Filled">F</MudChip>
+							}
+							else if (card.Finish is CardFinish.Etched)
+							{
+								<MudChip T="string" Size="Size.Small" Color="Color.Secondary" Variant="Variant.Filled">E</MudChip>
 							}
 						</MudTd>
 						<MudTd DataLabel="Condition">@(card.Condition == CardCondition.Unknown ? "" : card.Condition.ToString())</MudTd>

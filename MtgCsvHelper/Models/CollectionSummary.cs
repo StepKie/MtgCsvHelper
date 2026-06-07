@@ -7,7 +7,7 @@ namespace MtgCsvHelper.Models;
 /// </summary>
 /// <param name="TotalCount">Sum of <see cref="PhysicalMtgCard.Count"/> across all cards.</param>
 /// <param name="UniqueCount">Number of distinct rows (each row is one printing).</param>
-/// <param name="FoilCount">Sum of <see cref="PhysicalMtgCard.Count"/> for rows where <see cref="PhysicalMtgCard.Foil"/> is true.</param>
+/// <param name="FoilCount">Sum of <see cref="PhysicalMtgCard.Count"/> for rows whose <see cref="PhysicalMtgCard.Finish"/> is Foil or Etched.</param>
 /// <param name="TotalValue">Sum of <c>PriceBought × Count</c> across all priced rows, or null if no prices or currencies are mixed.</param>
 /// <param name="MostExpensive">The row with the highest <em>unit</em> price (regardless of Count), or null if no prices.</param>
 public sealed record CollectionSummary(
@@ -35,7 +35,7 @@ public sealed record CollectionSummary(
 		return new CollectionSummary(
 			TotalCount: cards.Sum(c => c.Count),
 			UniqueCount: cards.Count,
-			FoilCount: cards.Where(c => c.Foil is true).Sum(c => c.Count),
+			FoilCount: cards.Where(c => c.Finish is CardFinish.Foil or CardFinish.Etched).Sum(c => c.Count),
 			TotalValue: totalValue,
 			MostExpensive: priced.OrderByDescending(c => c.PriceBought!.Value).FirstOrDefault());
 	}
