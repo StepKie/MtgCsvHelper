@@ -5,7 +5,7 @@ namespace MtgCsvHelper.Enrichment;
 
 /// <summary>
 /// The one validator in the post-parse pipeline. Drops rows whose (Set, CollectorNumber)
-/// doesn't resolve, whose Name doesn't match the resolved printing, or whose Foil flag
+/// doesn't resolve, whose Name doesn't match the resolved printing, or whose Finish
 /// claims an unsupported finish. Named "Validator" rather than "Enricher" because it mainly
 /// checks-and-drops; its only mutations are the issues collection, canonicalizing the
 /// name of a short-named or front-face-ambiguous double-faced card to the resolved printing,
@@ -45,7 +45,7 @@ public sealed class CatalogValidator(IReferenceCardCatalog catalog) : PerCardEnr
 			p.Name = match.Name;
 		}
 
-		if (row.Card.Foil is true && !HasFoilFinish(match.Finishes))
+		if ((row.Card.Finish is CardFinish.Foil or CardFinish.Etched) && !HasFoilFinish(match.Finishes))
 		{
 			issues.Add(new ImportIssue(IssueSeverity.Error, row.RowNumber,
 				$"Printing {p.Set} #{p.CollectorNumber} was not released in foil",

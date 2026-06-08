@@ -40,9 +40,9 @@ public class CardmarketTests(CatalogFixture fixture, ITestOutputHelper output) :
 		var result = await Handler().ParseCollectionCsvAsync(SamplePath);
 		var byName = result.Collection.Cards.ToDictionary(c => c.Printing.Name);
 
-		byName["Master's Rebuke"].Foil.Should().Be(true);   // isFoil=1 in fixture
-		byName["Cliffgate"].Foil.Should().Be(true);         // isFoil=1 in fixture
-		byName["Putrid Leech"].Foil.Should().Be(false);     // isFoil empty in fixture
+		byName["Master's Rebuke"].Finish.Should().Be(CardFinish.Foil);   // isFoil=1 in fixture
+		byName["Cliffgate"].Finish.Should().Be(CardFinish.Foil);         // isFoil=1 in fixture
+		byName["Putrid Leech"].Finish.Should().Be(CardFinish.Normal);    // isFoil empty in fixture
 	}
 
 	[Fact]

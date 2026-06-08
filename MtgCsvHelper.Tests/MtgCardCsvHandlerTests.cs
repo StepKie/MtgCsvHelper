@@ -35,6 +35,46 @@ public class MtgCardCsvHandlerTests(CatalogFixture fixture, ITestOutputHelper ou
 			: opts);
 	}
 
+	// Demonic Tutor CMM #509 has an etched printing.
+	[Theory]
+	[InlineData("MOXFIELD")]
+	[InlineData("MANABOX")]
+	[InlineData("TOPDECKED")]
+	[InlineData("ARCHIDEKT")]
+	public void EtchedFinish_RoundTripsThroughEtchedSupportingFormats(string format)
+	{
+		var handler = CreateHandler(format);
+		var etched = EtchedDemonicTutor();
+
+		string fileName = $"unittest-etched-{format}.csv";
+		handler.WriteCollectionCsv([etched], fileName);
+		var parsed = handler.ParseCollectionCsv(fileName).Collection.Cards;
+
+		parsed.Should().ContainSingle().Which.Finish.Should().Be(CardFinish.Etched);
+	}
+
+	[Fact]
+	public void EtchedFinish_CollapsesToFoil_WhenFormatHasNoEtchedTier()
+	{
+		// DragonShield configures no etched string; etched must degrade to foil, not error or vanish.
+		var handler = CreateHandler("DRAGONSHIELD");
+
+		string fileName = "unittest-etched-DRAGONSHIELD.csv";
+		handler.WriteCollectionCsv([EtchedDemonicTutor()], fileName);
+		var parsed = handler.ParseCollectionCsv(fileName).Collection.Cards;
+
+		parsed.Should().ContainSingle().Which.Finish.Should().Be(CardFinish.Foil);
+	}
+
+	static PhysicalMtgCard EtchedDemonicTutor() => new()
+	{
+		Count = 1,
+		Condition = CardCondition.NearMint,
+		Finish = CardFinish.Etched,
+		Language = "en",
+		Printing = new Card { Name = "Demonic Tutor", Set = "CMM", SetName = "Commander Masters", CollectorNumber = "509" },
+	};
+
 	[Theory]
 	[InlineData($"{TESTS_FOLDER}/dragonshield-field-fidelity.csv", "DRAGONSHIELD", "USD")]
 	[InlineData($"{TESTS_FOLDER}/moxfield-field-fidelity.csv", "MOXFIELD", "EUR")]
@@ -165,7 +205,7 @@ public class MtgCardCsvHandlerTests(CatalogFixture fixture, ITestOutputHelper ou
 		{
 			Count = 1,
 			Condition = CardCondition.Mint,
-			Foil = false,
+			Finish = CardFinish.Normal,
 			Printing = new Card
 			{
 				Name = "Ambitious Farmhand // Seasoned Cathar",
@@ -179,12 +219,12 @@ public class MtgCardCsvHandlerTests(CatalogFixture fixture, ITestOutputHelper ou
 
         var card2 = card1 with { Language = "zht" };
 
-        // Card3 verifies Count, Foil, Language, PriceBought
+        // Card3 verifies Count, Finish, Language, PriceBought
         var card3 = card1 with
 		{
 			Count = 2,
 			Condition = CardCondition.NearMint,
-			Foil = true,
+			Finish = CardFinish.Foil,
 			Language = "de",
 			PriceBought = new Money(0.20m, currency),
 		};
@@ -199,7 +239,7 @@ public class MtgCardCsvHandlerTests(CatalogFixture fixture, ITestOutputHelper ou
 		{
 			Count = 1,
 			Condition = CardCondition.NearMint,
-			Foil = false,
+			Finish = CardFinish.Normal,
 			Printing = new Card
 			{
 				Name = "Clue",
@@ -216,7 +256,7 @@ public class MtgCardCsvHandlerTests(CatalogFixture fixture, ITestOutputHelper ou
 		{
 			Count = 1,
 			Condition = CardCondition.NearMint,
-			Foil = false,
+			Finish = CardFinish.Normal,
 			Printing = new Card
 			{
 				Name = "Food",

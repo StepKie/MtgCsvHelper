@@ -10,7 +10,7 @@ public class TcgplayerWriteTests(CatalogFixture fixture, ITestOutputHelper outpu
 	{
 		Count = 1,
 		Condition = CardCondition.NearMint,
-		Foil = false,
+		Finish = CardFinish.Normal,
 		Language = "en",
 		Printing = new Card { Name = name, Set = set, SetName = "", CollectorNumber = collectorNumber },
 	};

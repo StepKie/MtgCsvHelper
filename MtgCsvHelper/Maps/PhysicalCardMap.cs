@@ -44,7 +44,7 @@ public class PhysicalCardMap : ClassMap<PhysicalMtgCard>
 		MapOptional(c => c.Printing.CollectorNumber, cfg.SetNumber)?.TypeConverter<CollectorNumberConverter>().Index(6);
 
 		MapOptional(c => c.Condition, cfg.Condition, c => new CardConditionConverter(c))?.Index(7);
-		MapOptional(c => c.Foil, cfg.Finish, c => new FinishConverter(c))?.Index(8);
+		MapOptional(c => c.Finish, cfg.Finish, c => new FinishConverter(c))?.Index(8);
 		MapOptional(c => c.Language, cfg.Language, c => new LanguageConverter(c))?.Index(9);
 		MapOptional(c => c.PriceBought, cfg.PriceBought, c => new PriceConverter(c))?.Index(10);
 
