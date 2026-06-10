@@ -15,7 +15,7 @@ namespace MtgCsvHelper.Tests;
 [Collection(CatalogCollection.Name)]
 public class ReferenceCsvSyncTests(CatalogFixture fixture, ITestOutputHelper output) : ApiBaseTest(fixture, output)
 {
-	static readonly string ReferenceDir = Path.Combine(RepoRoot(), "MtgCsvHelper", "Resources", "SampleCsvs", "Reference");
+	static readonly string ReferenceDir = Path.Combine(CanonicalReference.RepoRoot(), "MtgCsvHelper", "Resources", "SampleCsvs", "Reference");
 
 	// DragonShield stamps DateTime.Today onto a null purchase date on write; seed a fixed one so its committed sample stays deterministic.
 	static readonly DateTime GenerationDate = new(2024, 1, 1);
@@ -43,7 +43,7 @@ public class ReferenceCsvSyncTests(CatalogFixture fixture, ITestOutputHelper out
 		{
 			Directory.CreateDirectory(ReferenceDir);
 			File.WriteAllText(path, generated);
-			Assert.Fail($"Reference CSV for {format} was missing or out of date; (re)generated {path}. Review the diff, commit it, then re-run.");
+			Assert.Fail($"Reference CSV for {format} was missing or out of date; (re)generated {path}.");
 		}
 	}
 
@@ -65,15 +65,4 @@ public class ReferenceCsvSyncTests(CatalogFixture fixture, ITestOutputHelper out
 
 	// Compare on content, not line endings — git may normalize CRLF/LF differently across machines.
 	static string Normalize(string csv) => csv.Replace("\r\n", "\n");
-
-	static string RepoRoot()
-	{
-		var dir = new DirectoryInfo(AppContext.BaseDirectory);
-		while (dir is not null && !File.Exists(Path.Combine(dir.FullName, "MtgCsvHelper.slnx")))
-		{
-			dir = dir.Parent;
-		}
-
-		return dir?.FullName ?? throw new InvalidOperationException($"Could not locate repo root (MtgCsvHelper.slnx) above {AppContext.BaseDirectory}");
-	}
 }

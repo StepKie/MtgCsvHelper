@@ -30,7 +30,7 @@ internal static class CanonicalReference
 			.ToList();
 	}
 
-	static string RepoRoot()
+	internal static string RepoRoot()
 	{
 		var dir = new DirectoryInfo(AppContext.BaseDirectory);
 		while (dir is not null && !File.Exists(Path.Combine(dir.FullName, "MtgCsvHelper.slnx")))

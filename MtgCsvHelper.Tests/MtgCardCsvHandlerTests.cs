@@ -138,10 +138,12 @@ public class MtgCardCsvHandlerTests(CatalogFixture fixture, ITestOutputHelper ou
 		IList<PhysicalMtgCard> expectedCards = CanonicalReference.LoadCards(_config, _catalog, _resolver, Currency.FromString(currency));
 
 		// Act
-		IList<PhysicalMtgCard> cards = handler.ParseCollectionCsv(csvFilePath).Collection.Cards;
+		var result = handler.ParseCollectionCsv(csvFilePath);
+		IList<PhysicalMtgCard> cards = result.Collection.Cards;
 
-		// Assert — every real-shaped row parses to a card present in the canonical reference set
-		cards.Should().NotBeEmpty();
+		// Assert — every data row parses into a canonical card: no errors, no silent drops
+		result.ErrorCount.Should().Be(0, $"every field-fidelity row must parse. Issues: {string.Join("; ", result.Issues.Select(i => i.Reason))}");
+		cards.Should().HaveCount(CsvFixture.CountDataRows(csvFilePath), "no data row may be silently dropped");
 		cards.Should().AllSatisfy(c => expectedCards.Should().ContainEquivalentOf(c));
 	}
 
