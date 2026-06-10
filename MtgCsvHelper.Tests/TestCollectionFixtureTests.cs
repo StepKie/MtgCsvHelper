@@ -1,7 +1,7 @@
 namespace MtgCsvHelper.Tests;
 
 // Fixture suffixes wired to theories in this class:
-//   *-reference-collection.csv         → all rows parse, Cards.Count == data-row count
+//   *-real-export.csv                  → all rows parse, Cards.Count == data-row count
 //   *-rejected.csv                     → all rows error, no cards land
 //   *-mixed-warnings-and-errors.csv    → Cards.Count + ErrorCount == data-row count
 //   *-field-fidelity.csv               → driven by MtgCardCsvHandlerTests (not this class)
@@ -16,7 +16,7 @@ public class TestCollectionFixtureTests(CatalogFixture fixture, ITestOutputHelpe
 
 	public static TheoryData<string> RejectedFixtures() => DiscoverFixtures("*-rejected.csv");
 
-	public static TheoryData<string> CorrectFixtures() => DiscoverFixtures("*-reference-collection.csv");
+	public static TheoryData<string> CorrectFixtures() => DiscoverFixtures("*-real-export.csv");
 
 	public static TheoryData<string> MixedFixtures() => DiscoverFixtures("*-mixed-warnings-and-errors.csv");
 
@@ -63,7 +63,7 @@ public class TestCollectionFixtureTests(CatalogFixture fixture, ITestOutputHelpe
 		// divergences. Remaining 5 errors are *collector-number* divergences in legacy sets — Deckbox
 		// numbers old reprint products (The List, Alpha, Alliances, Ultimate Box Toppers) differently
 		// from Scryfall. Tracked in #87.
-		["deckbox-reference-collection.csv"] = (ExpectedErrors: 5, TrackingIssue: "#87"),
+		["deckbox-real-export.csv"] = (ExpectedErrors: 5, TrackingIssue: "#87"),
 	};
 
 	[Theory]
@@ -80,7 +80,7 @@ public class TestCollectionFixtureTests(CatalogFixture fixture, ITestOutputHelpe
 		var expectedErrors = hasKnown ? known.ExpectedErrors : 0;
 		var because = hasKnown
 			? $"{filename} has {known.ExpectedErrors} known site-specific divergences tracked by {known.TrackingIssue}"
-			: $"reference-collection rows are real exports and should round-trip cleanly. Issues: {string.Join("; ", result.Issues.Select(i => i.Reason))}";
+			: $"these fixtures are real site exports and should round-trip cleanly. Issues: {string.Join("; ", result.Issues.Select(i => i.Reason))}";
 
 		result.ErrorCount.Should().Be(expectedErrors, because);
 		(result.Collection.Cards.Count + result.ErrorCount).Should().Be(expectedRows,
@@ -115,7 +115,7 @@ public class TestCollectionFixtureTests(CatalogFixture fixture, ITestOutputHelpe
 	static string FormatFromFilename(string filename)
 	{
 		// "moxfield-foil-rejected.csv" -> "MOXFIELD"
-		// "manabox-reference-collection.csv" -> "MANABOX"
+		// "manabox-real-export.csv" -> "MANABOX"
 		var stem = Path.GetFileNameWithoutExtension(filename);
 		var firstDash = stem.IndexOf('-');
 		if (firstDash < 0)
