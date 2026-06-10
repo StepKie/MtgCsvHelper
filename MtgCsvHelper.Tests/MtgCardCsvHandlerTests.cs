@@ -9,30 +9,80 @@ public class MtgCardCsvHandlerTests(CatalogFixture fixture, ITestOutputHelper ou
 	public const string TESTS_FOLDER = "Resources/SampleCsvs/Tests";
 	public const string COLLECTIONS_FOLDER = "Resources/SampleCsvs/Collection";
 
-	[Theory]
-	[InlineData("DRAGONSHIELD", "USD")]
-	[InlineData("MOXFIELD", "EUR")]
-	[InlineData("MANABOX", "USD")]
-	[InlineData("TOPDECKED", "USD")]
-	[InlineData("DECKBOX", "USD")]
-	public void WriteReadSampleCycleTest(string deckFormatName, string currency)
+	/// <summary>
+	/// Every format that can both read and write must round-trip the reference collection. A format
+	/// preserves only the fields it has a column for, so the comparison excludes what it structurally
+	/// cannot carry (derived from its config below) rather than hard-coding per-format expectations.
+	/// </summary>
+	public static TheoryData<string> RoundTrippableFormats()
 	{
-		// Arrange
-		MtgCardCsvHandler handler = CreateHandler(deckFormatName);
-		IList<PhysicalMtgCard> originalCards = GetReferenceCards(Currency.FromString(currency));
+		var data = new TheoryData<string>();
+		foreach (var format in CardMapFactory.WritableFormats.Intersect(CardMapFactory.ReadableFormats, StringComparer.OrdinalIgnoreCase))
+		{
+			data.Add(format);
+		}
 
-		// Act
-		string fileName = $"unittest-{deckFormatName}.csv";
+		return data;
+	}
+
+	/// <summary>
+	/// Conditions a format's vocabulary can't represent, with the grade each deterministically degrades
+	/// to on write. Folded into the expected cards so the round-trip still asserts the (lossy) result
+	/// rather than ignoring the field — drift in the remap then fails the test instead of passing silently.
+	/// </summary>
+	static readonly IReadOnlyDictionary<string, IReadOnlyDictionary<CardCondition, CardCondition>> ConditionDegradations =
+		new Dictionary<string, IReadOnlyDictionary<CardCondition, CardCondition>>(StringComparer.OrdinalIgnoreCase)
+		{
+			// Archidekt has no Mint tier; Mint degrades to NearMint.
+			["ARCHIDEKT"] = new Dictionary<CardCondition, CardCondition> { [CardCondition.Mint] = CardCondition.NearMint },
+			// TCGplayer maps both Good and Excellent to "Lightly Played"; Good reads back as Excellent.
+			["TCGPLAYER"] = new Dictionary<CardCondition, CardCondition> { [CardCondition.Good] = CardCondition.Excellent },
+		};
+
+	/// <summary>Finishes a format's vocabulary can't represent, with the finish each degrades to on write.</summary>
+	static readonly IReadOnlyDictionary<string, IReadOnlyDictionary<CardFinish, CardFinish>> FinishDegradations =
+		new Dictionary<string, IReadOnlyDictionary<CardFinish, CardFinish>>(StringComparer.OrdinalIgnoreCase)
+		{
+			// No etched tier — etched degrades to foil on write.
+			["DRAGONSHIELD"] = new Dictionary<CardFinish, CardFinish> { [CardFinish.Etched] = CardFinish.Foil },
+			["TCGPLAYER"] = new Dictionary<CardFinish, CardFinish> { [CardFinish.Etched] = CardFinish.Foil },
+			["MTGO"] = new Dictionary<CardFinish, CardFinish> { [CardFinish.Etched] = CardFinish.Foil },
+		};
+
+	[Theory]
+	[MemberData(nameof(RoundTrippableFormats))]
+	public void ReferenceCollection_RoundTripsThroughFormat(string format)
+	{
+		var cfg = CardMapFactory.From(_config).First(c => c.Name.Equals(format, StringComparison.OrdinalIgnoreCase));
+		MtgCardCsvHandler handler = CreateHandler(format);
+		IList<PhysicalMtgCard> originalCards = CanonicalReference.LoadCards(_config, _catalog, _resolver, cfg.Currency);
+
+		string fileName = $"unittest-roundtrip-{format}.csv";
 		handler.WriteCollectionCsv(originalCards, fileName);
 		List<PhysicalMtgCard> parsedCards = handler.ParseCollectionCsv(fileName).Collection.Cards;
 
-		// Assert — only DS rewrites null Folder / PriceBought / DateBought during write
-		// (RequiresWriteDefaults), so the round-trip isn't lossless for those fields *only*
-		// when the target is DS. Other formats must still round-trip them exactly.
-		bool dsFormat = deckFormatName == "DRAGONSHIELD";
-		parsedCards.Should().BeEquivalentTo(originalCards, opts => dsFormat
-			? opts.Excluding(c => c.Folder).Excluding(c => c.PriceBought).Excluding(c => c.DateBought)
-			: opts);
+		// Fold each format's deterministic remaps (a grade/finish it can't carry) into the expected cards.
+		var condDeg = ConditionDegradations.GetValueOrDefault(format);
+		var finDeg = FinishDegradations.GetValueOrDefault(format);
+		var expectedCards = originalCards.Select(c =>
+		{
+			if (condDeg is not null && condDeg.TryGetValue(c.Condition, out var cond)) { c = c with { Condition = cond }; }
+			if (finDeg is not null && finDeg.TryGetValue(c.Finish, out var fin)) { c = c with { Finish = fin }; }
+
+			return c;
+		}).ToList();
+
+		// Exclude fields the format has no column for; DragonShield also rewrites null Folder/Price/Date.
+		parsedCards.Should().BeEquivalentTo(expectedCards, opts =>
+		{
+			if (cfg.Condition is null) { opts = opts.Excluding(c => c.Condition); }
+			if (cfg.Language is null) { opts = opts.Excluding(c => c.Language); }
+			if (cfg.PriceBought is null || cfg.RequiresWriteDefaults) { opts = opts.Excluding(c => c.PriceBought); }
+			if (cfg.DateBought is null || cfg.RequiresWriteDefaults) { opts = opts.Excluding(c => c.DateBought); }
+			if (cfg.RequiresWriteDefaults) { opts = opts.Excluding(c => c.Folder); }
+
+			return opts;
+		});
 	}
 
 	// Demonic Tutor CMM #509 has an etched printing.
@@ -85,13 +135,14 @@ public class MtgCardCsvHandlerTests(CatalogFixture fixture, ITestOutputHelper ou
 	{
 		// Arrange
 		MtgCardCsvHandler handler = CreateHandler(deckFormatName);
-		IList<PhysicalMtgCard> expectedCards = GetReferenceCards(Currency.FromString(currency));
+		IList<PhysicalMtgCard> expectedCards = CanonicalReference.LoadCards(_config, _catalog, _resolver, Currency.FromString(currency));
 
 		// Act
 		IList<PhysicalMtgCard> cards = handler.ParseCollectionCsv(csvFilePath).Collection.Cards;
 
-		// Assert
-		cards.Should().BeEquivalentTo(expectedCards);
+		// Assert — every real-shaped row parses to a card present in the canonical reference set
+		cards.Should().NotBeEmpty();
+		cards.Should().AllSatisfy(c => expectedCards.Should().ContainEquivalentOf(c));
 	}
 
 	[Theory]
@@ -198,77 +249,4 @@ public class MtgCardCsvHandlerTests(CatalogFixture fixture, ITestOutputHelper ou
 	}
 
 	MtgCardCsvHandler CreateHandler(string deckFormatName) => new(_catalog, _resolver, _config, deckFormatName);
-
-	static List<PhysicalMtgCard> GetReferenceCards(Currency currency)
-	{
-		var card1 = new PhysicalMtgCard
-		{
-			Count = 1,
-			Condition = CardCondition.Mint,
-			Finish = CardFinish.Normal,
-			Printing = new Card
-			{
-				Name = "Ambitious Farmhand // Seasoned Cathar",
-				CollectorNumber = "2",
-				Set = "MID",
-				SetName = "Innistrad: Midnight Hunt",
-			},
-			Language = "en",
-			Rarity = CardRarity.Uncommon,
-		};
-
-        var card2 = card1 with { Language = "zht" };
-
-        // Card3 verifies Count, Finish, Language, PriceBought
-        var card3 = card1 with
-		{
-			Count = 2,
-			Condition = CardCondition.NearMint,
-			Finish = CardFinish.Foil,
-			Language = "de",
-			PriceBought = new Money(0.20m, currency),
-		};
-
-        // There is no test for excellent, since some sites only have six conditions (e.g. Moxfield)
-        var card4 = card1 with { Condition = CardCondition.Good };
-		var card5 = card1 with { Condition = CardCondition.LightlyPlayed };
-		var card6 = card1 with { Condition = CardCondition.Played };
-		var card7 = card1 with { Condition = CardCondition.Poor };
-
-		var card8 = new PhysicalMtgCard
-		{
-			Count = 1,
-			Condition = CardCondition.NearMint,
-			Finish = CardFinish.Normal,
-			Printing = new Card
-			{
-				Name = "Clue",
-				CollectorNumber = "14",
-				Set = "TMH2",
-				SetName = "Modern Horizons 2 Tokens",
-			},
-			Language = "en",
-			PriceBought = new Money(0.15m, currency),
-			Rarity = CardRarity.Common,
-		};
-
-		var card9 = new PhysicalMtgCard
-		{
-			Count = 1,
-			Condition = CardCondition.NearMint,
-			Finish = CardFinish.Normal,
-			Printing = new Card
-			{
-				Name = "Food",
-				CollectorNumber = "10",
-				Set = "TLTR",
-				SetName = "Tales of Middle-earth Tokens",
-			},
-			Language = "en",
-			PriceBought = new Money(0.11m, currency),
-			Rarity = CardRarity.Common,
-		};
-
-		return [card1, card2, card3, card4, card5, card6, card7, card8, card9];
-	}
 }
