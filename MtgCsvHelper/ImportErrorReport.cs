@@ -82,7 +82,7 @@ public static class ImportErrorReport
 		string Url(string body) =>
 			"https://github.com/StepKie/MtgCsvHelper/issues/new"
 			+ $"?title={Uri.EscapeDataString($"Import errors: {FormatDisplay.For(inputFormat)} → {FormatDisplay.For(outputFormat)}")}"
-			+ $"&labels={Uri.EscapeDataString("bug,import-error")}"
+			+ $"&labels={Uri.EscapeDataString("bug,conversion-error")}"
 			+ $"&body={Uri.EscapeDataString(body)}";
 	}
 

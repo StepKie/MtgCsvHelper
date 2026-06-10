@@ -2,7 +2,7 @@ namespace MtgCsvHelper.Tests;
 
 public class FormatDetectorTests(ITestOutputHelper output) : BaseTest(output)
 {
-	FormatDetector NewDetector() => new([.. CardMapFactory.From(_config)]);
+	FormatDetector NewDetector() => new([.. CardMapFactory.SupportedConfigs(_config)]);
 
 	[Theory]
 	[InlineData("Quantity,Card Name,Set Code,Set Name,Card Number,Printing,Condition,Language,Price Bought,Date Bought", "DRAGONSHIELD")]

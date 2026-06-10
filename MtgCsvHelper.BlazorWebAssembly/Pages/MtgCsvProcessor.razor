@@ -430,7 +430,7 @@
 		_autoDetectFailed = false;
 		if (!_autoDetect || _csvFile is null) return;
 
-		_detector ??= new FormatDetector([.. CardMapFactory.From(Config)]);
+		_detector ??= new FormatDetector([.. CardMapFactory.SupportedConfigs(Config)]);
 		try
 		{
 			// maxAllowedSize is a *whole-file* size cap, not a read window — must be at

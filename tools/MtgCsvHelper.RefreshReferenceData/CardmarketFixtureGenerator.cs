@@ -7,7 +7,7 @@ using MtgCsvHelper.Services;
 
 namespace MtgCsvHelper.RefreshReferenceData;
 
-// Generates cardmarket-reference-collection.csv by parsing moxfield-reference-collection.csv
+// Generates cardmarket-real-export.csv by parsing moxfield-real-export.csv
 // through the existing MOXFIELD pipeline, then looking up each card's cardmarket_id in the
 // catalog and emitting a Cardmarket-shaped row. Re-run when the moxfield reference changes.
 //
@@ -50,8 +50,8 @@ internal static class CardmarketFixtureGenerator
 		var repoRoot = FindRepoRoot();
 		var bundlePath = Path.Combine(repoRoot, "MtgCsvHelper.BlazorWebAssembly", "wwwroot", "data", "cards.min.json.gz");
 		var appsettingsPath = Path.Combine(repoRoot, "MtgCsvHelper", "appsettings.json");
-		var moxfieldPath = Path.Combine(repoRoot, "MtgCsvHelper", "Resources", "SampleCsvs", "Tests", "moxfield-reference-collection.csv");
-		var outputPath = Path.Combine(repoRoot, "MtgCsvHelper", "Resources", "SampleCsvs", "Tests", "cardmarket-reference-collection.csv");
+		var moxfieldPath = Path.Combine(repoRoot, "MtgCsvHelper", "Resources", "SampleCsvs", "Tests", "moxfield-real-export.csv");
+		var outputPath = Path.Combine(repoRoot, "MtgCsvHelper", "Resources", "SampleCsvs", "Tests", "cardmarket-real-export.csv");
 
 		Console.WriteLine($"Loading catalog from {bundlePath}…");
 		await using var fs = File.OpenRead(bundlePath);
