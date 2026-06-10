@@ -28,6 +28,12 @@ public class CardMapFactory(IConfiguration config, IReferenceCardCatalog catalog
 			return cfg;
 		});
 
+	// Format configs the auto-detector considers: the Supported set only. Internal formats (e.g.
+	// CANONICAL — the reference collection's lossless serialization) live in appsettings.json as the
+	// single source of truth but must never be auto-detected or offered to users.
+	public static IEnumerable<FormatConfig> SupportedConfigs(IConfiguration config) =>
+		From(config).Where(c => Supported.Contains(c.Name, StringComparer.OrdinalIgnoreCase));
+
 	public FormatConfig? GetFormatConfig(string format) => _formatConfigs.FirstOrDefault(c => c.Name.Equals(format, StringComparison.OrdinalIgnoreCase));
 
 	public ClassMap<PhysicalMtgCard> GenerateReadMap(string format)

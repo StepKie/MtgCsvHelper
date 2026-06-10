@@ -71,7 +71,7 @@ void RunWithOptions(CommandLineOptions opts)
 		return;
 	}
 
-	var detector = new FormatDetector([.. CardMapFactory.From(config)]);
+	var detector = new FormatDetector([.. CardMapFactory.SupportedConfigs(config)]);
 	var writer = new MtgCardCsvHandler(catalog, resolver, config, opts.OutputFormat);
 
 	List<PhysicalMtgCard> cardsFound = [];
