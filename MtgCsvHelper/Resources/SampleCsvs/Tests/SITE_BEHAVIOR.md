@@ -15,7 +15,7 @@ Conventions:
 
 ## Moxfield
 
-Status: 41/41 rows round-trip cleanly (May 2026).
+Status: 41/41 rows round-trip cleanly (May 2026). **June 2026:** the 29-row reference set round-trips cleanly — borderless (`ltr 433`), guild kit (`gk2 #1`, resolved by collector number), The List (`plst` DDC-49), etched (preserved), and all 11 languages survived. The guild-kit + The List cases that DragonShield mangles resolve correctly here.
 
 **Schema:** binder and collection exports differ.
 - Binder export (the `moxfield_haves_*.csv` form): `Count,Tradelist Count,Name,Edition,Condition,Language,Foil,Tags,Last Modified,Collector Number,Alter,Proxy,Purchase Price`.
@@ -48,7 +48,7 @@ Status: 41/41 rows round-trip cleanly (May 2026).
 
 ## Manabox
 
-Status: 42 rows (May 2026). Latest round-trip imported our 43-row Moxfield reference-collection via Manabox's Moxfield-format importer; Manabox dropped 1 row (`Lightning Bolt M11 Damaged` — Manabox's Moxfield-importer doesn't accept `Damaged` as a Condition value even though it's a real Moxfield string). Re-exported as 42 site-blessed rows. 1 row short of Moxfield's 43 — same enum POOR gap as DragonShield. Earlier exploratory session had used a Manabox-native import path with all 6 Moxfield conditions accepted; the current cross-format path has the gap.
+Status: 42 rows (May 2026). Latest round-trip imported our 43-row Moxfield reference-collection via Manabox's Moxfield-format importer; Manabox dropped 1 row (`Lightning Bolt M11 Damaged` — Manabox's Moxfield-importer doesn't accept `Damaged` as a Condition value even though it's a real Moxfield string). Re-exported as 42 site-blessed rows. 1 row short of Moxfield's 43 — same enum POOR gap as DragonShield. Earlier exploratory session had used a Manabox-native import path with all 6 Moxfield conditions accepted; the current cross-format path has the gap. **June 2026:** the 29-row reference set imported via Manabox's **native** importer round-trips cleanly — 29/29, all 6 conditions (`mint`…`poor`), all 11 languages (incl. Spanish), etched preserved, borderless → exact Scryfall ID, guild kit `gk2 #1`, The List `plst`. (The old "Damaged dropped" was the Moxfield *cross-import* path; the native path keeps everything.)
 
 **Schema:** import accepts extra columns the export doesn't emit.
 - Import accepts: `Binder Name,Binder Type,Name,Set code,Set name,Collector number,Foil,Rarity,Quantity,ManaBox ID,Scryfall ID,Purchase price,Misprint,Altered,Condition,Language,Purchase price currency`.
@@ -128,32 +128,32 @@ The cross-format import path that worked has gaps. Observed mapping behavior fro
 
 So DragonShield's Moxfield-importer maps only 4 of Moxfield's 6 conditions, with at least one wrong middle mapping. Our DragonShield reference-collection therefore has only 4 of DS's 7 condition values represented (NearMint, Good, Played, Poor). The other 3 (Mint, Excellent, LightPlayed) would need manual UI entry to cover.
 
-**Canonical set codes: honored when DragonShield knows them, name-matched when it doesn't (export round-trip):**
-DragonShield's CSV importer resolves a printing from the `Set Code` when it recognizes the code, and falls back to `Card Name` (its own default, typically the oldest printing) when it doesn't — silently, no error. A full canonical-code round-trip of the special-product reference rows (June 2026):
+**DragonShield resolves printings by Set *Name*, not Set Code (export round-trip, June 2026):**
+DragonShield's CSV importer keys on the `Set Name` (with Card Name + Card Number); it ignores the `Set Code` we send and re-derives its own on export. A full canonical round-trip of the special-product reference rows:
 
-| We exported (canonical) | DragonShield stored | Outcome |
+| We exported (Set Name) | DragonShield stored | Outcome |
 |---|---|---|
-| Mardu Outrider `MB2` #1 | Mystery Booster 2 #1 | ✓ code honored |
-| Viscera Seer `SLD` #VS | Secret Lair Drop #VS | ✓ code honored |
-| Ral's Vanguard `CMB1` #1 | Mystery Booster Playtest Cards #1 | ✓ code honored |
-| Demonic Tutor `PLST` #DDC-49 | Duel Decks Anthology `DVD` #49 | ⚠ PLST unwound to original printing (see Normalizes) |
-| Isperia, Supreme Judge `GK2` #1 | Return to Ravnica `RTR` #171 | ✗ canonical `gk2` unknown → name-matched to wrong edition |
+| Mardu Outrider / Mystery Booster 2 #1 | Mystery Booster 2 #1 | ✓ set name matches → resolves |
+| Viscera Seer / Secret Lair Drop #VS | Secret Lair Drop #VS | ✓ |
+| Ral's Vanguard / Mystery Booster Playtest Cards #1 | Mystery Booster Playtest Cards #1 | ✓ |
+| Demonic Tutor / The List #DDC-49 | Duel Decks Anthology `DVD` #49 | ⚠ PLST unwound to original printing (see Normalizes) |
+| Isperia, Supreme Judge / **RNA Guild Kit** #1 | Return to Ravnica `RTR` #171 | ✗ set name unknown → name-matched to wrong edition |
 
-So the only true mis-resolution is the guild kits, where DragonShield expects its own `GK<n>_<GUILD>` and the canonical `gk1`/`gk2` is unknown to it. Confirmed earlier by round-tripping 8 Guild Kit cards:
+MB2/SLD/CMB1 resolve because their canonical set names match DragonShield's; the guild kit fails because Scryfall's `RNA Guild Kit` ≠ DragonShield's per-guild `Guild Kit: Azorius`. Two targeted Isperia imports isolate the lever:
 
-| Card | We exported (canonical) → DS stored | We exported (native) → DS stored |
+| We sent (Set Code / Set Name / #) | DragonShield stored | |
 |---|---|---|
-| Azorius Herald | `GK2` #2 → Commander 2013 #6 ✗ | `GK2_AZORIU` #2 → Guild Kit: Azorius #2 ✓ |
-| Belfry Spirit | `GK2` #29 → Guildpact #2 ✗ | `GK2_ORZHOV` #29 → Guild Kit: Orzhov #29 ✓ |
-| Cloudfin Raptor | `GK2` #108 → Gatecrash #32 ✗ | `GK2_SIMIC` #108 → Guild Kit: Simic #108 ✓ |
+| `GK2_AZORIU` / `RNA Guild Kit` / 1 | Return to Ravnica #171 | ✗ wrong set name |
+| `GK2_AZORIU` / `Guild Kit: Azorius` / 1 | Guild Kit: Azorius #1 | ✓ |
+| `GK2` / `Guild Kit: Azorius` / 1 | Guild Kit: Azorius #1 (DS re-stamped its own `GK2_AZORIU`) | ✓ canonical code, native name still resolves |
 
-Only single-printing names (e.g. Etrata, the Silencer — only in the GRN kit) resolve under canonical. **The DragonShield writer now emits the native `GK<n>_<GUILD>` code** — guild derived from Scryfall's `watermark`, table generated into `dragonshield-guildkit-codes.json`. Every other set ships its canonical code, which the cycle above confirms DragonShield resolves correctly.
+So the **Set Code is irrelevant** — the Set Name is the lever. **The prior `GK2_AZORIU`-in-Set-Code approach operated on the column DragonShield discards; it never worked end-to-end** (the unit tests only checked our own model→CSV→model round-trip, not DragonShield's resolution). The correct fix is a Set-Name alias (`gk{n} #N → "Guild Kit: <Guild>"`), the same write-side pattern `DeckboxMap` uses for editions. The earlier "native codes work" round-trip is explained by those cards being exported *from* DragonShield with both the native code *and* the native set name — it was the name doing the work.
 
 ---
 
 ## TopDecked
 
-Status: 43/43 rows round-trip cleanly (May 2026). Full parity with Moxfield.
+Status: 43/43 rows round-trip cleanly (May 2026). Full parity with Moxfield. **June 2026:** the 29-row reference set round-trips cleanly — all 11 languages preserved (incl. Spanish, where Archidekt's Moxfield path dropped it), etched preserved, borderless → exact Scryfall ID, guild kit `gk2 #1`, The List `plst`. No finish auto-correction needed (we sent the right finishes). Gold-standard result alongside Moxfield/Manabox.
 
 **Schema:**
 - Header uses ALL-CAPS-with-selectively-quoted columns: `QUANTITY,"NAME",SETCODE,"SETNAME","COLLECTOR NUMBER",FINISH,PRICE,RARITY,ID,ACQUIRED DATE,ACQUIRED PRICE,LANG,PRICE SALE,SIGNING,ALTERATION,CONDITION,NOTES,TAGS`.
@@ -205,8 +205,8 @@ Status: 42 rows (May 2026). All site-blessed via Deckbox's **Manabox-format impo
 - `TcgPlayer ID`, `Scryfall ID`.
 
 **Normalizes:**
-- **Collapses etched → foil** on storage. Deckbox doesn't track etched as a separate finish; `Demonic Tutor STA #27 etched` becomes `Demonic Tutor STA #27 foil` in the export. Our `bool? Foil` model matches this collapse on the write side.
-- **Strips letter prefixes from collector numbers**: `puma U8` stored as `puma 8`. Lossy — `U8` and `8` would technically be different printings per Scryfall but Deckbox treats them as the same; importing both stacks the quantity.
+- **Collapses etched → foil** on storage, and its native importer **rejects the literal `etched`** value in the Foil column (accepts only `foil`/blank). June 2026: our `DECKBOX` writer regressed here — the tri-state `CardFinish` migration left `appsettings` `Etched: "etched"`, so we now emit `etched` and Deckbox drops the row (Demonic Tutor CMM #509 was the one rejected row of 29). Fix: `Etched: null`, so the writer falls back to the `foil` string (the DragonShield pattern).
+- **Strips letter prefixes / reshapes collector numbers**: `puma U8` → `puma 8`. June 2026 confirmed the same on special products — The List `DDC-49` → number `49` + Printing Note `DDC`; Secret Lair `VS` → `801`. These resolved correctly *on Deckbox* (its Scryfall ID matched), but are lossy for re-import via `(set, #)` — `plst/49` and `sld/801` aren't the real Scryfall coordinates. Resolving by the Scryfall ID Deckbox provides would recover them.
 - **Uses Deckbox-canonical Edition names** that diverge from Scryfall for some sets:
   - Scryfall `Secret Lair Drop` → Deckbox `Secret Lair Drop Series`
   - Scryfall `Ultimate Box Topper` → Deckbox `Ultimate Masters: Box Toppers`
@@ -218,10 +218,11 @@ Status: 42 rows (May 2026). All site-blessed via Deckbox's **Manabox-format impo
   - Wrong Edition name + correct code: rejected (we proved this with `Modern Horizons 2 Tokens` for the token set instead of the Deckbox-canonical `Extras: Modern Horizons 2`).
   - `etched` value in the `Foil` column: **rejected** by native import. Must use `foil` (or leave blank).
 - **Manabox-format import is more permissive** — accepts everything in our 42-row fixture, including the cards above that failed native import. Likely uses richer matching (Scryfall ID or similar).
+- **Cross-importing our *other-format* files (June 2026):** our `manabox.csv` lost the 5 special products whose set names don't match Deckbox editions (Clue, Food, Viscera Seer, Isperia, Ral's Vanguard). Deckbox's Manabox-importer resolves by **Scryfall ID** when present and falls back to name+set otherwise — but our writer emits no Scryfall ID, so those rows can't resolve. Our `moxfield.csv` was rejected wholesale (`The header of the csv file is not correct`) — our 8-column output isn't Moxfield's real export header. Both point at the same gap: we emit simplified subsets without the Scryfall ID, so third-party "X-format" importers can't resolve the hard cases.
 
 **Writer-modeling implications** for `MtgCsvHelper`'s `DECKBOX` writer (follow-up issue):
 1. Emit lowercase set codes (already mostly handled — depends on source).
-2. Emit `foil` for etched cards (already handled by `bool? Foil` collapse in `FinishConverter.ConvertToString`).
+2. Emit `foil` for etched cards — **currently broken**: `appsettings` `DECKBOX.Etched` is `"etched"`, which the native importer rejects. Set it to `null` so the writer emits `foil`.
 3. **Need Set Name aliasing** for divergent sets (Secret Lair, Box Toppers, token sets) — leaving Edition blank only auto-resolves for some codes; missing the alias leaves cards in "Unspecified Edition". Small hand-curated mapping table.
 4. Letter-prefix collector numbers (`U8`) pass through cleanly; Deckbox normalizes server-side. No need to strip in our writer.
 
@@ -299,6 +300,12 @@ The LP collapse is **specific to Archidekt's moxfield-importer**, not their cond
 - `CT` for Chinese Traditional (not `zht` or `zh-TW`)
 
 **No native finish or set-name aliasing quirks** observed — Archidekt accepted everything from the 42-row Manabox source plus normalized its own additions cleanly. Cross-format diversity (Demonic Tutor across 8 sets, variant-finish cards, accent + apostrophe names) all imported without errors or normalization.
+
+**Live round-trip (June 2026):**
+- **No native Archidekt-format import.** Archidekt's importer offers Cardsphere / Deckbox / Delver Lens / Dragonshield / Helvault / ManaBox / Moxfield — but **not Archidekt**. So our `archidekt.csv` is a worked example of Archidekt's *export* shape and a fixture for our *reader*, but can't be round-tripped back into Archidekt; verification must go in via a sibling format.
+- **Cross-importers are positional, no drag-to-rearrange.** Both the Moxfield and ManaBox importers expect the source tool's *exact* export column order. Our writers emit canonical subsets (Moxfield 8 columns vs Moxfield's real 13; Manabox 9 vs ManaBox's 17) in a different order, so every source format needs manual per-column reassignment.
+- **Cards resolve correctly once mapped.** Via the Moxfield path: borderless Orcish Bowmasters → `ltr 433` with the exact borderless Scryfall ID `de2de055…`; guild kit `gk2 #1` (resolves by collector number, unlike DragonShield); The List `plst`; etched preserved; adventure/split full names.
+- **Spanish → EN** on the Moxfield path: of 11 languages, only Spanish dropped to English (the rest mapped). Same lossy-cross-importer class as the condition collapses above — not our bug (Moxfield itself preserved Spanish). The Manabox path preserves it; prefer that for fidelity (though it needs the same manual column mapping).
 
 ---
 

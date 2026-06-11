@@ -42,7 +42,7 @@ failure.
 | Manabox | `manabox.csv` | Manabox app → Import CSV | ☐ | ☐ |
 | TopDecked | `topdecked.csv` | TopDecked app → Import | ☐ | ☐ |
 | Deckbox | `deckbox.csv` | deckbox.org → Mtg → Import | ☐ | ☐ |
-| Archidekt | `archidekt.csv` | archidekt.com → Collection → Import | ☐ | ☐ |
+| Archidekt | `moxfield.csv` / `manabox.csv` | archidekt.com → Collection → Import (Archidekt has **no native-format import**; use a sibling format, and expect to remap columns manually — its importers are positional) | ☐ | ☐ |
 | MTGGoldfish | `mtggoldfish.csv` | mtggoldfish.com → Collection → Import | ☐ | ☐ |
 | TCGplayer | `tcgplayer.csv` | tcgplayer.com → mass entry / app | ☐ | ☐ |
 | MTGO | `mtgo.csv` | MTGO client → import | ☐ | n/a (client, no CSV re-export) |
@@ -55,36 +55,36 @@ so there is no generated Cardmarket file to import.
 
 The reference set carries five non-standard coordinates (the "Special products" row above).
 Automated round-trip only proves we read back our own output; it cannot prove a live site resolves
-these to the *correct* printing. The hazard is silent mis-resolution — a site that name-only matches
-picks the wrong printing with no error shown. Import each generated file, then confirm the
-special-product rows land on the right card.
+these to the *correct* printing. Live results from the June 2026 import sweep are below.
 
 What our writer emits per coordinate:
 
 | Coordinate | Reference card | Emitted as |
 |---|---|---|
 | The List | Demonic Tutor PLST #DDC-49 | `plst` / `DDC-49` (canonical) |
-| Ravnica Guild Kit | Isperia, Supreme Judge GK2 #1 | `GK2_AZORIU` to DragonShield; canonical `gk2` everywhere else |
+| Ravnica Guild Kit | Isperia, Supreme Judge GK2 #1 | canonical `gk2` / `RNA Guild Kit` (the `GK2_AZORIU` code is ignored by DragonShield — it needs the native *set name*; fix pending) |
 | Secret Lair | Viscera Seer SLD #VS | `sld` / `VS` |
 | Mystery Booster 2 | Mardu Outrider MB2 #1 | `mb2` / `1` |
 | Playtest cards | Ral's Vanguard CMB1 #1 | `cmb1` / `1` |
 
-| Format | All five special-product rows resolve to the correct printing? |
+Live results (June 2026 sweep — "✅ all five" = all resolve to the correct printing):
+
+| Format | Result |
 |---|---|
-| Moxfield | ☐ |
-| DragonShield | ☐ |
-| Manabox | ☐ |
-| TopDecked | ☐ |
-| Deckbox | ☐ |
-| Archidekt | ☐ |
-| MTGGoldfish | ☐ |
-| TCGplayer | ☐ |
-| MTGO | ☐ |
-| CardKingdom | n/a (write-only buylist) |
+| Moxfield | ✅ all five |
+| TopDecked | ✅ all five |
+| Manabox | ✅ all five (native import) |
+| Archidekt | ✅ all five (via Moxfield import; needs manual column mapping) |
+| Deckbox | ✅ all five resolve, but The List `DDC-49`→`49` and Secret Lair `VS`→`801` collector numbers are reshaped — lossy for re-import via `(set,#)` |
+| DragonShield | ❌ guild kit → Return to Ravnica (wrong); The List → Duel Decks (demangled). MB2 / SLD / CMB1 ✅ |
+| MTGGoldfish | ☐ not tested (Premium-gated) |
+| TCGplayer | ☐ not tested (Level-4-seller-gated) |
+| MTGO | ☐ not tested (import-only, no CSV re-export) |
+| CardKingdom | n/a (write-only; no collector-number column, can't encode most variants) |
 
-Known results so far (from prior round-trips logged in [`../Tests/SITE_BEHAVIOR.md`](../Tests/SITE_BEHAVIOR.md)):
+Key findings (full detail in [`../Tests/SITE_BEHAVIOR.md`](../Tests/SITE_BEHAVIOR.md)):
 
-- **DragonShield honors MB2 / SLD / CMB1 under canonical codes** (June 2026 full canonical round-trip): Mystery Booster 2, Secret Lair, and playtest cards all re-exported on the correct printing. Guild kits are the *only* special product DragonShield mis-resolves under canonical codes — so no per-product native-code table is needed beyond guild kits.
-- **DragonShield demangles The List**: `plst` rows re-export as the original printing (Demonic Tutor PLST DDC-49 → DVD #49). The card survives but the coordinate normalizes away from `plst` and can't round-trip back — unfixable, DragonShield has no The List concept.
-- **DragonShield guild kits**: the canonical `gk2` name-matches onto the wrong edition (Isperia GK2 #1 → Return to Ravnica #171); the native `GK2_AZORIU` we now emit resolves correctly.
-- **Moxfield / Manabox / TopDecked / Archidekt** carry `plst` + `<origset>-<num>` natively in real exports, so The List resolves there. Secret Lair / MB2 / playtest acceptance on those sites is unverified.
+- **Scryfall-aligned sites** (Moxfield, TopDecked, Manabox, Archidekt, Deckbox) resolve the guild kit and The List by collector number — no special handling needed. The guild-kit mis-resolution is **DragonShield-only**.
+- **DragonShield resolves by Set *Name*, not Set Code.** The guild kit fails because our `RNA Guild Kit` ≠ DragonShield's `Guild Kit: Azorius`; the `GK2_AZORIU` code is ignored. Fix: emit the native per-guild set name. The List demangles to the original printing — unfixable (no The List concept).
+- **Deckbox rejects the literal `etched`** finish on native import (drops that row); fix: emit `foil`. It also reshapes special-product collector numbers — resolving by the Scryfall ID Deckbox provides would recover them on re-import.
+- **Archidekt has no native-format import**, and its cross-importers are positional, so any source format needs manual column mapping; the Moxfield path also drops `Spanish→EN`.
