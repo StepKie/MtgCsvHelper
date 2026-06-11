@@ -107,6 +107,7 @@ So DragonShield's `ShortNames: true` config setting only applies to a subset of 
 - **Variant foil treatments**: DragonShield's Printing column emits an open-ended set of values beyond the basic 3. Observed: `Normal`, `Foil`, `Etched`, `Rainbow Foil`, `Double Rainbow Foil`, `Gilded Foil`, `Surge Foil`, `Step and Compleat Foil`. New treatments keep appearing as WotC invents them, so `FinishConverter` matches any value containing the word `foil` (case-insensitive) rather than an allowlist that goes stale (#102). Our model still collapses every foil-like value to `bool? Foil` (true for any foil; false for normal). Follow-up: possibly tri-state finish in the model.
 - **Ravnica Guild Kit set codes**: DragonShield emits proprietary per-guild codes — `GK1_<GUILD>` (Guilds of Ravnica, e.g. `GK1_DIMIR`) and `GK2_<GUILD>` (Ravnica Allegiance, e.g. `GK2_AZORIU`, `GK2_ORZHOV`, `GK2_SIMIC`, `GK2_GRUUL`, `GK2_RAKDOS`). The guild suffix is cosmetic (truncated to ≤6 chars: `azorius` → `AZORIU`) and the collector numbers are shared across the kit, so the Scryfall set is a single `gk1`/`gk2` (`GK2_AZORIU #2` == `gk2 #2`, Azorius Herald). `DragonShieldCodeReadConverter` collapses `GK[12]_*` to `gk1`/`gk2` on read (#102).
 - **Resets `Price Bought` to `0.00`** on Moxfield-format import.
+- **Simplified Chinese needs the full string**: DragonShield's `zhs` language value is `Simplified Chinese` (the parallel to `Traditional Chinese`). Our appsettings emitted the bare `Chinese`, which DragonShield didn't recognize — it silently filed those rows as English (no error, quantities merged into the English row). Confirmed by a manual round-trip (June 2026) and corrected to `Simplified Chinese`.
 
 **Rejects (on *our* import of DragonShield exports):**
 - **Minimum-info imports** with blank `Card Name` + `Set Name` (just `Set Code` + `Card Number`) are rejected. DragonShield requires the name fields to be populated; it doesn't deduce the card from `(Set Code, Card Number)` alone like Moxfield's fuzzy matcher does.
@@ -127,8 +128,18 @@ The cross-format import path that worked has gaps. Observed mapping behavior fro
 
 So DragonShield's Moxfield-importer maps only 4 of Moxfield's 6 conditions, with at least one wrong middle mapping. Our DragonShield reference-collection therefore has only 4 of DS's 7 condition values represented (NearMint, Good, Played, Poor). The other 3 (Mint, Excellent, LightPlayed) would need manual UI entry to cover.
 
-**Set codes are ignored on CSV import — name-matching wins (export round-trip):**
-When *we* export to DragonShield, its CSV importer does **not** use the `Set Code` / `Card Number` columns to pick a printing — it matches by `Card Name` and falls back to its own default printing. Feeding canonical Scryfall codes (`gk2`) silently mis-resolves reprints to the wrong edition, with no error shown. DragonShield's own **native** `GK<n>_<GUILD>` codes *are* honored. Confirmed by round-tripping 8 Guild Kit cards (#104):
+**Canonical set codes: honored when DragonShield knows them, name-matched when it doesn't (export round-trip):**
+DragonShield's CSV importer resolves a printing from the `Set Code` when it recognizes the code, and falls back to `Card Name` (its own default, typically the oldest printing) when it doesn't — silently, no error. A full canonical-code round-trip of the special-product reference rows (June 2026):
+
+| We exported (canonical) | DragonShield stored | Outcome |
+|---|---|---|
+| Mardu Outrider `MB2` #1 | Mystery Booster 2 #1 | ✓ code honored |
+| Viscera Seer `SLD` #VS | Secret Lair Drop #VS | ✓ code honored |
+| Ral's Vanguard `CMB1` #1 | Mystery Booster Playtest Cards #1 | ✓ code honored |
+| Demonic Tutor `PLST` #DDC-49 | Duel Decks Anthology `DVD` #49 | ⚠ PLST unwound to original printing (see Normalizes) |
+| Isperia, Supreme Judge `GK2` #1 | Return to Ravnica `RTR` #171 | ✗ canonical `gk2` unknown → name-matched to wrong edition |
+
+So the only true mis-resolution is the guild kits, where DragonShield expects its own `GK<n>_<GUILD>` and the canonical `gk1`/`gk2` is unknown to it. Confirmed earlier by round-tripping 8 Guild Kit cards:
 
 | Card | We exported (canonical) → DS stored | We exported (native) → DS stored |
 |---|---|---|
@@ -136,7 +147,7 @@ When *we* export to DragonShield, its CSV importer does **not** use the `Set Cod
 | Belfry Spirit | `GK2` #29 → Guildpact #2 ✗ | `GK2_ORZHOV` #29 → Guild Kit: Orzhov #29 ✓ |
 | Cloudfin Raptor | `GK2` #108 → Gatecrash #32 ✗ | `GK2_SIMIC` #108 → Guild Kit: Simic #108 ✓ |
 
-Only single-printing names (e.g. Etrata, the Silencer — exists only in the GRN kit) resolve correctly under canonical codes. Implication for our DragonShield **writer**: to round-trip guild-kit cards we'd need to emit native `GK<n>_<GUILD>` codes (the guild is recoverable from Scryfall's `watermark` field). Tracked in #104.
+Only single-printing names (e.g. Etrata, the Silencer — only in the GRN kit) resolve under canonical. **The DragonShield writer now emits the native `GK<n>_<GUILD>` code** — guild derived from Scryfall's `watermark`, table generated into `dragonshield-guildkit-codes.json`. Every other set ships its canonical code, which the cycle above confirms DragonShield resolves correctly.
 
 ---
 
