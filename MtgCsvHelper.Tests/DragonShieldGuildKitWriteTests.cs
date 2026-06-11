@@ -4,21 +4,21 @@ using ScryfallApi.Client.Models;
 namespace MtgCsvHelper.Tests;
 
 /// <summary>
-/// Write side of the guild-kit fix: exporting gk1/gk2 cards to Dragon Shield must emit its
-/// proprietary <c>GK&lt;n&gt;_&lt;GUILD&gt;</c> codes, since Dragon Shield's importer ignores the
-/// canonical codes and name-matches reprints onto the wrong edition. Read side
-/// (<c>GK&lt;n&gt;_&lt;GUILD&gt;</c> → gk1/gk2) is covered by <see cref="DragonShieldCodeReadConverterTests"/>.
+/// Write side of the guild-kit fix: DragonShield resolves imports by Set <em>Name</em>, so exporting
+/// gk1/gk2 cards must emit the native per-guild edition (<c>Guild Kit: Azorius</c>, …) rather than the
+/// canonical <c>RNA Guild Kit</c>, which DragonShield name-matches onto the wrong edition. Read side
+/// (the <c>GK&lt;n&gt;_&lt;GUILD&gt;</c> set codes DragonShield exports) is covered by <see cref="DragonShieldCodeReadConverterTests"/>.
 /// </summary>
 [Collection(CatalogCollection.Name)]
 public class DragonShieldGuildKitWriteTests(CatalogFixture fixture, ITestOutputHelper output) : ApiBaseTest(fixture, output)
 {
-	static PhysicalMtgCard Card(string name, string set, string collectorNumber) => new()
+	static PhysicalMtgCard Card(string name, string set, string collectorNumber, string setName = "") => new()
 	{
 		Count = 1,
 		Condition = CardCondition.NearMint,
 		Finish = CardFinish.Normal,
 		Language = "en",
-		Printing = new Card { Name = name, Set = set, SetName = "", CollectorNumber = collectorNumber },
+		Printing = new Card { Name = name, Set = set, SetName = setName, CollectorNumber = collectorNumber },
 	};
 
 	string WriteDragonShield(params PhysicalMtgCard[] cards)
@@ -31,39 +31,39 @@ public class DragonShieldGuildKitWriteTests(CatalogFixture fixture, ITestOutputH
 	}
 
 	[Theory]
-	[InlineData("Isperia, Supreme Judge", "GK2", "1", "GK2_AZORIU")]
-	[InlineData("Azorius Herald", "GK2", "2", "GK2_AZORIU")]
-	[InlineData("Belfry Spirit", "GK2", "29", "GK2_ORZHOV")]
-	[InlineData("Cloudfin Raptor", "GK2", "108", "GK2_SIMIC")]
-	[InlineData("Etrata, the Silencer", "GK1", "1", "GK1_DIMIR")]
-	[InlineData("Plains", "GK1", "100", "GK1_BOROS")]
-	public void GuildKitCard_EmitsNativeDragonShieldCode(string name, string set, string collectorNumber, string expectedCode)
+	[InlineData("Isperia, Supreme Judge", "GK2", "1", "Guild Kit: Azorius")]
+	[InlineData("Azorius Herald", "GK2", "2", "Guild Kit: Azorius")]
+	[InlineData("Belfry Spirit", "GK2", "29", "Guild Kit: Orzhov")]
+	[InlineData("Cloudfin Raptor", "GK2", "108", "Guild Kit: Simic")]
+	[InlineData("Etrata, the Silencer", "GK1", "1", "Guild Kit: Dimir")]
+	[InlineData("Plains", "GK1", "100", "Guild Kit: Boros")]
+	public void GuildKitCard_EmitsNativeEditionName(string name, string set, string collectorNumber, string expectedEdition)
 	{
 		var csv = WriteDragonShield(Card(name, set, collectorNumber));
 
-		// Set codes never contain commas, so the native code surrounded by delimiters is an unambiguous match.
-		csv.Should().Contain($",{expectedCode},");
+		// Guild edition names contain no commas, so the edition surrounded by delimiters is an unambiguous match.
+		csv.Should().Contain($",{expectedEdition},");
 	}
 
 	[Fact]
-	public void NonGuildKitCard_EmitsCanonicalCode()
+	public void NonGuildKitCard_KeepsCanonicalSetName()
 	{
-		var csv = WriteDragonShield(Card("Lightning Bolt", "M11", "149"));
+		var csv = WriteDragonShield(Card("Lightning Bolt", "M11", "149", setName: "Magic 2011"));
 
-		csv.Should().Contain(",M11,");
+		csv.Should().Contain(",Magic 2011,").And.NotContain("Guild Kit:");
 	}
 
 	[Fact]
-	public void WatermarkLessGuildKitCard_FallsBackToCanonical()
+	public void WatermarkLessGuildKitCard_KeepsCanonicalSetName()
 	{
-		// Birds of Paradise (gk2 #82) has no Scryfall watermark, so it falls back to the canonical code.
-		var csv = WriteDragonShield(Card("Birds of Paradise", "GK2", "82"));
+		// Birds of Paradise (gk2 #82) has no Scryfall watermark, so it isn't in the editions table and keeps its set name.
+		var csv = WriteDragonShield(Card("Birds of Paradise", "GK2", "82", setName: "RNA Guild Kit"));
 
-		csv.Should().Contain(",GK2,").And.NotContain("GK2_");
+		csv.Should().Contain(",RNA Guild Kit,").And.NotContain("Guild Kit: ");
 	}
 
 	[Fact]
-	public void NativeCode_RoundTripsBackToCanonical()
+	public void NativeEdition_RoundTripsBackToCanonicalSet()
 	{
 		var handler = new MtgCardCsvHandler(_catalog, _resolver, _config, "DRAGONSHIELD");
 		using var stream = new MemoryStream();
@@ -74,6 +74,6 @@ public class DragonShieldGuildKitWriteTests(CatalogFixture fixture, ITestOutputH
 
 		parsed.Issues.Should().NotContain(i => i.Severity == IssueSeverity.Error);
 		parsed.Collection.Cards.Should().ContainSingle()
-			.Which.Printing.Set.Should().Be("GK2", because: "the native GK2_AZORIU code collapses back to the canonical Scryfall set on read");
+			.Which.Printing.Set.Should().Be("GK2", because: "the native edition name resolves on read; Set Code GK2 is unchanged (only GK{n}_* codes are converted)");
 	}
 }

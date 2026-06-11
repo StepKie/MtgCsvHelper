@@ -43,7 +43,7 @@
          tool's deckbox-aliases subcommand; the guild-kit file via its dragonshield-guildkit subcommand. -->
     <EmbeddedResource Include="Resources\deckbox-set-aliases.json" LogicalName="MtgCsvHelper.Resources.deckbox-set-aliases.json" />
     <EmbeddedResource Include="Resources\deckbox-code-aliases.json" LogicalName="MtgCsvHelper.Resources.deckbox-code-aliases.json" />
-    <EmbeddedResource Include="Resources\dragonshield-guildkit-codes.json" LogicalName="MtgCsvHelper.Resources.dragonshield-guildkit-codes.json" />
+    <EmbeddedResource Include="Resources\dragonshield-guildkit-editions.json" LogicalName="MtgCsvHelper.Resources.dragonshield-guildkit-editions.json" />
   </ItemGroup>
 
   <ItemGroup>
