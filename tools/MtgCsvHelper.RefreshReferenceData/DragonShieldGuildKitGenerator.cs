@@ -7,21 +7,18 @@ using MtgCsvHelper;
 namespace MtgCsvHelper.RefreshReferenceData;
 
 /// <summary>
-/// Generates <c>MtgCsvHelper/Resources/dragonshield-guildkit-codes.json</c>: a Scryfall guild-kit
-/// coordinate → Dragon Shield native set-code table. Dragon Shield's importer ignores the canonical
-/// gk1/gk2 codes and name-matches reprints onto the wrong edition, but honors its own proprietary
-/// <c>GK&lt;n&gt;_&lt;GUILD&gt;</c> codes (GK2_AZORIU, GK1_DIMIR, …). The guild comes from each printing's
-/// Scryfall <c>watermark</c>, truncated to Dragon Shield's 6-char form; we emit one entry per
-/// (set, collector_number) so the writer needn't carry watermark on every bundled card. Cards with no
-/// watermark (guild-agnostic reprints — Char, Birds of Paradise, …) are skipped, and the writer falls
-/// back to the canonical code for those. Output shape: <c>{ "gk1/1": "GK1_DIMIR", "gk2/2": "GK2_AZORIU", … }</c>.
+/// Generates <c>MtgCsvHelper/Resources/dragonshield-guildkit-editions.json</c>: a Scryfall guild-kit
+/// coordinate → Dragon Shield edition-name table. Dragon Shield splits each Ravnica guild kit into
+/// per-guild editions (<c>Guild Kit: Azorius</c>, <c>Guild Kit: Dimir</c>, …) and resolves imports by
+/// that Set Name, not the Set Code — so a card sent as <c>gk2</c> / <c>RNA Guild Kit</c> mis-resolves.
+/// The guild comes from each printing's Scryfall <c>watermark</c>; we emit one entry per
+/// (set, collector_number) so the writer can emit the native edition name. Cards with no watermark
+/// (guild-agnostic reprints — Char, Birds of Paradise, …) are skipped, and the writer keeps the
+/// canonical set name for those. Output shape: <c>{ "gk1/1": "Guild Kit: Dimir", "gk2/2": "Guild Kit: Azorius", … }</c>.
 /// Run via <c>dotnet run --project tools/MtgCsvHelper.RefreshReferenceData -- dragonshield-guildkit</c>.
 /// </summary>
 internal static class DragonShieldGuildKitGenerator
 {
-	// Dragon Shield truncates the guild name to 6 chars (azorius -> AZORIU, selesnya -> SELESN).
-	const int GuildCodeLength = 6;
-
 	static readonly string[] GuildKitSets = ["gk1", "gk2"];
 
 	public static async Task RunAsync()
@@ -30,7 +27,7 @@ internal static class DragonShieldGuildKitGenerator
 		http.DefaultRequestHeaders.UserAgent.ParseAdd(AppInfo.UserAgent);
 		http.DefaultRequestHeaders.Accept.ParseAdd("application/json");
 
-		var codes = new SortedDictionary<string, string>(StringComparer.OrdinalIgnoreCase);
+		var editions = new SortedDictionary<string, string>(StringComparer.OrdinalIgnoreCase);
 		int withWatermark = 0, skipped = 0;
 
 		foreach (var set in GuildKitSets)
@@ -41,9 +38,9 @@ internal static class DragonShieldGuildKitGenerator
 			{
 				if (string.IsNullOrEmpty(card.Watermark)) { skipped++; continue; }
 
-				var guild = card.Watermark.ToUpperInvariant();
-				var native = $"{set.ToUpperInvariant()}_{guild[..Math.Min(GuildCodeLength, guild.Length)]}";
-				codes[$"{set}/{card.CollectorNumber}"] = native;
+				// Watermark is lowercase ("azorius"); Dragon Shield titles it ("Guild Kit: Azorius").
+				var guild = char.ToUpperInvariant(card.Watermark[0]) + card.Watermark[1..];
+				editions[$"{set}/{card.CollectorNumber}"] = $"Guild Kit: {guild}";
 				withWatermark++;
 			}
 		}
@@ -59,9 +56,9 @@ internal static class DragonShieldGuildKitGenerator
 			WriteIndented = true,
 			Encoder = JavaScriptEncoder.UnsafeRelaxedJsonEscaping,
 		};
-		var outputPath = Path.Combine(resourcesDir, "dragonshield-guildkit-codes.json");
-		await File.WriteAllTextAsync(outputPath, JsonSerializer.Serialize(codes, jsonOpts) + Environment.NewLine);
-		Console.WriteLine($"Wrote {codes.Count} guild-kit codes to {outputPath}.");
+		var outputPath = Path.Combine(resourcesDir, "dragonshield-guildkit-editions.json");
+		await File.WriteAllTextAsync(outputPath, JsonSerializer.Serialize(editions, jsonOpts) + Environment.NewLine);
+		Console.WriteLine($"Wrote {editions.Count} guild-kit editions to {outputPath}.");
 	}
 
 	static async Task<List<GuildKitCard>> FetchSetPrintings(HttpClient http, string set)

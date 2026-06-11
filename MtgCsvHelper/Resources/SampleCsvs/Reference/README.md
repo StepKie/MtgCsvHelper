@@ -62,7 +62,7 @@ What our writer emits per coordinate:
 | Coordinate | Reference card | Emitted as |
 |---|---|---|
 | The List | Demonic Tutor PLST #DDC-49 | `plst` / `DDC-49` (canonical) |
-| Ravnica Guild Kit | Isperia, Supreme Judge GK2 #1 | canonical `gk2` / `RNA Guild Kit` (the `GK2_AZORIU` code is ignored by DragonShield — it needs the native *set name*; fix pending) |
+| Ravnica Guild Kit | Isperia, Supreme Judge GK2 #1 | canonical `gk2`; to DragonShield the native per-guild set name (`Guild Kit: Azorius`) — DragonShield resolves by set name, not code |
 | Secret Lair | Viscera Seer SLD #VS | `sld` / `VS` |
 | Mystery Booster 2 | Mardu Outrider MB2 #1 | `mb2` / `1` |
 | Playtest cards | Ral's Vanguard CMB1 #1 | `cmb1` / `1` |
@@ -76,7 +76,7 @@ Live results (June 2026 sweep — "✅ all five" = all resolve to the correct pr
 | Manabox | ✅ all five (native import) |
 | Archidekt | ✅ all five (via Moxfield import; needs manual column mapping) |
 | Deckbox | ✅ all five resolve, but The List `DDC-49`→`49` and Secret Lair `VS`→`801` collector numbers are reshaped — lossy for re-import via `(set,#)` |
-| DragonShield | ❌ guild kit → Return to Ravnica (wrong); The List → Duel Decks (demangled). MB2 / SLD / CMB1 ✅ |
+| DragonShield | ✅ guild kit now resolves (native `Guild Kit: <guild>` set name); MB2 / SLD / CMB1 ✅. The List → Duel Decks (demangled — unfixable, no The List concept) |
 | MTGGoldfish | ☐ not tested (Premium-gated) |
 | TCGplayer | ☐ not tested (Level-4-seller-gated) |
 | MTGO | ☐ not tested (import-only, no CSV re-export) |

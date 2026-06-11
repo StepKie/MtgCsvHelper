@@ -147,7 +147,7 @@ MB2/SLD/CMB1 resolve because their canonical set names match DragonShield's; the
 | `GK2_AZORIU` / `Guild Kit: Azorius` / 1 | Guild Kit: Azorius #1 | ✓ |
 | `GK2` / `Guild Kit: Azorius` / 1 | Guild Kit: Azorius #1 (DS re-stamped its own `GK2_AZORIU`) | ✓ canonical code, native name still resolves |
 
-So the **Set Code is irrelevant** — the Set Name is the lever. **The prior `GK2_AZORIU`-in-Set-Code approach operated on the column DragonShield discards; it never worked end-to-end** (the unit tests only checked our own model→CSV→model round-trip, not DragonShield's resolution). The correct fix is a Set-Name alias (`gk{n} #N → "Guild Kit: <Guild>"`), the same write-side pattern `DeckboxMap` uses for editions. The earlier "native codes work" round-trip is explained by those cards being exported *from* DragonShield with both the native code *and* the native set name — it was the name doing the work.
+So the **Set Code is irrelevant** — the Set Name is the lever. **The prior `GK2_AZORIU`-in-Set-Code approach operated on the column DragonShield discards; it never worked end-to-end** (the unit tests only checked our own model→CSV→model round-trip, not DragonShield's resolution). **Fixed:** the writer now emits the native per-guild set name (`gk{n} #N → "Guild Kit: <Guild>"`, table in `dragonshield-guildkit-editions.json`) via a Set-Name alias — the same write-side pattern `DeckboxMap` uses for editions; the Set Code stays canonical (DragonShield re-derives its own). The earlier "native codes work" round-trip is explained by those cards being exported *from* DragonShield with both the native code *and* the native set name — it was the name doing the work.
 
 ---
 
@@ -205,7 +205,7 @@ Status: 42 rows (May 2026). All site-blessed via Deckbox's **Manabox-format impo
 - `TcgPlayer ID`, `Scryfall ID`.
 
 **Normalizes:**
-- **Collapses etched → foil** on storage, and its native importer **rejects the literal `etched`** value in the Foil column (accepts only `foil`/blank). June 2026: our `DECKBOX` writer regressed here — the tri-state `CardFinish` migration left `appsettings` `Etched: "etched"`, so we now emit `etched` and Deckbox drops the row (Demonic Tutor CMM #509 was the one rejected row of 29). Fix: `Etched: null`, so the writer falls back to the `foil` string (the DragonShield pattern).
+- **Collapses etched → foil** on storage, and its native importer **rejects the literal `etched`** value in the Foil column (accepts only `foil`/blank). June 2026: our `DECKBOX` writer regressed here — the tri-state `CardFinish` migration left `appsettings` `Etched: "etched"`, so we emitted `etched` and Deckbox dropped the row (Demonic Tutor CMM #509 was the one rejected row of 29). **Fixed:** `appsettings` `DECKBOX.Etched` is now `null`, so the writer falls back to the `foil` string (the DragonShield pattern).
 - **Strips letter prefixes / reshapes collector numbers**: `puma U8` → `puma 8`. June 2026 confirmed the same on special products — The List `DDC-49` → number `49` + Printing Note `DDC`; Secret Lair `VS` → `801`. These resolved correctly *on Deckbox* (its Scryfall ID matched), but are lossy for re-import via `(set, #)` — `plst/49` and `sld/801` aren't the real Scryfall coordinates. Resolving by the Scryfall ID Deckbox provides would recover them.
 - **Uses Deckbox-canonical Edition names** that diverge from Scryfall for some sets:
   - Scryfall `Secret Lair Drop` → Deckbox `Secret Lair Drop Series`
@@ -222,7 +222,7 @@ Status: 42 rows (May 2026). All site-blessed via Deckbox's **Manabox-format impo
 
 **Writer-modeling implications** for `MtgCsvHelper`'s `DECKBOX` writer (follow-up issue):
 1. Emit lowercase set codes (already mostly handled — depends on source).
-2. Emit `foil` for etched cards — **currently broken**: `appsettings` `DECKBOX.Etched` is `"etched"`, which the native importer rejects. Set it to `null` so the writer emits `foil`.
+2. Emit `foil` for etched cards — **done**: `appsettings` `DECKBOX.Etched` is `null`, so the writer emits `foil` (the native importer rejects the literal `etched`).
 3. **Need Set Name aliasing** for divergent sets (Secret Lair, Box Toppers, token sets) — leaving Edition blank only auto-resolves for some codes; missing the alias leaves cards in "Unspecified Edition". Small hand-curated mapping table.
 4. Letter-prefix collector numbers (`U8`) pass through cleanly; Deckbox normalizes server-side. No need to strip in our writer.
 
