@@ -1,23 +1,24 @@
-using System.Text.Json;
 using MtgCsvHelper.Converters;
 using MtgCsvHelper.Models;
 
 namespace MtgCsvHelper.Maps;
 
-// Bidirectional map for the DRAGONSHIELD format. Inherits the standard PhysicalCardMap shape, then
-// patches the Set Code column where Dragon Shield diverges from Scryfall for Ravnica Guild Kits:
-//
-//   - READ:  GK1_*/GK2_* guild-kit codes collapse to the canonical gk1/gk2 (DragonShieldCodeReadConverter).
-//   - WRITE: gk1/gk2 cards re-emit Dragon Shield's proprietary GK<n>_<GUILD> codes. Dragon Shield's
-//     CSV importer ignores canonical codes and name-matches reprints onto the wrong edition; the
-//     native codes resolve correctly. The (set, collector#) -> native-code table lives in
-//     `dragonshield-guildkit-codes.json` (generated from Scryfall watermarks); cards not in it
-//     fall back to the canonical Scryfall code.
-//
-// The resource file is emitted by `tools/MtgCsvHelper.RefreshReferenceData -- dragonshield-guildkit`.
+/// <summary>
+/// Bidirectional map for the DRAGONSHIELD format. Inherits the standard <see cref="PhysicalCardMap"/>
+/// shape, then patches the Set Code column where Dragon Shield diverges from Scryfall for Ravnica
+/// Guild Kits:
+/// <list type="bullet">
+///   <item><b>Read</b>: <c>GK1_*/GK2_*</c> guild-kit codes collapse to canonical gk1/gk2 via <see cref="DragonShieldCodeReadConverter"/>.</item>
+///   <item><b>Write</b>: gk1/gk2 cards re-emit Dragon Shield's proprietary <c>GK&lt;n&gt;_&lt;GUILD&gt;</c> codes
+///   (its importer ignores canonical codes and name-matches reprints onto the wrong edition; the native
+///   codes resolve correctly). The (set, collector#) → native-code table lives in
+///   <c>dragonshield-guildkit-codes.json</c>; cards not in it fall back to their canonical Scryfall code.</item>
+/// </list>
+/// The resource file is emitted by <c>tools/MtgCsvHelper.RefreshReferenceData -- dragonshield-guildkit</c>.
+/// </summary>
 public sealed class DragonShieldMap : PhysicalCardMap
 {
-	internal static readonly IReadOnlyDictionary<string, string> GuildKitCodes = LoadEmbedded("dragonshield-guildkit-codes.json");
+	internal static readonly IReadOnlyDictionary<string, string> GuildKitCodes = EmbeddedResources.LoadStringMap("dragonshield-guildkit-codes.json");
 
 	public DragonShieldMap(FormatConfig cfg, IReferenceCardCatalog catalog)
 		: base(cfg, catalog, new DragonShieldCodeReadConverter())
@@ -44,15 +45,5 @@ public sealed class DragonShieldMap : PhysicalCardMap
 			&& GuildKitCodes.TryGetValue($"{set}/{card.Printing.CollectorNumber}", out var native)
 			? native
 			: set ?? string.Empty;
-	}
-
-	static IReadOnlyDictionary<string, string> LoadEmbedded(string fileName)
-	{
-		var resourceName = $"MtgCsvHelper.Resources.{fileName}";
-		using var stream = typeof(DragonShieldMap).Assembly.GetManifestResourceStream(resourceName)
-			?? throw new InvalidOperationException($"Embedded resource '{resourceName}' not found.");
-		var raw = JsonSerializer.Deserialize<Dictionary<string, string>>(stream)
-			?? throw new InvalidOperationException($"Failed to deserialize '{resourceName}'.");
-		return new Dictionary<string, string>(raw, StringComparer.OrdinalIgnoreCase);
 	}
 }

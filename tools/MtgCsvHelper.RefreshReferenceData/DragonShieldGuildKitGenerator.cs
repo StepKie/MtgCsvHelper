@@ -6,22 +6,17 @@ using MtgCsvHelper;
 
 namespace MtgCsvHelper.RefreshReferenceData;
 
-// Generates MtgCsvHelper/Resources/dragonshield-guildkit-codes.json: a
-// (Scryfall guild-kit coordinate) -> (Dragon Shield native set code) table.
-//
-// Dragon Shield's CSV importer ignores the canonical gk1/gk2 set codes and falls back to
-// name-only matching, silently landing reprints on the wrong edition. It DOES honor its own
-// proprietary GK<n>_<GUILD> codes (GK2_AZORIU, GK1_DIMIR, ...). The guild is recoverable from
-// each printing's Scryfall `watermark` (azorius, dimir, ...), truncated to Dragon Shield's
-// 6-char form. We emit one entry per (set, collector_number) so the Dragon Shield writer can
-// look the native code up without carrying watermark on every ReferenceCard in the bundle.
-//
-// Cards with no watermark (a handful of guild-agnostic reprints — Char, Birds of Paradise, ...)
-// are skipped; the writer falls back to the canonical gk1/gk2 for those (same as today).
-//
-// Output shape: { "gk1/1": "GK1_DIMIR", "gk2/2": "GK2_AZORIU", ... }
-//
-// Usage:  dotnet run --project tools/MtgCsvHelper.RefreshReferenceData -- dragonshield-guildkit
+/// <summary>
+/// Generates <c>MtgCsvHelper/Resources/dragonshield-guildkit-codes.json</c>: a Scryfall guild-kit
+/// coordinate → Dragon Shield native set-code table. Dragon Shield's importer ignores the canonical
+/// gk1/gk2 codes and name-matches reprints onto the wrong edition, but honors its own proprietary
+/// <c>GK&lt;n&gt;_&lt;GUILD&gt;</c> codes (GK2_AZORIU, GK1_DIMIR, …). The guild comes from each printing's
+/// Scryfall <c>watermark</c>, truncated to Dragon Shield's 6-char form; we emit one entry per
+/// (set, collector_number) so the writer needn't carry watermark on every bundled card. Cards with no
+/// watermark (guild-agnostic reprints — Char, Birds of Paradise, …) are skipped, and the writer falls
+/// back to the canonical code for those. Output shape: <c>{ "gk1/1": "GK1_DIMIR", "gk2/2": "GK2_AZORIU", … }</c>.
+/// Run via <c>dotnet run --project tools/MtgCsvHelper.RefreshReferenceData -- dragonshield-guildkit</c>.
+/// </summary>
 internal static class DragonShieldGuildKitGenerator
 {
 	// Dragon Shield truncates the guild name to 6 chars (azorius -> AZORIU, selesnya -> SELESN).

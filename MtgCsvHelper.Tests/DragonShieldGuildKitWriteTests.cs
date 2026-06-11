@@ -3,10 +3,12 @@ using ScryfallApi.Client.Models;
 
 namespace MtgCsvHelper.Tests;
 
-// Write side of the guild-kit fix: exporting gk1/gk2 cards to Dragon Shield must emit its
-// proprietary GK<n>_<GUILD> codes, since Dragon Shield's importer ignores the canonical codes and
-// name-matches reprints onto the wrong edition. Read side (GK<n>_<GUILD> -> gk1/gk2) is covered by
-// DragonShieldCodeReadConverterTests.
+/// <summary>
+/// Write side of the guild-kit fix: exporting gk1/gk2 cards to Dragon Shield must emit its
+/// proprietary <c>GK&lt;n&gt;_&lt;GUILD&gt;</c> codes, since Dragon Shield's importer ignores the
+/// canonical codes and name-matches reprints onto the wrong edition. Read side
+/// (<c>GK&lt;n&gt;_&lt;GUILD&gt;</c> → gk1/gk2) is covered by <see cref="DragonShieldCodeReadConverterTests"/>.
+/// </summary>
 [Collection(CatalogCollection.Name)]
 public class DragonShieldGuildKitWriteTests(CatalogFixture fixture, ITestOutputHelper output) : ApiBaseTest(fixture, output)
 {
@@ -54,8 +56,7 @@ public class DragonShieldGuildKitWriteTests(CatalogFixture fixture, ITestOutputH
 	[Fact]
 	public void WatermarkLessGuildKitCard_FallsBackToCanonical()
 	{
-		// Birds of Paradise (gk2 #82) is a guild-agnostic reprint with no Scryfall watermark, so it
-		// isn't in the table — the writer falls back to the canonical code rather than guessing a guild.
+		// Birds of Paradise (gk2 #82) has no Scryfall watermark, so it falls back to the canonical code.
 		var csv = WriteDragonShield(Card("Birds of Paradise", "GK2", "82"));
 
 		csv.Should().Contain(",GK2,").And.NotContain("GK2_");

@@ -1,4 +1,3 @@
-using System.Text.Json;
 using MtgCsvHelper.Converters;
 using ScryfallApi.Client.Models;
 
@@ -19,8 +18,8 @@ namespace MtgCsvHelper.Maps;
 // Both resource files are emitted by `tools/MtgCsvHelper.RefreshReferenceData -- deckbox-aliases`.
 public class DeckboxMap : PhysicalCardMap
 {
-	internal static readonly IReadOnlyDictionary<string, string> SetCodeToDeckboxName = LoadEmbedded("deckbox-set-aliases.json");
-	internal static readonly IReadOnlyDictionary<string, string> DeckboxCodeToScryfallCode = LoadEmbedded("deckbox-code-aliases.json");
+	internal static readonly IReadOnlyDictionary<string, string> SetCodeToDeckboxName = EmbeddedResources.LoadStringMap("deckbox-set-aliases.json");
+	internal static readonly IReadOnlyDictionary<string, string> DeckboxCodeToScryfallCode = EmbeddedResources.LoadStringMap("deckbox-code-aliases.json");
 
 	public DeckboxMap(FormatConfig cfg, IReferenceCardCatalog catalog) : base(cfg, catalog)
 	{
@@ -71,15 +70,5 @@ public class DeckboxMap : PhysicalCardMap
 			Map(c => c.Printing.Set).Name(cfg.SetCode).Optional()
 				.TypeConverter(new DeckboxCodeReadConverter(DeckboxCodeToScryfallCode));
 		}
-	}
-
-	static IReadOnlyDictionary<string, string> LoadEmbedded(string fileName)
-	{
-		var resourceName = $"MtgCsvHelper.Resources.{fileName}";
-		using var stream = typeof(DeckboxMap).Assembly.GetManifestResourceStream(resourceName)
-			?? throw new InvalidOperationException($"Embedded resource '{resourceName}' not found.");
-		var raw = JsonSerializer.Deserialize<Dictionary<string, string>>(stream)
-			?? throw new InvalidOperationException($"Failed to deserialize '{resourceName}'.");
-		return new Dictionary<string, string>(raw, StringComparer.OrdinalIgnoreCase);
 	}
 }
