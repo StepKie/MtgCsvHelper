@@ -82,6 +82,7 @@ What our writer emits per coordinate:
 
 Known results so far (from prior round-trips logged in [`../Tests/SITE_BEHAVIOR.md`](../Tests/SITE_BEHAVIOR.md)):
 
-- **DragonShield demangles The List**: `plst` rows re-export as the original printing (Demonic Tutor PLST DDC-49 → DVD #49). The card survives but the coordinate normalizes away from `plst` and can't round-trip back.
-- **DragonShield guild kits**: the canonical `gk2` name-matches onto the wrong edition; the native `GK2_AZORIU` we now emit resolves correctly.
-- **Moxfield / Manabox / TopDecked / Archidekt** carry `plst` + `<origset>-<num>` natively in real exports, so The List resolves there. Secret Lair / MB2 / playtest acceptance is unverified.
+- **DragonShield honors MB2 / SLD / CMB1 under canonical codes** (June 2026 full canonical round-trip): Mystery Booster 2, Secret Lair, and playtest cards all re-exported on the correct printing. Guild kits are the *only* special product DragonShield mis-resolves under canonical codes — so no per-product native-code table is needed beyond guild kits.
+- **DragonShield demangles The List**: `plst` rows re-export as the original printing (Demonic Tutor PLST DDC-49 → DVD #49). The card survives but the coordinate normalizes away from `plst` and can't round-trip back — unfixable, DragonShield has no The List concept.
+- **DragonShield guild kits**: the canonical `gk2` name-matches onto the wrong edition (Isperia GK2 #1 → Return to Ravnica #171); the native `GK2_AZORIU` we now emit resolves correctly.
+- **Moxfield / Manabox / TopDecked / Archidekt** carry `plst` + `<origset>-<num>` natively in real exports, so The List resolves there. Secret Lair / MB2 / playtest acceptance on those sites is unverified.
