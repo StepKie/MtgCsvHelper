@@ -13,22 +13,20 @@ public class FaultToleranceTests(CatalogFixture fixture, ITestOutputHelper outpu
 	MtgCardCsvHandler Handler(string format = "MOXFIELD") => new(_catalog, _resolver, _config, format);
 
 	[Fact]
-	public void UnknownSetCode_RaisesError_RowDropped()
+	public void UnknownSetCode_WithValidName_RewrittenByName()
 	{
-		// "FAKESET" is not a real Scryfall set code — EnrichSetInfo warns it can't backfill
-		// the set name, then the catalog-validation step errors out because (FAKESET, 149)
-		// doesn't resolve to any printing. Net effect: 1 warning + 1 error, card dropped.
+		// "FAKESET" doesn't resolve by coordinate; the valid name "Lightning Bolt" rewrites it to a real printing (Warning), not dropped.
 		var csv = MoxHeader + "\n"
 			+ "1,Lightning Bolt,FAKESET,149,,Near Mint,English,\n";
 
 		var result = Handler().ParseCollectionCsv(CsvStream(csv));
 
-		result.Collection.Cards.Should().BeEmpty();
-		result.ErrorCount.Should().Be(1);
-		result.Issues.Should().Contain(i => i.Severity == IssueSeverity.Warning && i.Reason.Contains("FAKESET"));
-		result.Issues.Should().Contain(i => i.Severity == IssueSeverity.Error && i.Reason.Contains("FAKESET"));
-		// RawContent must be threaded from the parse loop through both the SetInfoEnricher
-		// warning and the CatalogValidator error so the UI can show the offending row.
+		result.ErrorCount.Should().Be(0);
+		var printing = result.Collection.Cards.Should().ContainSingle().Which.Printing;
+		printing.Name.Should().Be("Lightning Bolt");
+		printing.Set.Should().NotBe("FAKESET", because: "the stale set code is rewritten to a real printing");
+		result.Issues.Should().Contain(i => i.Severity == IssueSeverity.Warning);
+		// RawContent must be threaded from the parse loop through the issues so the UI can show the row.
 		result.Issues.Should().AllSatisfy(i => i.RawContent.Should().Contain("Lightning Bolt").And.Contain("FAKESET"));
 	}
 
@@ -76,18 +74,19 @@ public class FaultToleranceTests(CatalogFixture fixture, ITestOutputHelper outpu
 	}
 
 	[Fact]
-	public void SetAndCollectorNotInCatalog_RaisesError_RowDropped()
+	public void SetAndCollectorNotInCatalog_WithValidName_RewrittenByName()
 	{
-		// M11 has 249 cards. #9999 doesn't exist.
+		// M11 #9999 doesn't exist; the valid name "Lightning Bolt" rewrites it to a real printing (Warning), not dropped.
 		var csv = MoxHeader + "\n"
 			+ "1,Lightning Bolt,M11,9999,,Near Mint,English,\n";
 
 		var result = Handler().ParseCollectionCsv(CsvStream(csv));
 
-		result.Collection.Cards.Should().BeEmpty();
-		result.ErrorCount.Should().Be(1);
-		result.Issues[0].Reason.Should().Contain("No printing").And.Contain("M11").And.Contain("9999");
-		result.Issues[0].RawContent.Should().Contain("9999");
+		result.ErrorCount.Should().Be(0);
+		result.Collection.Cards.Should().ContainSingle().Which.Printing.Name.Should().Be("Lightning Bolt");
+		var warning = result.Issues.Should().ContainSingle(i => i.Severity == IssueSeverity.Warning).Which;
+		warning.Reason.Should().Contain("No printing").And.Contain("M11").And.Contain("9999");
+		warning.RawContent.Should().Contain("9999");
 	}
 
 	[Fact]

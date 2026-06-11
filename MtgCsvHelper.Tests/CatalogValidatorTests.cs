@@ -98,4 +98,25 @@ public class CatalogValidatorTests(CatalogFixture fixture)
 		kept.Should().BeEmpty();
 		issues.Should().ContainSingle().Which.Severity.Should().Be(IssueSeverity.Error);
 	}
+
+	// MB1 was folded into The List (MB1 #62 → plst #AER-13), so the row is rewritten to the successor printing, not dropped.
+	[Fact]
+	public async Task StaleSetCode_RewrittenToSuccessorPrinting_WithWarning()
+	{
+		var (kept, issues) = await Validate(Row("Countless Gears Renegade", "MB1", "62"));
+
+		var printing = kept.Should().ContainSingle().Which.Card.Printing;
+		printing.Set.Should().Be("PLST", because: "MB1 is a retired alias for The List");
+		printing.CollectorNumber.Should().Be("AER-13");
+		issues.Should().ContainSingle().Which.Severity.Should().Be(IssueSeverity.Warning);
+	}
+
+	[Fact]
+	public async Task UnresolvableBySetNumberAndName_StillErrors()
+	{
+		var (kept, issues) = await Validate(Row("Nonexistent Phantasm Qzx", "MB1", "62"));
+
+		kept.Should().BeEmpty();
+		issues.Should().ContainSingle().Which.Severity.Should().Be(IssueSeverity.Error);
+	}
 }

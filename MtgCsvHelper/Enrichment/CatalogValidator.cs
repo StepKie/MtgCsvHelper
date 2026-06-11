@@ -26,10 +26,27 @@ public sealed class CatalogValidator(IReferenceCardCatalog catalog) : PerCardEnr
 		var match = catalog.FindBySetAndCollectorNumber(p.Set, p.CollectorNumber);
 		if (match is null)
 		{
-			issues.Add(new ImportIssue(IssueSeverity.Error, row.RowNumber,
-				$"No printing at {p.Set} #{p.CollectorNumber} in Scryfall data",
+			// A stale (set, #) coordinate (e.g. a retired set code): rewrite to the current printing by name so the output stays importable.
+			var resolved = catalog.ResolveStalePrinting(p.Name, p.Set);
+			if (resolved is null)
+			{
+				issues.Add(new ImportIssue(IssueSeverity.Error, row.RowNumber,
+					$"No printing at {p.Set} #{p.CollectorNumber} in Scryfall data",
+					CardName: p.Name, RawContent: row.RawContent));
+				return false;
+			}
+
+			issues.Add(new ImportIssue(IssueSeverity.Warning, row.RowNumber,
+				$"No printing at {p.Set} #{p.CollectorNumber} in Scryfall data; rewritten to {resolved.Set} #{resolved.CollectorNumber}",
 				CardName: p.Name, RawContent: row.RawContent));
-			return false;
+
+			p.Name = resolved.Name;
+			p.Set = resolved.Set;
+			p.SetName = resolved.SetName;
+			p.CollectorNumber = resolved.CollectorNumber;
+			row = row with { Card = row.Card with { Rarity = resolved.Rarity } };
+
+			return true;
 		}
 
 		if (!EqualsNormalized(p.Name, match.Name))

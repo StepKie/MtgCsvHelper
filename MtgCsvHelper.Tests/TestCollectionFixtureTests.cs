@@ -56,13 +56,13 @@ public class TestCollectionFixtureTests(CatalogFixture fixture, ITestOutputHelpe
 	/// <summary>
 	/// Fixtures with documented site-specific divergence from Scryfall. The listed error count is
 	/// expected; the mixed-assertion still forbids silent drops (cards + errors == data rows).
-	/// Deckbox's remaining errors are collector-number divergences in legacy sets — it numbers old
-	/// reprint products (The List, Alpha, Alliances, Ultimate Box Toppers) differently from Scryfall;
-	/// its set-name and edition-code aliasing (EX_NN tokens, PP_NEO promos, 1E/AL/PLIST codes) is handled.
+	/// Most of Deckbox's legacy-set reprints (The List, Alliances, Box Toppers) now recover via the
+	/// stale-coordinate name rewrite. The one remaining error is an Alpha collector-number divergence:
+	/// Deckbox's Alpha #13 aliases to LEA #13, which is a different card, so the name can't match the coordinate.
 	/// </summary>
 	static readonly IReadOnlyDictionary<string, (int ExpectedErrors, string Divergence)> KnownDivergence = new Dictionary<string, (int, string)>
 	{
-		["deckbox-real-export.csv"] = (ExpectedErrors: 5, Divergence: "legacy-set collector-number divergences"),
+		["deckbox-real-export.csv"] = (ExpectedErrors: 1, Divergence: "legacy-set collector-number divergences"),
 	};
 
 	[Theory]

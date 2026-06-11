@@ -17,6 +17,14 @@ public interface IReferenceCardCatalog
 	ReferenceCard? FindBySetAndCollectorNumber(string setCode, string collectorNumber);
 
 	/// <summary>
+	/// Resolves a card whose (set, collector#) coordinate no longer exists, returning the printing
+	/// to rewrite it to so the output stays importable. Prefers the successor set a retired code now
+	/// aliases to (e.g. Mystery Booster MB1 → The List), falling back to any printing of the name.
+	/// Null if the name isn't in the catalog at all.
+	/// </summary>
+	ReferenceCard? ResolveStalePrinting(string name, string staleSetCode);
+
+	/// <summary>
 	/// Distinct sets present in the catalog. Keys are uppercase set codes (e.g. "ISD"),
 	/// values are mixed-case set names as Scryfall delivers them (e.g. "Innistrad").
 	/// </summary>
