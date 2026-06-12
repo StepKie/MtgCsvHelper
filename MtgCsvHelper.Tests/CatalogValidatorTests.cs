@@ -108,6 +108,7 @@ public class CatalogValidatorTests(CatalogFixture fixture)
 		var printing = kept.Should().ContainSingle().Which.Card.Printing;
 		printing.Set.Should().Be("PLST", because: "MB1 is a retired alias for The List");
 		printing.CollectorNumber.Should().Be("AER-13");
+		printing.Id.Should().NotBe(Guid.Empty, because: "the stale-rewrite path backfills the resolved printing's Scryfall id");
 		issues.Should().ContainSingle().Which.Severity.Should().Be(IssueSeverity.Warning);
 	}
 

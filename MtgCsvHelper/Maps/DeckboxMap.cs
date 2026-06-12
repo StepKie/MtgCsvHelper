@@ -42,7 +42,7 @@ public class DeckboxMap : PhysicalCardMap
 				?? throw new InvalidOperationException($"Expected SetName MemberMap in Printing reference for '{cfg.Name}' (header '{cfg.SetName}').");
 			printingRef.Data.Mapping.MemberMaps.Remove(existing);
 
-			Map(c => c.Printing.SetName).Name(cfg.SetName).Optional()
+			Map(c => c.Printing.SetName).Name(cfg.SetName).Index(5).Optional()
 				.Convert(args =>
 				{
 					var card = args.Value;
@@ -67,7 +67,7 @@ public class DeckboxMap : PhysicalCardMap
 				?? throw new InvalidOperationException($"Expected SetCode MemberMap in Printing reference for '{cfg.Name}' (header '{cfg.SetCode}').");
 			printingRef.Data.Mapping.MemberMaps.Remove(existing);
 
-			Map(c => c.Printing.Set).Name(cfg.SetCode).Optional()
+			Map(c => c.Printing.Set).Name(cfg.SetCode).Index(4).Optional()
 				.TypeConverter(new DeckboxCodeReadConverter(DeckboxCodeToScryfallCode));
 		}
 	}

@@ -43,6 +43,9 @@ public class PhysicalCardMap : ClassMap<PhysicalMtgCard>
 		MapOptional(c => c.Printing.SetName, cfg.SetName)?.Index(5);
 		MapOptional(c => c.Printing.CollectorNumber, cfg.SetNumber)?.TypeConverter<CollectorNumberConverter>().Index(6);
 
+		// Printing.Id is a non-nullable Guid, so it can't go through MapOptional (which expects a nullable member).
+		if (cfg.ScryfallId is not null) { Map(c => c.Printing.Id).Name(cfg.ScryfallId).TypeConverter<ScryfallIdConverter>().Index(12).Optional(); }
+
 		MapOptional(c => c.Condition, cfg.Condition, c => new CardConditionConverter(c))?.Index(7);
 		MapOptional(c => c.Finish, cfg.Finish, c => new FinishConverter(c))?.Index(8);
 		MapOptional(c => c.Language, cfg.Language, c => new LanguageConverter(c))?.Index(9);

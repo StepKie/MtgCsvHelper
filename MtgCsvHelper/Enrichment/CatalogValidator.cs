@@ -9,7 +9,7 @@ namespace MtgCsvHelper.Enrichment;
 /// claims an unsupported finish. Named "Validator" rather than "Enricher" because it mainly
 /// checks-and-drops; its only mutations are the issues collection, canonicalizing the
 /// name of a short-named or front-face-ambiguous double-faced card to the resolved printing,
-/// and backfilling Rarity from the resolved printing (no import format feeds it).
+/// and backfilling Rarity and the Scryfall Id from the resolved printing.
 /// </summary>
 public sealed class CatalogValidator(IReferenceCardCatalog catalog) : PerCardEnricher
 {
@@ -40,6 +40,7 @@ public sealed class CatalogValidator(IReferenceCardCatalog catalog) : PerCardEnr
 				$"No printing at {p.Set} #{p.CollectorNumber} in Scryfall data; rewritten to {resolved.Set} #{resolved.CollectorNumber}",
 				CardName: p.Name, RawContent: row.RawContent));
 
+			p.Id = resolved.Id;
 			p.Name = resolved.Name;
 			p.Set = resolved.Set;
 			p.SetName = resolved.SetName;
@@ -70,6 +71,7 @@ public sealed class CatalogValidator(IReferenceCardCatalog catalog) : PerCardEnr
 			return false;
 		}
 
+		p.Id = match.Id;
 		row = row with { Card = row.Card with { Rarity = match.Rarity } };
 
 		return true;
