@@ -1,3 +1,4 @@
+using CsvHelper.Configuration;
 using MtgCsvHelper.Converters;
 using MtgCsvHelper.Models;
 
@@ -5,7 +6,8 @@ namespace MtgCsvHelper.Maps;
 
 /// <summary>
 /// Bidirectional map for the DRAGONSHIELD format. Inherits the standard <see cref="PhysicalCardMap"/>
-/// shape, then handles Ravnica Guild Kits, which DragonShield splits into per-guild editions:
+/// shape and customizes two columns via the Configure* hooks, for Ravnica Guild Kits (which DragonShield
+/// splits into per-guild editions):
 /// <list type="bullet">
 ///   <item><b>Read</b>: the <c>GK1_*/GK2_*</c> set codes DragonShield exports collapse to canonical gk1/gk2 via <see cref="DragonShieldCodeReadConverter"/>.</item>
 ///   <item><b>Write</b>: DragonShield resolves imports by Set <em>Name</em>, not Set Code, so guild-kit cards
@@ -19,21 +21,15 @@ public sealed class DragonShieldMap : PhysicalCardMap
 {
 	internal static readonly IReadOnlyDictionary<string, string> GuildKitEditions = EmbeddedResources.LoadStringMap("dragonshield-guildkit-editions.json");
 
-	public DragonShieldMap(FormatConfig cfg, IReferenceCardCatalog catalog)
-		: base(cfg, catalog, new DragonShieldCodeReadConverter())
-	{
-		// Patch Set Name with a whole-card write Convert — a per-cell converter can't see the collector number the guild lookup needs (same surgery as DeckboxMap).
-		if (cfg.SetName is null) { return; }
+	public DragonShieldMap(FormatConfig cfg, IReferenceCardCatalog catalog) : base(cfg, catalog) { }
 
-		var printingRef = ReferenceMaps.FirstOrDefault(r => r.Data.Member?.Name == nameof(PhysicalMtgCard.Printing))
-			?? throw new InvalidOperationException($"Expected `Printing` ReferenceMap from base PhysicalCardMap for '{cfg.Name}'.");
-		var existing = printingRef.Data.Mapping.MemberMaps.FirstOrDefault(m => m.Data.Names.Contains(cfg.SetName))
-			?? throw new InvalidOperationException($"Expected Set Name MemberMap in Printing reference for '{cfg.Name}' (header '{cfg.SetName}').");
-		printingRef.Data.Mapping.MemberMaps.Remove(existing);
+	/// <summary>Read side: collapse the proprietary <c>GK1_*/GK2_*</c> set codes to canonical gk1/gk2.</summary>
+	protected override void ConfigureSetCode(MemberMap<PhysicalMtgCard, string> map) =>
+		map.TypeConverter(new DragonShieldCodeReadConverter());
 
-		Map(c => c.Printing.SetName).Name(cfg.SetName).Index(5).Optional()
-			.Convert(args => ToGuildKitEdition(args.Value));
-	}
+	/// <summary>Write side: emit the native per-guild <c>Guild Kit: &lt;Guild&gt;</c> edition for gk1/gk2 cards; else the canonical set name.</summary>
+	protected override void ConfigureSetName(MemberMap<PhysicalMtgCard, string> map) =>
+		map.Convert(args => ToGuildKitEdition(args.Value));
 
 	/// <summary>gk1/gk2 cards get DragonShield's per-guild <c>Guild Kit: &lt;Guild&gt;</c> edition; everything else keeps its set name.</summary>
 	static string ToGuildKitEdition(PhysicalMtgCard card)

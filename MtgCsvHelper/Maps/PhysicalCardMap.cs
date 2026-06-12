@@ -10,7 +10,7 @@ namespace MtgCsvHelper.Maps;
 // so the body reads as a flat list of mappings rather than a forest of null checks.
 public class PhysicalCardMap : ClassMap<PhysicalMtgCard>
 {
-	public PhysicalCardMap(FormatConfig cfg, IReferenceCardCatalog catalog, ITypeConverter? setCodeConverter = null)
+	public PhysicalCardMap(FormatConfig cfg, IReferenceCardCatalog catalog)
 	{
 		// Explicit indices override CsvHelper's clustering of nested-member maps
 		// (Printing.Name, Printing.Set, …) — registration order alone interleaves
@@ -39,8 +39,10 @@ public class PhysicalCardMap : ClassMap<PhysicalMtgCard>
 		// At least one of SetCode / SetName is expected per format (sites differ on which they include).
 		// CollectorNumberConverter is applied universally (not MTGO-specific) — it's a no-op for any
 		// collector number without a "/", and "/" doesn't appear in Scryfall data.
-		MapOptional(c => c.Printing.Set, cfg.SetCode)?.TypeConverter(setCodeConverter ?? new UpperCaseConverter()).Index(4);
-		MapOptional(c => c.Printing.SetName, cfg.SetName)?.Index(5);
+		var setCodeMap = MapOptional(c => c.Printing.Set, cfg.SetCode);
+		if (setCodeMap is not null) { ConfigureSetCode(setCodeMap.Index(4)); }
+		var setNameMap = MapOptional(c => c.Printing.SetName, cfg.SetName);
+		if (setNameMap is not null) { ConfigureSetName(setNameMap.Index(5)); }
 		MapOptional(c => c.Printing.CollectorNumber, cfg.SetNumber)?.TypeConverter<CollectorNumberConverter>().Index(6);
 
 		// Printing.Id is a non-nullable Guid, so it can't go through MapOptional (which expects a nullable member).
@@ -57,6 +59,12 @@ public class PhysicalCardMap : ClassMap<PhysicalMtgCard>
 				.TypeConverterOption.Format(cfg.DateBought.FormatsOrDefault);
 		}
 	}
+
+	/// <summary>Configures the Set Code column; default uppercases the canonical Scryfall code. Override to swap the read converter for formats with proprietary codes (Deckbox, Dragon Shield).</summary>
+	protected virtual void ConfigureSetCode(MemberMap<PhysicalMtgCard, string> map) => map.TypeConverter<UpperCaseConverter>();
+
+	/// <summary>Configures the Set Name column; default is pass-through. Override to emit a format's curated edition names (Deckbox aliases, Dragon Shield guild kits).</summary>
+	protected virtual void ConfigureSetName(MemberMap<PhysicalMtgCard, string> map) { }
 
 	MemberMap<PhysicalMtgCard, TMember>? MapOptional<TMember>(
 		Expression<Func<PhysicalMtgCard, TMember?>> property,
