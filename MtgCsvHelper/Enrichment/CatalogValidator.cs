@@ -4,9 +4,11 @@ using System.Text;
 namespace MtgCsvHelper.Enrichment;
 
 /// <summary>
-/// The one validator in the post-parse pipeline. Drops rows whose (Set, CollectorNumber)
-/// doesn't resolve, whose Name doesn't match the resolved printing, or whose Finish
-/// claims an unsupported finish. Named "Validator" rather than "Enricher" because it mainly
+/// The one validator in the post-parse pipeline. Resolves each row to a catalog printing — by the
+/// Scryfall id when the row carries one (authoritative; survives sites that reshape collector
+/// numbers), else by (Set, CollectorNumber). Drops rows that don't resolve, whose Name doesn't match
+/// the resolved printing, or whose Finish claims an unsupported finish.
+/// Named "Validator" rather than "Enricher" because it mainly
 /// checks-and-drops; its only mutations are the issues collection, canonicalizing the
 /// name of a short-named or front-face-ambiguous double-faced card to the resolved printing,
 /// and backfilling Rarity and the Scryfall Id from the resolved printing.
@@ -21,6 +23,22 @@ public sealed class CatalogValidator(IReferenceCardCatalog catalog) : PerCardEnr
 		// stubs that a later enricher will fill in (Cardmarket); validating now would error
 		// on data that isn't actually broken.
 		if (string.IsNullOrEmpty(p.Name)) { return true; }
+
+		// A populated Scryfall id pins the exact printing — trust it over (Set, #), which some sites reshape on export.
+		if (p.Id != Guid.Empty && catalog.FindById(p.Id) is { } byId)
+		{
+			if (FinishUnavailable(row, byId, issues)) { return false; }
+
+			// The id is the identity; adopt its name outright — no mismatch guard like the (set, #) path runs.
+			p.Name = byId.Name;
+			p.Set = byId.Set;
+			p.SetName = byId.SetName;
+			p.CollectorNumber = byId.CollectorNumber;
+			row = row with { Card = row.Card with { Rarity = byId.Rarity } };
+
+			return true;
+		}
+
 		if (string.IsNullOrEmpty(p.Set) || string.IsNullOrEmpty(p.CollectorNumber)) { return true; }
 
 		var match = catalog.FindBySetAndCollectorNumber(p.Set, p.CollectorNumber);
@@ -63,13 +81,7 @@ public sealed class CatalogValidator(IReferenceCardCatalog catalog) : PerCardEnr
 			p.Name = match.Name;
 		}
 
-		if ((row.Card.Finish is CardFinish.Foil or CardFinish.Etched) && !HasFoilFinish(match.Finishes))
-		{
-			issues.Add(new ImportIssue(IssueSeverity.Error, row.RowNumber,
-				$"Printing {p.Set} #{p.CollectorNumber} was not released in foil",
-				CardName: p.Name, RawContent: row.RawContent));
-			return false;
-		}
+		if (FinishUnavailable(row, match, issues)) { return false; }
 
 		p.Id = match.Id;
 		row = row with { Card = row.Card with { Rarity = match.Rarity } };
@@ -99,6 +111,18 @@ public sealed class CatalogValidator(IReferenceCardCatalog catalog) : PerCardEnr
 			if (CharUnicodeInfo.GetUnicodeCategory(c) != UnicodeCategory.NonSpacingMark) { sb.Append(c); }
 		}
 		return sb.ToString();
+	}
+
+	/// <summary>A foil/etched mark on a printing never released in that finish is a site data conflict; records an error and signals the row should drop.</summary>
+	static bool FinishUnavailable(ParsedRow row, ReferenceCard printing, ICollection<ImportIssue> issues)
+	{
+		if (row.Card.Finish is not (CardFinish.Foil or CardFinish.Etched) || HasFoilFinish(printing.Finishes)) { return false; }
+
+		issues.Add(new ImportIssue(IssueSeverity.Error, row.RowNumber,
+			$"Printing {printing.Set} #{printing.CollectorNumber} was not released in foil",
+			CardName: printing.Name, RawContent: row.RawContent));
+
+		return true;
 	}
 
 	static bool HasFoilFinish(IReadOnlyList<string> finishes) =>

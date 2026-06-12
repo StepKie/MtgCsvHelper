@@ -56,14 +56,12 @@ public class TestCollectionFixtureTests(CatalogFixture fixture, ITestOutputHelpe
 	/// <summary>
 	/// Fixtures with documented site-specific divergence from Scryfall. The listed error count is
 	/// expected; the mixed-assertion still forbids silent drops (cards + errors == data rows).
-	/// Most of Deckbox's legacy-set reprints (The List, Alliances, Box Toppers) now recover via the
-	/// stale-coordinate name rewrite. The one remaining error is an Alpha collector-number divergence:
-	/// Deckbox's Alpha #13 aliases to LEA #13, which is a different card, so the name can't match the coordinate.
+	/// Currently empty: every real export round-trips cleanly. The last holdout was Deckbox's Alpha #13
+	/// (Demonic Tutor) — Deckbox numbers Alpha by its own scheme, so the coordinate aliases to lea #13
+	/// (Circle of Protection: White), a different card. Scryfall-ID resolution now pins it to lea #104.
+	/// The map stays as the place to document any future divergence a site exports without a usable id.
 	/// </summary>
-	static readonly IReadOnlyDictionary<string, (int ExpectedErrors, string Divergence)> KnownDivergence = new Dictionary<string, (int, string)>
-	{
-		["deckbox-real-export.csv"] = (ExpectedErrors: 1, Divergence: "legacy-set collector-number divergences"),
-	};
+	static readonly IReadOnlyDictionary<string, (int ExpectedErrors, string Divergence)> KnownDivergence = new Dictionary<string, (int, string)>();
 
 	[Theory]
 	[MemberData(nameof(CorrectFixtures))]
