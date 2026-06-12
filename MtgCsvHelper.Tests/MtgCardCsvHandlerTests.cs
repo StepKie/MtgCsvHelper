@@ -50,6 +50,21 @@ public class MtgCardCsvHandlerTests(CatalogFixture fixture, ITestOutputHelper ou
 			["DECKBOX"] = new Dictionary<CardFinish, CardFinish> { [CardFinish.Etched] = CardFinish.Foil },
 		};
 
+	/// <summary>
+	/// The canonical printings the field-fidelity fixtures are built from — the Ambitious Farmhand
+	/// language/condition block plus the two tokens. <see cref="ParseSampleCsv_WithValidInput_ParsesCards"/>
+	/// asserts a true bijection against exactly the master rows for these (Name, Set, CollectorNumber)
+	/// printings, so a language- or condition-twin mis-parse fails instead of silently matching a
+	/// different row that shares every other field. All five fixtures share this coverage today; split
+	/// this per-fixture if one ever diverges.
+	/// </summary>
+	static readonly HashSet<(string? Name, string? Set, string? CollectorNumber)> FieldFidelityPrintings =
+	[
+		("Ambitious Farmhand // Seasoned Cathar", "MID", "2"),
+		("Clue", "TMH2", "14"),
+		("Food", "TLTR", "10"),
+	];
+
 	[Theory]
 	[MemberData(nameof(RoundTrippableFormats))]
 	public void ReferenceCollection_RoundTripsThroughFormat(string format)
@@ -137,15 +152,18 @@ public class MtgCardCsvHandlerTests(CatalogFixture fixture, ITestOutputHelper ou
 		// Arrange
 		MtgCardCsvHandler handler = CreateHandler(deckFormatName);
 		IList<PhysicalMtgCard> expectedCards = CanonicalReference.LoadCards(_config, _catalog, _resolver, Currency.FromString(currency));
+		var expectedSubset = expectedCards
+			.Where(c => FieldFidelityPrintings.Contains((c.Printing.Name, c.Printing.Set, c.Printing.CollectorNumber)))
+			.ToList();
 
 		// Act
 		var result = handler.ParseCollectionCsv(csvFilePath);
 		IList<PhysicalMtgCard> cards = result.Collection.Cards;
 
-		// Assert — every data row parses into a canonical card: no errors, no silent drops
+		// Assert — every data row parses into its exact canonical twin: no errors, no silent drops
 		result.ErrorCount.Should().Be(0, $"every field-fidelity row must parse. Issues: {string.Join("; ", result.Issues.Select(i => i.Reason))}");
 		cards.Should().HaveCount(CsvFixture.CountDataRows(csvFilePath), "no data row may be silently dropped");
-		cards.Should().AllSatisfy(c => expectedCards.Should().ContainEquivalentOf(c));
+		cards.Should().BeEquivalentTo(expectedSubset, "each row must parse to its exact canonical twin — matching Language and Condition — not merely some card sharing the other fields");
 	}
 
 	[Theory]
