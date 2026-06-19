@@ -83,7 +83,7 @@ jobs:
             - Suggestions to expand same-line braced guards (`if (cond) { return; }`) to multi-line Allman. We accept the one-liner form.
             - Multi-line `///` xmldoc summaries on types or methods. The one-line cap applies to inline `//` comments only; doc comments may span multiple lines.
 
-            Use inline comments for specific issues. ${{ github.event.action == 'opened' && 'Add a single summary comment with the overall assessment.' || 'Do NOT post a summary / overall-assessment comment — this is a re-review on push and the initial review already has one; another summary would duplicate it. Focus on issues introduced by the new commits.' }}
+            Use inline comments for specific issues. ${{ github.event.action == 'opened' && 'Add a single summary comment with the overall assessment.' || 'Do NOT post a summary / overall-assessment comment — this is a re-review on push and the initial review already has one; another summary would duplicate it. Focus on issues introduced by the new commits. Before commenting, read the existing PR review comments via `gh pr view --comments`; do not re-raise a point already raised in an earlier review — raise it again only if a new commit fails to resolve it, and flag it as a follow-up.' }}
             You are running in CI with no interactive user — never call AskUserQuestion. If a
             tool you need is not allowed, post a single comment via `gh pr comment` explaining
             what's blocked, then stop.
