@@ -6,9 +6,29 @@ Unreleased work targets the next minor version once a coherent feature set is re
 
 ## [Unreleased]
 
+## [1.5.0] — 2026-07-03
+
 ### Added
 
 - **TCGplayer variant names on export** ([#23](https://github.com/StepKie/MtgCsvHelper/issues/23)). Borderless / Showcase / Extended Art printings now get TCGplayer's parenthetical suffix appended to a `Name` column (`Orcish Bowmasters (Borderless)`), so TCGplayer's name-matching importer resolves the correct printing instead of the default one; `Simple Name` stays plain. Derived from the bundled catalog's `border_color` / `frame_effects` — no extra lookups. (Pending verification against a real TCGplayer import; foil treatments and Retro Frame are follow-ups.)
+
+### Fixed
+
+- **Foreign-language and retired-set-code imports are no longer dropped** ([#92](https://github.com/StepKie/MtgCsvHelper/issues/92), [#103](https://github.com/StepKie/MtgCsvHelper/issues/103)). Rows whose `(Set, Collector#)` coordinate isn't in the Scryfall catalog — foreign-language reprints (Italian Legends and The Dark, Foreign White/Black Border) and retired set codes — are now rewritten by card name to an importable printing and kept, with a Warning noting the rewrite, instead of being skipped as errors. The rewritten printing is the catalog's default (usually the English one), so the foreign-language identity is not preserved.
+- **Cards resolve by Scryfall ID when the source CSV carries one** ([#127](https://github.com/StepKie/MtgCsvHelper/issues/127), [#130](https://github.com/StepKie/MtgCsvHelper/issues/130)). Manabox and Topdecked exports include a Scryfall ID column; it is now trusted ahead of `(Set, Collector#)` — which some sites reshape on export — pinning the exact printing and its canonical name, set, and rarity.
+- **Double-faced and reversible card names no longer mismatch** ([#94](https://github.com/StepKie/MtgCsvHelper/issues/94)). A front-face-only import (`Mountain`) or a same-name reversible printing now matches the full Scryfall name (`Mountain // Mountain`) and is canonicalized, instead of being dropped as a name mismatch.
+- **DragonShield guild-kit set names, DragonShield Simplified Chinese, and Deckbox etched finish** ([#104](https://github.com/StepKie/MtgCsvHelper/issues/104), [#126](https://github.com/StepKie/MtgCsvHelper/issues/126)). Guild-kit set names now round-trip, the Simplified Chinese language code maps correctly, and Deckbox etched printings are recognized.
+
+### Changed
+
+- **Tri-state card finish (normal / foil / etched)** ([#68](https://github.com/StepKie/MtgCsvHelper/issues/68)). Replaces the previous boolean foil flag, so etched printings round-trip through formats that support an etched tier and degrade to foil in those that don't.
+- **Stricter condition vocabulary** ([#69](https://github.com/StepKie/MtgCsvHelper/issues/69)). An unmapped condition string is now rejected with an explicit error instead of being silently accepted.
+- **Exporter-decorated names are accepted** (PR [#113](https://github.com/StepKie/MtgCsvHelper/pull/113)). A name that extends the canonical printing name (`Beast Token (4/4)`, `Morph Creature`) matches the base printing rather than being dropped as a mismatch.
+- **Per-rarity collection stats** (PR [#112](https://github.com/StepKie/MtgCsvHelper/pull/112)). Rarity is backfilled from the catalog, feeding a typed rarity breakdown in the import summary.
+
+### Internal
+
+- **Master reference collection and per-format ground-truth CSVs** ([#117](https://github.com/StepKie/MtgCsvHelper/issues/117), [#119](https://github.com/StepKie/MtgCsvHelper/issues/119)). A single `master.csv` drives committed per-format reference exports; every read+write format round-trips it, and a per-fixture bijection assertion guards against silent row loss. Grown to cover etched finishes, an 11-language sweep, borderless and non-transform DFCs, and weird special-products.
 
 ## [1.4.1] — 2026-05-31
 
@@ -126,7 +146,8 @@ First stable release. Web app + Console app.
 - [0.1.0] — 2022-12-02
 - [0.0.3] — 2022-11-15
 
-[Unreleased]: https://github.com/StepKie/MtgCsvHelper/compare/1.4.1...HEAD
+[Unreleased]: https://github.com/StepKie/MtgCsvHelper/compare/1.5.0...HEAD
+[1.5.0]: https://github.com/StepKie/MtgCsvHelper/compare/1.4.1...1.5.0
 [1.4.1]: https://github.com/StepKie/MtgCsvHelper/compare/1.4.0...1.4.1
 [1.4.0]: https://github.com/StepKie/MtgCsvHelper/compare/1.3.0...1.4.0
 [1.3.0]: https://github.com/StepKie/MtgCsvHelper/compare/1.2.0...1.3.0
