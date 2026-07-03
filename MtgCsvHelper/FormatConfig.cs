@@ -11,6 +11,7 @@ public record FormatConfig(
 	string? SetNumber = null,
 	string? SetCode = null,
 	string? SetName = null,
+	string? ScryfallId = null,
 	FinishConfiguration? Finish = null,
 	ConditionConfiguration? Condition = null,
 	LanguageConfiguration? Language = null,

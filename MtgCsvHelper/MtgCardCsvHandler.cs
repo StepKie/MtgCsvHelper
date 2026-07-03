@@ -38,8 +38,11 @@ public class MtgCardCsvHandler
 
 	public Task<ParseResult> ParseCollectionCsvAsync(string csvFilePath, CancellationToken ct = default) => ParseCollectionCsvAsync(File.OpenRead(csvFilePath), ct);
 
+	/// <summary> Parses a collection CSV. <paramref name="csvStream"/> must be seekable: the parser peeks at the first line for a "sep=" marker and rewinds. </summary>
 	public async Task<ParseResult> ParseCollectionCsvAsync(Stream csvStream, CancellationToken ct = default)
 	{
+		if (!csvStream.CanSeek) { throw new ArgumentException("Stream must be seekable", nameof(csvStream)); }
+
 		Log.Information($"Parsing input format {_format} ...");
 		using var reader = new StreamReader(csvStream);
 		CheckIfFirstLineCanBeIgnored(reader);

@@ -1,0 +1,14 @@
+{
+  "extraKnownMarketplaces": {
+    "claude-tools": {
+      "source": {
+        "source": "github",
+        "repo": "StepKie/claude-tools"
+      },
+      "autoUpdate": true
+    }
+  },
+  "enabledPlugins": {
+    "toolkit-private@claude-tools": true
+  }
+}

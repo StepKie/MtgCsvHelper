@@ -26,4 +26,5 @@ internal sealed record ScryfallCardJson(
 	[property: JsonPropertyName("cardmarket_id")] int? CardmarketId,
 	[property: JsonPropertyName("tcgplayer_id")] int? TcgplayerId,
 	[property: JsonPropertyName("tcgplayer_etched_id")] int? TcgplayerEtchedId,
-	[property: JsonPropertyName("multiverse_ids")] List<int>? MultiverseIds);
+	[property: JsonPropertyName("multiverse_ids")] List<int>? MultiverseIds,
+	string? Rarity = null);

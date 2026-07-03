@@ -42,7 +42,6 @@ Open an issue if you want a new site supported.
   * most often, this relates to non-standard set or card names. Examples are compilation sets like Mystery Boosters or how special printings (Borderless, etc.) are encoded
   * e.g. examples: issues [#23](https://github.com/StepKie/MtgCsvHelper/issues/23),  [#24](https://github.com/StepKie/MtgCsvHelper/issues/24),  [#3](https://github.com/StepKie/MtgCsvHelper/issues/3)
 
-
 ## Project Info
 
 Built originally to bridge card-scanner exports ([Manabox](https://www.manabox.app/), [MtG DragonShield Card Manager](https://mtg.dragonshield.com/)) into mainstream collection managers ([Moxfield](https://www.moxfield.com/collection), [Deckbox](https://deckbox.org)) without manual header-shuffling. Also handles the inverse: keeping a collection in sync across multiple sites.
@@ -88,15 +87,10 @@ This downloads Scryfall's `default_cards` bulk file, strips it to the fields the
 
 Two sibling sub-commands:
 
-* `-- cardmarket-fixture` — regenerates `Tests/cardmarket-reference-collection.csv` from the Moxfield reference via the Scryfall reverse lookup.
+* `-- cardmarket-fixture` — regenerates `Tests/cardmarket-real-export.csv` from the Moxfield reference via the Scryfall reverse lookup.
 * `-- deckbox-aliases` — scrapes [deckbox.org/editions](https://deckbox.org/editions) and emits `Resources/deckbox-set-aliases.json` (Deckbox edition names that diverge from Scryfall canonical) and `Resources/deckbox-code-aliases.json` (Deckbox-internal codes like `ex_127` mapped back to Scryfall codes).
 
-
-## Troubleshooting
-
-Report bugs and feature requests by opening a [new issue](https://github.com/StepKie/MtgCsvHelper/issues/new/choose). The PWA shows a **"Reload to update"** banner when a new version is available — click it instead of clearing the whole browser cache. The current version is shown in the bottom of the app bar and links to the [CHANGELOG](CHANGELOG.md).
-
-## Format configuration
+### Format configuration
 
 All site-specific column mappings live in `MtgCsvHelper/appsettings.json` — a single source of truth shared between Console, Tests, and the Blazor app (the latter via a build-time copy into `wwwroot/`). Adding a new format means dropping in a new entry; PRs welcome.
 
@@ -159,3 +153,15 @@ Example entry — Moxfield:
 * `CARDKINGDOM` is a write-only buylist format (4 columns, no condition/language/foil-etched). `CARDMARKET` is import-only — it identifies cards by `idProduct` and we Scryfall-reverse-lookup the rest.
 
 Tracked feature and quality work lives in [issues](https://github.com/StepKie/MtgCsvHelper/issues).
+
+## Troubleshooting
+
+Most problems are one of two conversion failures — knowing which one you hit tells us where to look, and which issue template to use:
+
+**(a) The input won't convert.** You feed a CSV in and the tool reports error rows or silently drops them. The problem is on *our* side — our parser doesn't understand that input. → open an **[Input won't convert](https://github.com/StepKie/MtgCsvHelper/issues/new?template=input-wont-convert.md)** issue and attach the input CSV. (In the web app, the **Report to GitHub** button after a failed conversion auto-fills this for you.)
+
+**(b) The output won't import.** The conversion runs clean, but the target site rejects rows when you import the result — or silently lands them on the wrong printing. The problem is in what we *emit* for that format. → open a **[Target site rejected the export](https://github.com/StepKie/MtgCsvHelper/issues/new?template=target-site-rejected.md)** issue and paste the site's error lines.
+
+Either way, once it's fixed we fold the case into our test corpus so it can't regress. If a cross-format round-trip merely *changed or dropped* a field, that may be expected — see [Limitations / Known Issues](#limitations--known-issues) first.
+
+For anything else — UI bugs, crashes, or a feature idea — open a [new issue](https://github.com/StepKie/MtgCsvHelper/issues/new/choose). The PWA shows a **"Reload to update"** banner when a new version is available; click it instead of clearing the browser cache. The current version is at the bottom of the app bar and links to the [CHANGELOG](CHANGELOG.md).

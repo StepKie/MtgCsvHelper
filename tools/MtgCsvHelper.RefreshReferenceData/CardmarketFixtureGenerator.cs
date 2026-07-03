@@ -2,11 +2,12 @@ using System.Globalization;
 using System.Text;
 using Microsoft.Extensions.Configuration;
 using MtgCsvHelper;
+using MtgCsvHelper.Models;
 using MtgCsvHelper.Services;
 
 namespace MtgCsvHelper.RefreshReferenceData;
 
-// Generates cardmarket-reference-collection.csv by parsing moxfield-reference-collection.csv
+// Generates cardmarket-real-export.csv by parsing moxfield-real-export.csv
 // through the existing MOXFIELD pipeline, then looking up each card's cardmarket_id in the
 // catalog and emitting a Cardmarket-shaped row. Re-run when the moxfield reference changes.
 //
@@ -32,17 +33,16 @@ internal static class CardmarketFixtureGenerator
 
 	// Cardmarket condition values in the "Manage Stock" CSV. Natural ordering of the REST API's
 	// string codes (MT/NM/EX/GD/LP/PL/PO); see SITE_BEHAVIOR.md > Cardmarket for verification.
-	// Kept explicit (rather than relying on CardCondition.Id matching by coincidence) so the
-	// generator survives any future renumbering of the enum.
-	static readonly Dictionary<string, string> ConditionToId = new()
+	// Kept explicit (rather than casting the enum's numeric value) so the generator survives any future renumbering.
+	static readonly Dictionary<CardCondition, string> ConditionToId = new()
 	{
-		["Mint"] = "1",
-		["NearMint"] = "2",
-		["Excellent"] = "3",
-		["Good"] = "4",
-		["LightlyPlayed"] = "5",
-		["Played"] = "6",
-		["Poor"] = "7",
+		[CardCondition.Mint] = "1",
+		[CardCondition.NearMint] = "2",
+		[CardCondition.Excellent] = "3",
+		[CardCondition.Good] = "4",
+		[CardCondition.LightlyPlayed] = "5",
+		[CardCondition.Played] = "6",
+		[CardCondition.Poor] = "7",
 	};
 
 	public static async Task RunAsync()
@@ -50,8 +50,8 @@ internal static class CardmarketFixtureGenerator
 		var repoRoot = FindRepoRoot();
 		var bundlePath = Path.Combine(repoRoot, "MtgCsvHelper.BlazorWebAssembly", "wwwroot", "data", "cards.min.json.gz");
 		var appsettingsPath = Path.Combine(repoRoot, "MtgCsvHelper", "appsettings.json");
-		var moxfieldPath = Path.Combine(repoRoot, "MtgCsvHelper", "Resources", "SampleCsvs", "Tests", "moxfield-reference-collection.csv");
-		var outputPath = Path.Combine(repoRoot, "MtgCsvHelper", "Resources", "SampleCsvs", "Tests", "cardmarket-reference-collection.csv");
+		var moxfieldPath = Path.Combine(repoRoot, "MtgCsvHelper", "Resources", "SampleCsvs", "Tests", "moxfield-real-export.csv");
+		var outputPath = Path.Combine(repoRoot, "MtgCsvHelper", "Resources", "SampleCsvs", "Tests", "cardmarket-real-export.csv");
 
 		Console.WriteLine($"Loading catalog from {bundlePath}…");
 		await using var fs = File.OpenRead(bundlePath);
@@ -98,13 +98,13 @@ internal static class CardmarketFixtureGenerator
 				continue;
 			}
 
-			if (!ConditionToId.TryGetValue(card.Condition.Name, out var condition))
+			if (!ConditionToId.TryGetValue(card.Condition, out var condition))
 			{
-				Console.WriteLine($"  skip: unmapped condition '{card.Condition.Name}' for {card.Printing.Name} ({setCode} #{collectorNumber})");
+				Console.WriteLine($"  skip: unmapped condition '{card.Condition}' for {card.Printing.Name} ({setCode} #{collectorNumber})");
 				skipped++;
 				continue;
 			}
-			var isFoil = card.Foil == true ? "1" : "";
+			var isFoil = card.Finish is CardFinish.Foil or CardFinish.Etched ? "1" : "";
 			var groupCount = card.Count.ToString(CultureInfo.InvariantCulture);
 			var price = card.PriceBought is { Value: > 0 } money
 				? money.Value.ToString("0.00", CultureInfo.InvariantCulture)

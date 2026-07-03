@@ -1,5 +1,6 @@
 using System.IO.Compression;
 using System.Text.Json;
+using System.Text.Json.Serialization;
 
 namespace MtgCsvHelper;
 
@@ -26,6 +27,7 @@ public sealed class ReferenceCardCatalog : IReferenceCardCatalog
 	readonly Dictionary<Guid, ReferenceCard> _byId;
 	readonly Dictionary<int, ReferenceCard> _byCardmarketId;
 	readonly Dictionary<(string Set, string CollectorNumber), ReferenceCard> _bySetAndCollector;
+	readonly Dictionary<string, List<ReferenceCard>> _printingsByName;  // "Lightning Bolt" -> all its printings
 	readonly Dictionary<string, string> _sets;
 	readonly Dictionary<string, string> _setCodeByName;     // "Innistrad" -> "ISD"
 	readonly Dictionary<string, string> _setCodeByMtgoCode; // "MI" -> "MIR"
@@ -42,6 +44,7 @@ public sealed class ReferenceCardCatalog : IReferenceCardCatalog
 		_byId = new(cards.Count);
 		_byCardmarketId = [];
 		_bySetAndCollector = new(cards.Count);
+		_printingsByName = new(StringComparer.OrdinalIgnoreCase);
 		_sets = [];
 		_setCodeByName = new(StringComparer.OrdinalIgnoreCase);  // human-typed names: stay forgiving
 		_setCodeByMtgoCode = [];
@@ -58,6 +61,9 @@ public sealed class ReferenceCardCatalog : IReferenceCardCatalog
 			// First-write-wins on duplicate (set, collector_number); Scryfall keeps these unique
 			// per English printing in default_cards but TryAdd makes the intent explicit.
 			_bySetAndCollector.TryAdd((c.Set, c.CollectorNumber), c);
+			// All printings per name; the fallback when a (set, #) coordinate is stale (e.g. a retired set code).
+			if (!_printingsByName.TryGetValue(c.Name, out var printings)) { _printingsByName[c.Name] = printings = []; }
+			printings.Add(c);
 			_sets.TryAdd(c.Set, c.SetName);
 			_setCodeByName.TryAdd(c.SetName, c.Set);
 			if (!string.IsNullOrEmpty(c.MtgoCode)) { _setCodeByMtgoCode.TryAdd(c.MtgoCode, c.Set); }
@@ -93,6 +99,25 @@ public sealed class ReferenceCardCatalog : IReferenceCardCatalog
 		return _bySetAndCollector.GetValueOrDefault((canonical, collectorNumber));
 	}
 
+	ReferenceCard? FindByName(string name) => _printingsByName.GetValueOrDefault(name)?.FirstOrDefault();
+
+	// Retired set codes Scryfall folded into a successor set (no per-card redirect); hand-curated, grows as exports surface them.
+	static readonly Dictionary<string, string> RetiredSetAliases = new(StringComparer.OrdinalIgnoreCase)
+	{
+		["MB1"] = "PLST",
+	};
+
+	public ReferenceCard? ResolveStalePrinting(string name, string staleSetCode)
+	{
+		if (RetiredSetAliases.TryGetValue(staleSetCode, out var successor)
+			&& _printingsByName.GetValueOrDefault(name)?.FirstOrDefault(c => c.Set == successor) is { } aliased)
+		{
+			return aliased;
+		}
+
+		return FindByName(name);
+	}
+
 	public IReadOnlyDictionary<string, string> GetSets() => _sets;
 	public string? GetSetNameByCode(string setCode) => _sets.GetValueOrDefault(Canonicalize(setCode));
 
@@ -123,5 +148,7 @@ public sealed class ReferenceCardCatalog : IReferenceCardCatalog
 	{
 		PropertyNamingPolicy = JsonNamingPolicy.SnakeCaseLower,
 		PropertyNameCaseInsensitive = true,
+		// Enums (CardRarity) are stored as Scryfall's lowercase strings so the bundle stays greppable.
+		Converters = { new JsonStringEnumConverter(JsonNamingPolicy.SnakeCaseLower) },
 	};
 }
