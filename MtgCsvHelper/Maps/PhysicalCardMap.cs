@@ -48,6 +48,11 @@ public class PhysicalCardMap : ClassMap<PhysicalMtgCard>
 		// Printing.Id is a non-nullable Guid, so it can't go through MapOptional (which expects a nullable member).
 		if (cfg.ScryfallId is not null) { Map(c => c.Printing.Id).Name(cfg.ScryfallId).TypeConverter<ScryfallIdConverter>().Index(12).Optional(); }
 
+		// Catalog-stamped metadata columns: CatalogValidator fills the model fields when the printing resolves.
+		MapOptional(c => c.Rarity, cfg.Rarity, c => new RarityConverter(c))?.Index(13);
+		MapOptional(c => c.Printing.MultiverseIds, cfg.MultiverseId)?.TypeConverter<MultiverseIdsConverter>().Index(14);
+		MapOptional(c => c.Printing.TcgplayerId, cfg.TcgplayerId)?.TypeConverter<TcgplayerIdConverter>().Index(15);
+
 		MapOptional(c => c.Condition, cfg.Condition, c => new CardConditionConverter(c))?.Index(7);
 		MapOptional(c => c.Finish, cfg.Finish, c => new FinishConverter(c))?.Index(8);
 		MapOptional(c => c.Language, cfg.Language, c => new LanguageConverter(c))?.Index(9);

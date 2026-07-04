@@ -83,7 +83,12 @@ public class MtgCardCsvHandlerTests(CatalogFixture fixture, ITestOutputHelper ou
 		var expectedCards = originalCards.Select(c =>
 		{
 			if (condDeg is not null && condDeg.TryGetValue(c.Condition, out var cond)) { c = c with { Condition = cond }; }
-			if (finDeg is not null && finDeg.TryGetValue(c.Finish, out var fin)) { c = c with { Finish = fin }; }
+			if (finDeg is not null && finDeg.TryGetValue(c.Finish, out var fin))
+			{
+				// The degraded finish re-stamps the finish-appropriate TCGplayer product id on re-import.
+				c.Printing.TcgplayerId = _catalog.FindBySetAndCollectorNumber(c.Printing.Set, c.Printing.CollectorNumber)?.TcgplayerId ?? 0;
+				c = c with { Finish = fin };
+			}
 
 			return c;
 		}).ToList();

@@ -11,7 +11,7 @@ namespace MtgCsvHelper.Enrichment;
 /// Named "Validator" rather than "Enricher" because it mainly
 /// checks-and-drops; its only mutations are the issues collection, canonicalizing the
 /// name of a short-named or front-face-ambiguous double-faced card to the resolved printing,
-/// and backfilling Rarity and the Scryfall Id from the resolved printing.
+/// and backfilling Rarity and the catalog ids (Scryfall, Multiverse, TCGplayer) from the resolved printing.
 /// </summary>
 public sealed class CatalogValidator(IReferenceCardCatalog catalog) : PerCardEnricher
 {
@@ -34,6 +34,7 @@ public sealed class CatalogValidator(IReferenceCardCatalog catalog) : PerCardEnr
 			p.Set = byId.Set;
 			p.SetName = byId.SetName;
 			p.CollectorNumber = byId.CollectorNumber;
+			StampCatalogIds(row.Card, byId);
 			row = row with { Card = row.Card with { Rarity = byId.Rarity } };
 
 			return true;
@@ -58,11 +59,11 @@ public sealed class CatalogValidator(IReferenceCardCatalog catalog) : PerCardEnr
 				$"No printing at {p.Set} #{p.CollectorNumber} in Scryfall data; rewritten to {resolved.Set} #{resolved.CollectorNumber}",
 				CardName: p.Name, RawContent: row.RawContent));
 
-			p.Id = resolved.Id;
 			p.Name = resolved.Name;
 			p.Set = resolved.Set;
 			p.SetName = resolved.SetName;
 			p.CollectorNumber = resolved.CollectorNumber;
+			StampCatalogIds(row.Card, resolved);
 			row = row with { Card = row.Card with { Rarity = resolved.Rarity } };
 
 			return true;
@@ -83,10 +84,20 @@ public sealed class CatalogValidator(IReferenceCardCatalog catalog) : PerCardEnr
 
 		if (FinishUnavailable(row, match, issues)) { return false; }
 
-		p.Id = match.Id;
+		StampCatalogIds(row.Card, match);
 		row = row with { Card = row.Card with { Rarity = match.Rarity } };
 
 		return true;
+	}
+
+	// The ids back the formats' native Scryfall ID / Multiverse Id / Product ID columns on write.
+	static void StampCatalogIds(PhysicalMtgCard card, ReferenceCard reference)
+	{
+		var printing = card.Printing;
+		printing.Id = reference.Id;
+		printing.MultiverseIds = reference.MultiverseIds?.ToArray() ?? [];
+		// TCGplayer lists etched printings as a separate product; fall back to the plain id when no etched product exists.
+		printing.TcgplayerId = (card.Finish == CardFinish.Etched ? reference.TcgplayerEtchedId ?? reference.TcgplayerId : reference.TcgplayerId) ?? 0;
 	}
 
 	// Front face of a DFC name ("A // B" → "A"); a name without " // " is its own front face.

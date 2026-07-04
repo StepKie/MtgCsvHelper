@@ -6,6 +6,10 @@ Unreleased work targets the next minor version once a coherent feature set is re
 
 ## [Unreleased]
 
+### Changed
+
+- **Exports match each site's native column layout** ([#134](https://github.com/StepKie/MtgCsvHelper/issues/134)). Every writable format now emits the site's full header set in the site's exact column order — instead of only the modeled columns in our own order. Strict, order-sensitive importers (Archidekt, TCGplayer) accept the files, and they diff cleanly against real site exports. Catalog-derived columns are filled (rarity, Multiverse Id, TCGplayer product id — extending the Scryfall id from 1.5.0); the rest are left blank. The native layout is declared per format in `appsettings.json` and anchored to a captured export by test.
+
 ## [1.5.0] — 2026-07-03
 
 ### Added

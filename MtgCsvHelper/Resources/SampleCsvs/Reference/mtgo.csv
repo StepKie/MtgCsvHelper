@@ -1,30 +1,30 @@
-Quantity,Card Name,Set,Collector #,Premium
-1,Ambitious Farmhand // Seasoned Cathar,MID,2,No
-1,Ambitious Farmhand // Seasoned Cathar,MID,2,No
-2,Ambitious Farmhand // Seasoned Cathar,MID,2,Yes
-1,Ambitious Farmhand // Seasoned Cathar,MID,2,No
-1,Ambitious Farmhand // Seasoned Cathar,MID,2,No
-1,Ambitious Farmhand // Seasoned Cathar,MID,2,No
-1,Ambitious Farmhand // Seasoned Cathar,MID,2,No
-1,Clue,TMH2,14,No
-1,Food,TLTR,10,No
-1,Demonic Tutor,CMM,509,Yes
-1,Lightning Bolt,M11,149,No
-1,Lightning Bolt,M11,149,No
-1,Lightning Bolt,M11,149,No
-1,Lightning Bolt,M11,149,No
-1,Lightning Bolt,M11,149,No
-1,Lightning Bolt,M11,149,No
-1,Lightning Bolt,M11,149,No
-1,Lightning Bolt,M11,149,No
-1,Lightning Bolt,M11,149,No
-1,Lightning Bolt,M11,149,No
-1,Lightning Bolt,M11,149,No
-1,Mardu Outrider,MB2,1,No
-1,Viscera Seer,SLD,VS,Yes
-1,"Isperia, Supreme Judge",GK2,1,Yes
-1,Ral's Vanguard,CMB1,1,No
-1,Demonic Tutor,PLST,DDC-49,No
-1,Orcish Bowmasters,LTR,433,No
-1,Brazen Borrower // Petty Theft,ELD,39,No
-1,Fire // Ice,APC,128,No
+Card Name,Quantity,ID #,Rarity,Set,Collector #,Premium,Sideboarded,Annotation
+Ambitious Farmhand // Seasoned Cathar,1,,Uncommon,MID,2,No,,
+Ambitious Farmhand // Seasoned Cathar,1,,Uncommon,MID,2,No,,
+Ambitious Farmhand // Seasoned Cathar,2,,Uncommon,MID,2,Yes,,
+Ambitious Farmhand // Seasoned Cathar,1,,Uncommon,MID,2,No,,
+Ambitious Farmhand // Seasoned Cathar,1,,Uncommon,MID,2,No,,
+Ambitious Farmhand // Seasoned Cathar,1,,Uncommon,MID,2,No,,
+Ambitious Farmhand // Seasoned Cathar,1,,Uncommon,MID,2,No,,
+Clue,1,,Common,TMH2,14,No,,
+Food,1,,Common,TLTR,10,No,,
+Demonic Tutor,1,,Mythic,CMM,509,Yes,,
+Lightning Bolt,1,,Common,M11,149,No,,
+Lightning Bolt,1,,Common,M11,149,No,,
+Lightning Bolt,1,,Common,M11,149,No,,
+Lightning Bolt,1,,Common,M11,149,No,,
+Lightning Bolt,1,,Common,M11,149,No,,
+Lightning Bolt,1,,Common,M11,149,No,,
+Lightning Bolt,1,,Common,M11,149,No,,
+Lightning Bolt,1,,Common,M11,149,No,,
+Lightning Bolt,1,,Common,M11,149,No,,
+Lightning Bolt,1,,Common,M11,149,No,,
+Lightning Bolt,1,,Common,M11,149,No,,
+Mardu Outrider,1,,Rare,MB2,1,No,,
+Viscera Seer,1,,Common,SLD,VS,Yes,,
+"Isperia, Supreme Judge",1,,Mythic,GK2,1,Yes,,
+Ral's Vanguard,1,,Rare,CMB1,1,No,,
+Demonic Tutor,1,,Uncommon,PLST,DDC-49,No,,
+Orcish Bowmasters,1,,Rare,LTR,433,No,,
+Brazen Borrower // Petty Theft,1,,Mythic,ELD,39,No,,
+Fire // Ice,1,,Uncommon,APC,128,No,,
