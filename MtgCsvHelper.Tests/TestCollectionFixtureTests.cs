@@ -96,17 +96,5 @@ public class TestCollectionFixtureTests(CatalogFixture fixture, ITestOutputHelpe
 			$"every data row in {filename} must end up either as a card or as an error — anything in between is a silent swallow");
 	}
 
-	static string FormatFromFilename(string filename)
-	{
-		// "moxfield-foil-rejected.csv" -> "MOXFIELD"
-		// "manabox-real-export.csv" -> "MANABOX"
-		var stem = Path.GetFileNameWithoutExtension(filename);
-		var firstDash = stem.IndexOf('-');
-		if (firstDash < 0)
-		{
-			throw new InvalidOperationException($"Fixture filename '{filename}' does not follow the '<format>-<suffix>.csv' convention.");
-		}
-
-		return stem[..firstDash].ToUpperInvariant();
-	}
+	static string FormatFromFilename(string filename) => CsvFixture.FormatFromFilename(filename);
 }

@@ -1,5 +1,4 @@
 using System.IO.Compression;
-using System.Text;
 using CsvHelper;
 
 namespace MtgCsvHelper.Tests;
@@ -9,7 +8,6 @@ public class FaultToleranceTests(CatalogFixture fixture, ITestOutputHelper outpu
 {
 	const string MoxHeader = "Count,Name,Edition,Collector Number,Foil,Condition,Language,Purchase Price";
 
-	static MemoryStream CsvStream(string csv) => new(Encoding.UTF8.GetBytes(csv));
 	MtgCardCsvHandler Handler(string format = "MOXFIELD") => new(_catalog, _resolver, _config, format);
 
 	[Fact]
@@ -19,7 +17,7 @@ public class FaultToleranceTests(CatalogFixture fixture, ITestOutputHelper outpu
 		var csv = MoxHeader + "\n"
 			+ "1,Lightning Bolt,FAKESET,149,,Near Mint,English,\n";
 
-		var result = Handler().ParseCollectionCsv(CsvStream(csv));
+		var result = Handler().ParseCollectionCsv(CsvFixture.CsvStream(csv));
 
 		result.ErrorCount.Should().Be(0);
 		var printing = result.Collection.Cards.Should().ContainSingle().Which.Printing;
@@ -35,7 +33,7 @@ public class FaultToleranceTests(CatalogFixture fixture, ITestOutputHelper outpu
 	{
 		var csv = "wrong,headers,here\n1,2,3\n";
 
-		var act = () => Handler().ParseCollectionCsv(CsvStream(csv));
+		var act = () => Handler().ParseCollectionCsv(CsvFixture.CsvStream(csv));
 
 		var ex = act.Should().Throw<HeaderValidationException>().Which;
 		var missing = ex.InvalidHeaders.SelectMany(h => h.Names).ToList();
@@ -49,7 +47,7 @@ public class FaultToleranceTests(CatalogFixture fixture, ITestOutputHelper outpu
 		var csv = MoxHeader + "\n"
 			+ "1,Fake Card Name,M11,149,,Near Mint,English,\n";
 
-		var result = Handler().ParseCollectionCsv(CsvStream(csv));
+		var result = Handler().ParseCollectionCsv(CsvFixture.CsvStream(csv));
 
 		result.Collection.Cards.Should().BeEmpty();
 		result.ErrorCount.Should().Be(1);
@@ -65,7 +63,7 @@ public class FaultToleranceTests(CatalogFixture fixture, ITestOutputHelper outpu
 		var csv = MoxHeader + "\n"
 			+ "1,Lim-Dûl's Vault,ALL,107,foil,Near Mint,English,\n";
 
-		var result = Handler().ParseCollectionCsv(CsvStream(csv));
+		var result = Handler().ParseCollectionCsv(CsvFixture.CsvStream(csv));
 
 		result.Collection.Cards.Should().BeEmpty();
 		result.ErrorCount.Should().Be(1);
@@ -80,7 +78,7 @@ public class FaultToleranceTests(CatalogFixture fixture, ITestOutputHelper outpu
 		var csv = MoxHeader + "\n"
 			+ "1,Lightning Bolt,M11,9999,,Near Mint,English,\n";
 
-		var result = Handler().ParseCollectionCsv(CsvStream(csv));
+		var result = Handler().ParseCollectionCsv(CsvFixture.CsvStream(csv));
 
 		result.ErrorCount.Should().Be(0);
 		result.Collection.Cards.Should().ContainSingle().Which.Printing.Name.Should().Be("Lightning Bolt");
@@ -96,7 +94,7 @@ public class FaultToleranceTests(CatalogFixture fixture, ITestOutputHelper outpu
 		var csv = MoxHeader + "\n"
 			+ "0,Lightning Bolt,M11,149,,Near Mint,English,\n";
 
-		var result = Handler().ParseCollectionCsv(CsvStream(csv));
+		var result = Handler().ParseCollectionCsv(CsvFixture.CsvStream(csv));
 
 		result.Collection.Cards.Should().BeEmpty();
 		result.ErrorCount.Should().Be(1);
@@ -111,7 +109,7 @@ public class FaultToleranceTests(CatalogFixture fixture, ITestOutputHelper outpu
 			+ "Folder Name,Quantity,Trade Quantity,Card Name,Set Code,Set Name,Card Number,Condition,Printing,Language,Price Bought,Date Bought\n"
 			+ "Test,1,0,Azorius Herald,GK2_AZORIU,Guild Kit: Azorius,2,NearMint,Normal,English,0.00,2026-05-15\n";
 
-		var result = Handler("DRAGONSHIELD").ParseCollectionCsv(CsvStream(csv));
+		var result = Handler("DRAGONSHIELD").ParseCollectionCsv(CsvFixture.CsvStream(csv));
 
 		result.Issues.Should().NotContain(i => i.Severity == IssueSeverity.Error);
 		result.Collection.Cards.Should().ContainSingle()
@@ -125,7 +123,7 @@ public class FaultToleranceTests(CatalogFixture fixture, ITestOutputHelper outpu
 		var csv = MoxHeader + "\n"
 			+ "1,Lightning Bolt,M11,149,,Pristine,English,\n";
 
-		var result = Handler().ParseCollectionCsv(CsvStream(csv));
+		var result = Handler().ParseCollectionCsv(CsvFixture.CsvStream(csv));
 
 		result.Collection.Cards.Should().BeEmpty();
 		result.ErrorCount.Should().Be(1);
@@ -152,7 +150,7 @@ public class FaultToleranceTests(CatalogFixture fixture, ITestOutputHelper outpu
 			+ ",,,,,,,\n"                      // delimiter-only row (should also be skipped)
 			+ "1,Counterspell,MMQ,69,,Near Mint,English,\n";
 
-		var result = Handler().ParseCollectionCsv(CsvStream(csv));
+		var result = Handler().ParseCollectionCsv(CsvFixture.CsvStream(csv));
 
 		result.Collection.Cards.Should().HaveCount(2);
 		result.Issues.Should().BeEmpty();

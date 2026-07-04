@@ -1,4 +1,3 @@
-using System.Text;
 using ScryfallApi.Client.Models;
 
 namespace MtgCsvHelper.Tests;
@@ -15,14 +14,8 @@ public class TcgplayerWriteTests(CatalogFixture fixture, ITestOutputHelper outpu
 		Printing = new Card { Name = name, Set = set, SetName = "", CollectorNumber = collectorNumber },
 	};
 
-	string WriteTcgplayer(params PhysicalMtgCard[] cards)
-	{
-		var handler = new MtgCardCsvHandler(_catalog, _resolver, _config, "TCGPLAYER");
-		using var stream = new MemoryStream();
-		handler.WriteCollectionCsv(cards, stream);
-
-		return Encoding.UTF8.GetString(stream.ToArray());
-	}
+	string WriteTcgplayer(params PhysicalMtgCard[] cards) =>
+		CsvFixture.WriteToString(new MtgCardCsvHandler(_catalog, _resolver, _config, "TCGPLAYER"), cards);
 
 	[Fact]
 	public void BorderlessPrinting_GetsVariantSuffixInNameColumn_SimpleNameStaysPlain()
