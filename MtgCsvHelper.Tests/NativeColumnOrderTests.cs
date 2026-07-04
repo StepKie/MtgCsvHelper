@@ -28,13 +28,7 @@ public class NativeColumnOrderTests(ITestOutputHelper output) : BaseTest(output)
 		["MTGO"] = "Collection/mtgo-collection.csv",
 	};
 
-	public static TheoryData<string> AnchoredFormats()
-	{
-		var data = new TheoryData<string>();
-		foreach (var format in NativeHeaderFixtures.Keys) { data.Add(format); }
-
-		return data;
-	}
+	public static TheoryData<string> AnchoredFormats() => new(NativeHeaderFixtures.Keys);
 
 	[Theory]
 	[MemberData(nameof(AnchoredFormats))]
@@ -62,7 +56,7 @@ public class NativeColumnOrderTests(ITestOutputHelper output) : BaseTest(output)
 	static string[] ReadHeader(string path)
 	{
 		var headerLine = File.ReadLines(path)
-			.First(line => !string.IsNullOrWhiteSpace(line) && !line.TrimStart('"').StartsWith("sep=", StringComparison.OrdinalIgnoreCase));
+			.First(line => !string.IsNullOrWhiteSpace(line) && !CsvFixture.IsSepDirective(line));
 
 		using var csv = new CsvReader(new StringReader(headerLine), new CsvConfiguration(CultureInfo.InvariantCulture));
 		csv.Read();

@@ -1,20 +1,15 @@
-﻿namespace MtgCsvHelper.Tests;
+namespace MtgCsvHelper.Tests;
 
-public class CurrencyAndMoneyTests
+public class CurrencyTests
 {
-
 	[Theory]
 	[InlineData("Start", CurrencySymbolPosition.Start)]
 	[InlineData("End", CurrencySymbolPosition.End)]
 	[InlineData("Absent", CurrencySymbolPosition.Absent)]
 	[InlineData("InvalidPosition", null)]
-	public void GetSymbolPosition_ShouldReturnCorrectEnumValue(string input, CurrencySymbolPosition? expectedPosition)
+	public void SymbolFromString_MapsKnownPositions_NullOtherwise(string input, CurrencySymbolPosition? expected)
 	{
-		// Act
-		var actualPosition = Currency.SymbolFromString(input);
-
-		// Assert
-		actualPosition.Should().Be(expectedPosition);
+		Currency.SymbolFromString(input).Should().Be(expected);
 	}
 
 	[Theory]
@@ -24,17 +19,11 @@ public class CurrencyAndMoneyTests
 	[InlineData("EUR", "€50.25")]
 	[InlineData("EUR", "50.25€")]
 	[InlineData("EUR", "50.25")]
-	public void Money_Parse_ShouldReturnMoneyObjectWithCorrectValueAndCurrency(string currency, string input)
+	public void MoneyParse_AcceptsAnySymbolPosition(string currency, string input)
 	{
-		// Arrange
 		var curr = Currency.FromString(currency);
-		var expectedMoney = new Money(50.25m, curr);
 
-		// Act
-		var actualMoney = Money.Parse(input, curr);
-
-		// Assert
-		actualMoney.Should().BeEquivalentTo(expectedMoney);
+		Money.Parse(input, curr).Should().BeEquivalentTo(new Money(50.25m, curr));
 	}
 
 	[Theory]
@@ -44,15 +33,8 @@ public class CurrencyAndMoneyTests
 	[InlineData("EUR", CurrencySymbolPosition.Start, "€50.25")]
 	[InlineData("EUR", CurrencySymbolPosition.End, "50.25€")]
 	[InlineData("EUR", CurrencySymbolPosition.Absent, "50.25")]
-	public void Money_Print_ShouldReturnFormattedStringBasedOnSymbolPosition(string currency, CurrencySymbolPosition position, string expectedOutput)
+	public void MoneyPrint_PlacesSymbolPerPosition(string currency, CurrencySymbolPosition position, string expected)
 	{
-		// Arrange
-		var money = new Money(50.25m, Currency.FromString(currency));
-
-		// Act
-		var actualOutput = money.Print(position);
-
-		// Assert
-		actualOutput.Should().Be(expectedOutput);
+		new Money(50.25m, Currency.FromString(currency)).Print(position).Should().Be(expected);
 	}
 }

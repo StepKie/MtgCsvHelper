@@ -67,7 +67,7 @@
 
 			<MudGrid Spacing="3" Justify="Justify.Center">
 				<MudItem xs="12" sm="5">
-					<MudSelect T="string" Value="_selectedInputFormat" ValueChanged="OnInputFormatChanged" Label="Input format" Variant="Variant.Outlined" Dense="true" Disabled="@(_autoDetect && !_autoDetectFailed)">
+					<MudSelect T="string" Value="_selectedInputFormat" ValueChanged="OnInputFormatChanged" Label="Input format" Variant="Variant.Outlined" Dense="true" Disabled="@(_autoDetect && _detection != DetectionState.Failed)">
 						@foreach (var fmt in _inputFormats)
 						{
 							<MudSelectItem Value="@fmt">@FormatDisplay.For(fmt)</MudSelectItem>
@@ -89,13 +89,13 @@
 			<MudStack Row="true" AlignItems="AlignItems.Center" Spacing="1">
 				<MudSwitch T="bool" Value="_autoDetect" ValueChanged="OnAutoDetectChanged" Color="Color.Primary" Size="Size.Small" />
 				<MudText Typo="Typo.caption">Auto-detect</MudText>
-				@if (_autoDetect && _autoDetectResult is not null)
+				@if (_autoDetect && _detection == DetectionState.Detected)
 				{
 					<MudTooltip Text="Format detected from CSV headers">
 						<MudIcon Icon="@Icons.Material.Filled.CheckCircle" Color="Color.Success" Size="Size.Small" />
 					</MudTooltip>
 				}
-				else if (_autoDetect && _autoDetectFailed)
+				else if (_autoDetect && _detection == DetectionState.Failed)
 				{
 					<MudTooltip Text="Couldn't detect format — pick manually">
 						<MudIcon Icon="@Icons.Material.Filled.Cancel" Color="Color.Error" Size="Size.Small" />
@@ -196,38 +196,25 @@
 
 	@if (r.Issues.Count > 0)
 	{
-		// A dropped row often also collected a precondition Warning; show only the most-severe issue per row (chip counts likewise).
-		var rowsWithErrors = r.Issues
-			.Where(i => i.Severity == IssueSeverity.Error)
-			.Select(i => i.RowNumber)
-			.ToHashSet();
-		var displayedIssues = r.Issues
-			.Where(i => i.Severity == IssueSeverity.Error || !rowsWithErrors.Contains(i.RowNumber))
-			.ToList();
-		var errorCount = rowsWithErrors.Count;
-		var warningCount = displayedIssues
-			.Where(i => i.Severity == IssueSeverity.Warning)
-			.Select(i => i.RowNumber)
-			.Distinct()
-			.Count();
+		var issueView = BuildIssueView(r.Issues);
 		<MudExpansionPanels Class="mb-4" Elevation="1">
-			<MudExpansionPanel Expanded="@(displayedIssues.Count <= 20)">
+			<MudExpansionPanel Expanded="@(issueView.Displayed.Count <= 20)">
 				<TitleContent>
 					<MudStack Row="true" AlignItems="AlignItems.Center" Spacing="2" Class="flex-wrap">
-						<MudIcon Icon="@Icons.Material.Filled.Warning" Color="@(errorCount > 0 ? Color.Error : Color.Warning)" />
+						<MudIcon Icon="@Icons.Material.Filled.Warning" Color="@(issueView.ErrorRows > 0 ? Color.Error : Color.Warning)" />
 						<MudText>Import issues</MudText>
-						@if (errorCount > 0)
+						@if (issueView.ErrorRows > 0)
 						{
-							<MudChip T="string" Size="Size.Small" Color="Color.Error" Variant="Variant.Filled">@errorCount @(errorCount == 1 ? "row" : "rows") skipped</MudChip>
+							<MudChip T="string" Size="Size.Small" Color="Color.Error" Variant="Variant.Filled">@issueView.ErrorRows @(issueView.ErrorRows == 1 ? "row" : "rows") skipped</MudChip>
 						}
-						@if (warningCount > 0)
+						@if (issueView.WarningRows > 0)
 						{
-							<MudChip T="string" Size="Size.Small" Color="Color.Warning" Variant="Variant.Filled">@warningCount @(warningCount == 1 ? "row" : "rows") imported with warnings</MudChip>
+							<MudChip T="string" Size="Size.Small" Color="Color.Warning" Variant="Variant.Filled">@issueView.WarningRows @(issueView.WarningRows == 1 ? "row" : "rows") imported with warnings</MudChip>
 						}
 					</MudStack>
 				</TitleContent>
 				<ChildContent>
-					@if (errorCount > 0)
+					@if (issueView.ErrorRows > 0)
 					{
 						<MudStack Row="true" AlignItems="AlignItems.Center" Spacing="2" Class="mb-3 mud-text-secondary">
 							<MudIcon Icon="@Icons.Material.Outlined.Info" Size="Size.Small" />
@@ -238,15 +225,8 @@
 							</MudText>
 						</MudStack>
 					}
-					@{
-						var grouped = displayedIssues
-							.GroupBy(i => (i.Severity, i.Reason))
-							.OrderByDescending(g => g.Key.Severity == IssueSeverity.Error)
-							.ThenByDescending(g => g.Count())
-							.ToList();
-					}
 					<MudList T="object" Dense="true">
-						@foreach (var g in grouped)
+						@foreach (var g in issueView.Grouped)
 						{
 							var (severity, reason) = g.Key;
 							var issues = g.OrderBy(i => i.RowNumber).ToList();
@@ -324,21 +304,13 @@
 										     loading="lazy" />
 									</TooltipContent>
 									<ChildContent>
-										<a href="@cardPageUrl" target="_blank" rel="noopener" class="cm-card-link">@card.Printing.Name</a>
-										@if (!string.IsNullOrEmpty(card.Printing.CollectorNumber))
-										{
-											<span class="mud-text-secondary ml-1">#@card.Printing.CollectorNumber</span>
-										}
+										@NameCell((card, cardPageUrl))
 									</ChildContent>
 								</MudTooltip>
 							}
 							else
 							{
-								<span>@card.Printing.Name</span>
-								@if (!string.IsNullOrEmpty(card.Printing.CollectorNumber))
-								{
-									<span class="mud-text-secondary ml-1">#@card.Printing.CollectorNumber</span>
-								}
+								@NameCell((card, cardPageUrl))
 							}
 						</MudTd>
 						<MudTd DataLabel="Set">
@@ -389,8 +361,56 @@
 	string? _headerError;
 	bool _isConverting;
 	bool _autoDetect = true;
-	string? _autoDetectResult;  // non-null = last detection produced a format
-	bool _autoDetectFailed;     // true = last detection ran against a file and returned null
+	DetectionState _detection;
+
+	enum DetectionState { None, Detected, Failed }
+
+	// A dropped row often also collected a precondition Warning; show only the most-severe issue per row (chip counts likewise).
+	static IssueView BuildIssueView(IReadOnlyList<ImportIssue> issues)
+	{
+		var rowsWithErrors = issues
+			.Where(i => i.Severity == IssueSeverity.Error)
+			.Select(i => i.RowNumber)
+			.ToHashSet();
+		var displayed = issues
+			.Where(i => i.Severity == IssueSeverity.Error || !rowsWithErrors.Contains(i.RowNumber))
+			.ToList();
+		var warningRows = displayed
+			.Where(i => i.Severity == IssueSeverity.Warning)
+			.Select(i => i.RowNumber)
+			.Distinct()
+			.Count();
+		var grouped = displayed
+			.GroupBy(i => (i.Severity, i.Reason))
+			.OrderByDescending(g => g.Key.Severity == IssueSeverity.Error)
+			.ThenByDescending(g => g.Count())
+			.ToList();
+
+		return new IssueView(displayed, rowsWithErrors.Count, warningRows, grouped);
+	}
+
+	sealed record IssueView(
+		List<ImportIssue> Displayed,
+		int ErrorRows,
+		int WarningRows,
+		List<IGrouping<(IssueSeverity Severity, string Reason), ImportIssue>> Grouped);
+
+	// Card-name link (plain text when the printing didn't resolve) plus collector number; shared by the tooltip and fallback branches.
+	static readonly RenderFragment<(PhysicalMtgCard Card, string? PageUrl)> NameCell = ctx =>
+		@<text>
+			@if (ctx.PageUrl is not null)
+			{
+				<a href="@ctx.PageUrl" target="_blank" rel="noopener" class="cm-card-link">@ctx.Card.Printing.Name</a>
+			}
+			else
+			{
+				<span>@ctx.Card.Printing.Name</span>
+			}
+			@if (!string.IsNullOrEmpty(ctx.Card.Printing.CollectorNumber))
+			{
+				<span class="mud-text-secondary ml-1">#@ctx.Card.Printing.CollectorNumber</span>
+			}
+		</text>;
 	FormatDetector? _detector;
 
 	readonly CancellationTokenSource _cts = new();
@@ -415,16 +435,14 @@
 	async Task OnAutoDetectChanged(bool value)
 	{
 		_autoDetect = value;
-		_autoDetectResult = null;
-		_autoDetectFailed = false;
-		if (_autoDetect) await TryAutoDetectAsync();
+		_detection = DetectionState.None;
+		if (_autoDetect) { await TryAutoDetectAsync(); }
 	}
 
 	async Task TryAutoDetectAsync()
 	{
-		_autoDetectResult = null;
-		_autoDetectFailed = false;
-		if (!_autoDetect || _csvFile is null) return;
+		_detection = DetectionState.None;
+		if (!_autoDetect || _csvFile is null) { return; }
 
 		_detector ??= new FormatDetector([.. CardMapFactory.SupportedConfigs(Config)]);
 		try
@@ -434,18 +452,18 @@
 			var detected = await _detector.DetectAsync(stream);
 			if (detected is not null)
 			{
-				_autoDetectResult = detected;
 				OnInputFormatChanged(detected);
+				_detection = DetectionState.Detected;
 			}
 			else
 			{
-				_autoDetectFailed = true;
+				_detection = DetectionState.Failed;
 			}
 		}
 		catch (Exception ex)
 		{
 			Log.Warning(ex, "Auto-detect failed");
-			_autoDetectFailed = true;
+			_detection = DetectionState.Failed;
 		}
 	}
 
@@ -454,9 +472,11 @@
 	{
 		_selectedInputFormat = value;
 		if (_selectedOutputFormat == value)
+		{
 			_selectedOutputFormat = _outputFormats.First(f => f != value);
+		}
 		// A manual pick clears any prior auto-detect failure so the warning chip goes away.
-		_autoDetectFailed = false;
+		if (_detection == DetectionState.Failed) { _detection = DetectionState.None; }
 	}
 
 	void OnOutputFormatChanged(string value)
@@ -552,8 +572,7 @@
 		}
 		catch (HeaderValidationException hex)
 		{
-			var missing = hex.InvalidHeaders.SelectMany(h => h.Names).Distinct().ToList();
-			_headerError = $"This doesn't look like a valid {FormatDisplay.For(_selectedInputFormat)} CSV — missing required column(s): {string.Join(", ", missing)}. Did you select the correct input format?";
+			_headerError = $"This doesn't look like a valid {FormatDisplay.For(_selectedInputFormat)} CSV — missing required column(s): {string.Join(", ", hex.MissingColumns())}. Did you select the correct input format?";
 		}
 		catch (OperationCanceledException)
 		{
@@ -572,11 +591,7 @@
 
 	async Task DownloadResult()
 	{
-		if (_result is not { OutputStream: { } stream, OutputFileName: { Length: > 0 } name })
-		{
-			Log.Warning("No result available, this should not happen");
-			return;
-		}
+		if (_result is not { OutputStream: { } stream, OutputFileName: { Length: > 0 } name }) { return; }
 
 		stream.Position = 0;
 		using var streamRef = new DotNetStreamReference(stream, leaveOpen: true);

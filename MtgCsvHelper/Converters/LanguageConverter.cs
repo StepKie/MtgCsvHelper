@@ -1,56 +1,41 @@
-﻿using CsvHelper.Configuration;
+using CsvHelper.Configuration;
 using CsvHelper.TypeConversion;
 
 namespace MtgCsvHelper.Converters;
 
-/// <summary> The common format is the Scryfall language key (see keys in DEFAULT_LANGUAGES) </summary>
-public class LanguageConverter(LanguageConfiguration configuration) : ITypeConverter
+/// <summary> The model value is the Scryfall language code (the keys of <see cref="LanguageMappings"/>). </summary>
+public class LanguageConverter : ITypeConverter
 {
-    readonly LanguageMappings _mappings = configuration.Mappings;
+	readonly IReadOnlyDictionary<string, string> _valueByCode;
 
-    public object? ConvertFromString(string? text, IReaderRow row, MemberMapData memberMapData)
-    {
-        if (string.IsNullOrEmpty(text)) { return null; }
+	public LanguageConverter(LanguageConfiguration configuration)
+	{
+		var m = configuration.Mappings;
+		_valueByCode = new Dictionary<string, string>
+		{
+			[nameof(m.en)] = m.en,
+			[nameof(m.es)] = m.es,
+			[nameof(m.fr)] = m.fr,
+			[nameof(m.de)] = m.de,
+			[nameof(m.it)] = m.it,
+			[nameof(m.pt)] = m.pt,
+			[nameof(m.ja)] = m.ja,
+			[nameof(m.ko)] = m.ko,
+			[nameof(m.ru)] = m.ru,
+			[nameof(m.zht)] = m.zht,
+			[nameof(m.zhs)] = m.zhs,
+		};
+	}
 
-        // Operand order: text.MatchesConfig(mapping) returns false if either operand is null,
-        // so a format whose appsettings.json omits a language entry doesn't NRE on read.
-        return text switch
-        {
-            _ when text.MatchesConfig(_mappings.en) => nameof(LanguageMappings.en),
-            _ when text.MatchesConfig(_mappings.es) => nameof(LanguageMappings.es),
-            _ when text.MatchesConfig(_mappings.fr) => nameof(LanguageMappings.fr),
-            _ when text.MatchesConfig(_mappings.de) => nameof(LanguageMappings.de),
-            _ when text.MatchesConfig(_mappings.it) => nameof(LanguageMappings.it),
-            _ when text.MatchesConfig(_mappings.pt) => nameof(LanguageMappings.pt),
-            _ when text.MatchesConfig(_mappings.ja) => nameof(LanguageMappings.ja),
-            _ when text.MatchesConfig(_mappings.ko) => nameof(LanguageMappings.ko),
-            _ when text.MatchesConfig(_mappings.ru) => nameof(LanguageMappings.ru),
-            _ when text.MatchesConfig(_mappings.zht) => nameof(LanguageMappings.zht),
-            _ when text.MatchesConfig(_mappings.zhs) => nameof(LanguageMappings.zhs),
-            _ => throw new TypeConverterException(this, memberMapData, text, row.Context, $"Unrecognized Language value '{text}'"),
-        };
-    }
+	public object? ConvertFromString(string? text, IReaderRow row, MemberMapData memberMapData)
+	{
+		if (string.IsNullOrEmpty(text)) { return null; }
 
-    public string? ConvertToString(object? value, IWriterRow row, MemberMapData memberMapData)
-    {
-        return value switch
-        {
-            nameof(LanguageMappings.en) => _mappings.en,
-            nameof(LanguageMappings.es) => _mappings.es,
-            nameof(LanguageMappings.fr) => _mappings.fr,
-            nameof(LanguageMappings.de) => _mappings.de,
-            nameof(LanguageMappings.it) => _mappings.it,
-            nameof(LanguageMappings.pt) => _mappings.pt,
-            nameof(LanguageMappings.ja) => _mappings.ja,
-            nameof(LanguageMappings.ko) => _mappings.ko,
-            nameof(LanguageMappings.ru) => _mappings.ru,
-            nameof(LanguageMappings.zht) => _mappings.zht,
-            nameof(LanguageMappings.zhs) => _mappings.zhs,
-            // Empty string (not null) on no-match: CsvHelper treats a null return from
-            // ITypeConverter.ConvertToString as "skip this field entirely", which silently
-            // shifts every subsequent column one slot left and corrupts the row.
-            _ => "",
-        };
-    }
+		return _valueByCode.FirstOrDefault(kv => text.MatchesConfig(kv.Value)).Key
+			?? throw new TypeConverterException(this, memberMapData, text, row.Context, $"Unrecognized Language value '{text}'");
+	}
+
+	// Empty string (not null) on no-match: a null return makes CsvHelper skip the field entirely, shifting every subsequent column.
+	public string? ConvertToString(object? value, IWriterRow row, MemberMapData memberMapData) =>
+		value is string code ? _valueByCode.GetValueOrDefault(code) ?? "" : "";
 }
-

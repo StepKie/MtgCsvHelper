@@ -47,9 +47,7 @@ internal static class DragonShieldGuildKitGenerator
 
 		Console.WriteLine($"  Mapped {withWatermark} guild-kit printings; skipped {skipped} watermark-less reprints.");
 
-		var resourcesDir = Path.GetFullPath(Path.Combine(
-			AppContext.BaseDirectory, "..", "..", "..", "..", "..",
-			"MtgCsvHelper", "Resources"));
+		var resourcesDir = Path.Combine(RepoRoot.Find(), "MtgCsvHelper", "Resources");
 		Directory.CreateDirectory(resourcesDir);
 		var jsonOpts = new JsonSerializerOptions
 		{

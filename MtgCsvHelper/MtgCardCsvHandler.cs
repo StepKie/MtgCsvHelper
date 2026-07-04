@@ -36,12 +36,11 @@ public class MtgCardCsvHandler
 	{
 		if (!csvStream.CanSeek) { throw new ArgumentException("Stream must be seekable", nameof(csvStream)); }
 
-		Log.Information($"Parsing input format {_format} ...");
+		Log.Information("Parsing input format {Format} ...", _format);
 		using var reader = new StreamReader(csvStream);
 		CheckIfFirstLineCanBeIgnored(reader);
 
-		var formatConfig = _factory.GetFormatConfig(_format)
-			?? throw new InvalidOperationException($"Format '{_format}' configuration not found.");
+		var formatConfig = _factory.GetRequiredFormatConfig(_format);
 
 		using var csv = new CsvReader(reader, new CsvConfiguration(CultureInfo.InvariantCulture)
 		{
@@ -133,15 +132,14 @@ public class MtgCardCsvHandler
 	public void WriteCollectionCsv(IList<PhysicalMtgCard> cards, string? outputFileName = null)
 	{
 		outputFileName ??= $"{_format.ToLower()}-output-{DateTime.Now:yyyy-MM-dd_HH-mm-ss}.csv";
-		Log.Information($"Writing {cards.Sum(c => c.Count)} cards ({cards.Count} unique) to {outputFileName}");
+		Log.Information("Writing {TotalCount} cards ({UniqueCount} unique) to {FileName}", cards.Sum(c => c.Count), cards.Count, outputFileName);
 		using var stream = File.Create(outputFileName);
 		WriteCollectionCsv(cards, stream);
 	}
 
 	public void WriteCollectionCsv(IList<PhysicalMtgCard> cards, Stream outputStream)
 	{
-		var cfg = _factory.GetFormatConfig(_format)
-			?? throw new InvalidOperationException($"Format '{_format}' configuration not found.");
+		var cfg = _factory.GetRequiredFormatConfig(_format);
 
 		// Project new records when defaulting so the caller's cards stay immutable across writes.
 		var rowsToWrite = cfg.RequiresWriteDefaults ? ApplyWriteDefaults(cards, cfg) : cards;

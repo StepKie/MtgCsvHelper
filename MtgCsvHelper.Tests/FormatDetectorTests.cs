@@ -4,20 +4,9 @@ public class FormatDetectorTests(ITestOutputHelper output) : BaseTest(output)
 {
 	FormatDetector NewDetector() => new([.. CardMapFactory.SupportedConfigs(_config)]);
 
+	// Canonical cases live in the fixture-driven theories below; inline rows cover only what no fixture can (CARDKINGDOM, quoted headers).
 	[Theory]
-	[InlineData("Quantity,Card Name,Set Code,Set Name,Card Number,Printing,Condition,Language,Price Bought,Date Bought", "DRAGONSHIELD")]
-	[InlineData("Count,Tradelist Count,Name,Edition,Collector Number,Foil,Condition,Language,Purchase Price", "MOXFIELD")]
-	[InlineData("Quantity,Name,Set code,Set name,Collector number,Foil,Condition,Language,Purchase price", "MANABOX")]
-	[InlineData("QUANTITY,NAME,SETCODE,SETNAME,COLLECTOR NUMBER,FINISH,CONDITION,LANG,ACQUIRED PRICE", "TOPDECKED")]
-	[InlineData("Count,Tradelist Count,Name,Edition Code,Edition,Card Number,Condition,Language,Foil,My Price", "DECKBOX")]
-	[InlineData("Quantity,Simple Name,Set Code,Set,Card Number,Printing,Condition,Language", "TCGPLAYER")]
-	[InlineData("Card,Set ID,Set Name,Quantity,Foil,Collector Number", "MTGGOLDFISH")]
-	[InlineData("Quantity,Name,Finish,Condition,Date Added,Language,Purchase Price,Tags,Edition Name,Edition Code,Multiverse Id,Scryfall ID,Collector Number", "ARCHIDEKT")]
-	[InlineData("Card Name,Quantity,ID #,Rarity,Set,Collector #,Premium,Sideboarded,Annotation", "MTGO")]
-	[InlineData("idProduct;groupCount;isFoil;condition;idLanguage;price", "CARDMARKET")]
-	// CARDKINGDOM has no committed fixture (write-only format); its lowercase header is covered inline.
 	[InlineData("quantity,title,edition,foil", "CARDKINGDOM")]
-	// Quoted-header variants — real exports from these sites quote some/all column names.
 	[InlineData("QUANTITY,\"NAME\",SETCODE,\"SETNAME\",\"COLLECTOR NUMBER\",FINISH,PRICE,RARITY,ID,ACQUIRED DATE,ACQUIRED PRICE,LANG,PRICE SALE,SIGNING,ALTERATION,CONDITION,NOTES,TAGS", "TOPDECKED")]
 	[InlineData("\"Count\",\"Tradelist Count\",\"Name\",\"Edition\",\"Condition\",\"Language\",\"Foil\",\"Tags\",\"Last Modified\",\"Collector Number\",\"Alter\",\"Proxy\",\"Purchase Price\"", "MOXFIELD")]
 	public void DetectsKnownFormatsFromTheirHeaders(string headerLine, string expectedFormat)
@@ -60,6 +49,19 @@ public class FormatDetectorTests(ITestOutputHelper output) : BaseTest(output)
 		var path = Path.Combine("Resources", "SampleCsvs", "Collection", fixtureName);
 		using var stream = File.OpenRead(path);
 		NewDetector().Detect(stream).Should().Be(expectedFormat);
+	}
+
+	public static TheoryData<string> RealExportFixtures() =>
+		new(Directory.EnumerateFiles(Path.Combine("Resources", "SampleCsvs", "Tests"), "*-real-export.csv").Select(Path.GetFileName)!);
+
+	// Real exports carry each site's exact quoting, casing, and delimiter; the expected format derives from the filename.
+	[Theory]
+	[MemberData(nameof(RealExportFixtures))]
+	public void DetectsRealExportFixtures(string fixtureName)
+	{
+		var path = Path.Combine("Resources", "SampleCsvs", "Tests", fixtureName);
+		using var stream = File.OpenRead(path);
+		NewDetector().Detect(stream).Should().Be(CsvFixture.FormatFromFilename(fixtureName));
 	}
 
 	// DetectAsync goes through ReadHeaderAsync, a separate code path from ReadHeader — exercise

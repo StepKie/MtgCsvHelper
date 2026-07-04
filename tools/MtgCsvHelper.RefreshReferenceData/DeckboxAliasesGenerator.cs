@@ -34,9 +34,7 @@ internal static class DeckboxAliasesGenerator
 		var entries = ParseEditions(html);
 		Console.WriteLine($"  Parsed {entries.Count} Deckbox edition entries.");
 
-		var bundlePath = Path.GetFullPath(Path.Combine(
-			AppContext.BaseDirectory, "..", "..", "..", "..", "..",
-			"MtgCsvHelper.BlazorWebAssembly", "wwwroot", "data", "cards.min.json.gz"));
+		var bundlePath = Path.Combine(RepoRoot.Find(), "MtgCsvHelper.BlazorWebAssembly", "wwwroot", "data", "cards.min.json.gz");
 		Console.WriteLine($"Loading Scryfall catalog from {bundlePath} …");
 		await using var fs = File.OpenRead(bundlePath);
 		var catalog = await ReferenceCardCatalog.LoadGzipAsync(fs);
@@ -136,9 +134,7 @@ internal static class DeckboxAliasesGenerator
 		Console.WriteLine($"  Sub-product rows skipped:                {skippedSubProduct}");
 		Console.WriteLine($"  Code aliases (Deckbox → Scryfall):       {codeAliases.Count}");
 
-		var resourcesDir = Path.GetFullPath(Path.Combine(
-			AppContext.BaseDirectory, "..", "..", "..", "..", "..",
-			"MtgCsvHelper", "Resources"));
+		var resourcesDir = Path.Combine(RepoRoot.Find(), "MtgCsvHelper", "Resources");
 		Directory.CreateDirectory(resourcesDir);
 		var jsonOpts = new JsonSerializerOptions
 		{

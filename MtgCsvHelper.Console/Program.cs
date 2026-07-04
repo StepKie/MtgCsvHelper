@@ -93,17 +93,17 @@ void RunWithOptions(CommandLineOptions opts)
 			cardsFound.AddRange(result.Collection.Cards);
 			if (result.ErrorCount > 0 || result.WarningCount > 0)
 			{
-				Log.Information($"{fileName}: {result.Collection.Cards.Count} cards parsed, {result.ErrorCount} errors, {result.WarningCount} warnings");
+				Log.Information("{FileName}: {CardCount} cards parsed, {ErrorCount} errors, {WarningCount} warnings", fileName, result.Collection.Cards.Count, result.ErrorCount, result.WarningCount);
 				foreach (var issue in result.Issues)
 				{
-					Log.Warning($"  [{issue.Severity}] row {issue.RowNumber}: {issue.Reason}");
+					Log.Warning("  [{Severity}] row {RowNumber}: {Reason}", issue.Severity, issue.RowNumber, issue.Reason);
 				}
 			}
 		}
 		catch (HeaderValidationException ex)
 		{
-			var missing = ex.InvalidHeaders.SelectMany(h => h.Names).Distinct().ToList();
-			Log.Error($"{fileName}: header mismatch — missing required column(s): {string.Join(", ", missing)}. Did you select the correct input format ({inputFormat})?");
+			Log.Error("{FileName}: header mismatch — missing required column(s): {MissingColumns}. Did you select the correct input format ({InputFormat})?",
+				fileName, string.Join(", ", ex.MissingColumns()), inputFormat);
 		}
 	}
 

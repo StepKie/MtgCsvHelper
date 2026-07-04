@@ -1,4 +1,3 @@
-using System.Text;
 using CsvHelper;
 
 namespace MtgCsvHelper.Tests;
@@ -7,8 +6,6 @@ namespace MtgCsvHelper.Tests;
 public class CardmarketTests(CatalogFixture fixture, ITestOutputHelper output) : ApiBaseTest(fixture, output)
 {
 	const string SamplePath = "Resources/SampleCsvs/Tests/cardmarket-field-fidelity.csv";
-
-	static MemoryStream CsvStream(string csv) => new(Encoding.UTF8.GetBytes(csv));
 
 	MtgCardCsvHandler Handler() => new(_catalog, _resolver, _config, "CARDMARKET");
 
@@ -73,7 +70,7 @@ public class CardmarketTests(CatalogFixture fixture, ITestOutputHelper output) :
 			+ "266380;1;0.15;1;2;;;;;;;;;\n"     // valid: Putrid Leech
 			+ "99999999;1;0.10;1;2;;;;;;;;;\n";  // invalid: unknown ID
 
-		var result = await Handler().ParseCollectionCsvAsync(CsvStream(csv));
+		var result = await Handler().ParseCollectionCsvAsync(CsvFixture.CsvStream(csv));
 
 		// The unresolved card is dropped (without name/set we can't write a meaningful row).
 		result.Collection.Cards.Should().HaveCount(1);
@@ -93,7 +90,7 @@ public class CardmarketTests(CatalogFixture fixture, ITestOutputHelper output) :
 		var csv = "Count,Name,Edition,Collector Number,Foil,Condition,Language,Purchase Price\n"
 			+ "1,Lightning Bolt,M11,149,,Near Mint,English,\n";
 
-		var act = async () => await Handler().ParseCollectionCsvAsync(CsvStream(csv));
+		var act = async () => await Handler().ParseCollectionCsvAsync(CsvFixture.CsvStream(csv));
 
 		await act.Should().ThrowAsync<HeaderValidationException>();
 	}
