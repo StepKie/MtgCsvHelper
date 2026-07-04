@@ -6,7 +6,7 @@ namespace MtgCsvHelper;
 
 public class CardMapFactory(IConfiguration config, IReferenceCardCatalog catalog)
 {
-	readonly List<FormatConfig> _formatConfigs = From(config).ToList();
+	readonly List<FormatConfig> _formatConfigs = LoadOrThrow(config);
 
 	public static IReadOnlyList<string> Supported { get; } = ["MOXFIELD", "DRAGONSHIELD", "MANABOX", "TOPDECKED", "DECKBOX", "CARDKINGDOM", "MTGGOLDFISH", "TCGPLAYER", "CARDMARKET", "ARCHIDEKT", "MTGO"];
 
@@ -40,9 +40,13 @@ public class CardMapFactory(IConfiguration config, IReferenceCardCatalog catalog
 		{
 			throw new InvalidOperationException($"Format '{format}' is write-only and cannot be parsed.");
 		}
-		if (format.Equals("DECKBOX", StringComparison.OrdinalIgnoreCase)) { return new DeckboxMap(cfg, catalog); }
-		if (format.Equals("DRAGONSHIELD", StringComparison.OrdinalIgnoreCase)) { return new DragonShieldMap(cfg, catalog); }
-		return new PhysicalCardMap(cfg, catalog);
+
+		return format.ToUpperInvariant() switch
+		{
+			"DECKBOX" => new DeckboxMap(cfg, catalog),
+			"DRAGONSHIELD" => new DragonShieldMap(cfg, catalog),
+			_ => new PhysicalCardMap(cfg, catalog),
+		};
 	}
 
 	public ClassMap<PhysicalMtgCard> GenerateWriteMap(string format)
@@ -52,25 +56,34 @@ public class CardMapFactory(IConfiguration config, IReferenceCardCatalog catalog
 		{
 			throw new InvalidOperationException($"Format '{format}' is read-only and cannot be written.");
 		}
-		if (format.Equals("CARDKINGDOM", StringComparison.OrdinalIgnoreCase)) { return new CardKingdomWriteMap(cfg, catalog); }
-		if (format.Equals("DECKBOX", StringComparison.OrdinalIgnoreCase)) { return new DeckboxMap(cfg, catalog); }
-		if (format.Equals("DRAGONSHIELD", StringComparison.OrdinalIgnoreCase)) { return new DragonShieldMap(cfg, catalog); }
-		if (format.Equals("TCGPLAYER", StringComparison.OrdinalIgnoreCase)) { return new TCGPlayerWriteMap(cfg, catalog); }
-		return new PhysicalCardMap(cfg, catalog);
+
+		return format.ToUpperInvariant() switch
+		{
+			"CARDKINGDOM" => new CardKingdomWriteMap(cfg, catalog),
+			"DECKBOX" => new DeckboxMap(cfg, catalog),
+			"DRAGONSHIELD" => new DragonShieldMap(cfg, catalog),
+			"TCGPLAYER" => new TCGPlayerWriteMap(cfg, catalog),
+			_ => new PhysicalCardMap(cfg, catalog),
+		};
 	}
 
-	// Throwing counterpart to GetFormatConfig; distinguishes "no config loaded at all" from "unknown format".
-	internal FormatConfig GetRequiredFormatConfig(string format)
+	// Throwing counterpart to GetFormatConfig for callers that can't proceed without one.
+	internal FormatConfig GetRequiredFormatConfig(string format) =>
+		GetFormatConfig(format)
+			?? throw new ArgumentException(
+				$"Unsupported format '{format}'. Loaded: {string.Join(", ", _formatConfigs.Select(c => c.Name))}.",
+				nameof(format));
+
+	// Fail fast at construction: an empty config means appsettings.json never loaded — no later call can succeed.
+	static List<FormatConfig> LoadOrThrow(IConfiguration config)
 	{
-		if (_formatConfigs.Count == 0)
+		var configs = From(config).ToList();
+		if (configs.Count == 0)
 		{
 			throw new InvalidOperationException(
 				"No format configurations loaded. Check that appsettings.json is reachable and contains a 'CsvConfigurations' section.");
 		}
 
-		return GetFormatConfig(format)
-			?? throw new ArgumentException(
-				$"Unsupported format '{format}'. Loaded: {string.Join(", ", _formatConfigs.Select(c => c.Name))}.",
-				nameof(format));
+		return configs;
 	}
 }

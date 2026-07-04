@@ -1,4 +1,3 @@
-using System.Diagnostics.CodeAnalysis;
 using Serilog;
 
 namespace MtgCsvHelper.BlazorWebAssembly;
@@ -15,7 +14,6 @@ public interface ICatalogLoader
 	IReferenceCardCatalog? Catalog { get; }
 	CatalogLoadProgress Progress { get; }
 	Exception? Error { get; }
-	[SuppressMessage("Design", "CA1003:Use generic event handler instances", Justification = "Action is intentional — subscribers only need a re-render ping, not args.")]
 	event Action? StateChanged;
 	Task LoadAsync(CancellationToken ct = default);
 }
@@ -41,7 +39,6 @@ public sealed class CatalogLoader(HttpClient http) : ICatalogLoader
 	public IReferenceCardCatalog? Catalog { get; private set; }
 	public CatalogLoadProgress Progress { get; private set; } = CatalogLoadProgress.Idle;
 	public Exception? Error { get; private set; }
-	[SuppressMessage("Design", "CA1003:Use generic event handler instances", Justification = "Action is intentional — subscribers only need a re-render ping, not args.")]
 	public event Action? StateChanged;
 
 	public async Task LoadAsync(CancellationToken ct = default)

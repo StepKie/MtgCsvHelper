@@ -44,13 +44,12 @@ public class DeckFormatTests(CatalogFixture fixture, ITestOutputHelper output) :
 	}
 
 	[Fact]
-	public void GenerateReadMap_WithNoConfigLoaded_ThrowsHelpfulError()
+	public void Construction_WithNoConfigLoaded_ThrowsHelpfulError()
 	{
-		// Empty configuration — simulates appsettings.json failing to load.
+		// Empty configuration — simulates appsettings.json failing to load; the factory fails fast at construction.
 		var emptyConfig = new Microsoft.Extensions.Configuration.ConfigurationBuilder().Build();
-		var factory = new CardMapFactory(emptyConfig, _catalog);
 
-		var act = () => factory.GenerateReadMap("MOXFIELD");
+		var act = () => new CardMapFactory(emptyConfig, _catalog);
 
 		act.Should().Throw<InvalidOperationException>()
 			.WithMessage("*No format configurations loaded*");

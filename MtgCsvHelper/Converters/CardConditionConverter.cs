@@ -13,16 +13,15 @@ public class CardConditionConverter(ConditionConfiguration configuration) : ITyp
 		if (string.IsNullOrWhiteSpace(text)) { return CardCondition.Unknown; }
 
 		// Formats whose Mint/Excellent share NearMint's string declare them null, so only the NearMint arm matches — order-independent.
-#pragma warning disable format
 		return text switch
 		{
-			_ when text.MatchesConfig(_conditionConfig.Mint)			=> CardCondition.Mint,
-			_ when text.MatchesConfig(_conditionConfig.NearMint)		=> CardCondition.NearMint,
-			_ when text.MatchesConfig(_conditionConfig.Excellent)		=> CardCondition.Excellent,
-			_ when text.MatchesConfig(_conditionConfig.Good)			=> CardCondition.Good,
-			_ when text.MatchesConfig(_conditionConfig.LightlyPlayed)	=> CardCondition.LightlyPlayed,
-			_ when text.MatchesConfig(_conditionConfig.Played)			=> CardCondition.Played,
-			_ when text.MatchesConfig(_conditionConfig.Poor)			=> CardCondition.Poor,
+			_ when text.MatchesConfig(_conditionConfig.Mint) => CardCondition.Mint,
+			_ when text.MatchesConfig(_conditionConfig.NearMint) => CardCondition.NearMint,
+			_ when text.MatchesConfig(_conditionConfig.Excellent) => CardCondition.Excellent,
+			_ when text.MatchesConfig(_conditionConfig.Good) => CardCondition.Good,
+			_ when text.MatchesConfig(_conditionConfig.LightlyPlayed) => CardCondition.LightlyPlayed,
+			_ when text.MatchesConfig(_conditionConfig.Played) => CardCondition.Played,
+			_ when text.MatchesConfig(_conditionConfig.Poor) => CardCondition.Poor,
 			_ => throw new TypeConverterException(this, memberMapData, text, row.Context, $"Unrecognized Condition value '{text}'"),
 		};
 	}
@@ -33,17 +32,16 @@ public class CardConditionConverter(ConditionConfiguration configuration) : ITyp
 		return value is CardCondition condition
 			? condition switch
 			{
-				CardCondition.Mint          => _conditionConfig.Mint      ?? _conditionConfig.NearMint,
-				CardCondition.NearMint      => _conditionConfig.NearMint,
-				CardCondition.Excellent     => _conditionConfig.Excellent ?? _conditionConfig.NearMint,
-				CardCondition.Good          => _conditionConfig.Good,
+				CardCondition.Mint => _conditionConfig.Mint ?? _conditionConfig.NearMint,
+				CardCondition.NearMint => _conditionConfig.NearMint,
+				CardCondition.Excellent => _conditionConfig.Excellent ?? _conditionConfig.NearMint,
+				CardCondition.Good => _conditionConfig.Good,
 				CardCondition.LightlyPlayed => _conditionConfig.LightlyPlayed,
-				CardCondition.Played        => _conditionConfig.Played,
-				CardCondition.Poor          => _conditionConfig.Poor,
-				CardCondition.Unknown       => "",
-				_                           => "",
+				CardCondition.Played => _conditionConfig.Played,
+				CardCondition.Poor => _conditionConfig.Poor,
+				CardCondition.Unknown => "",
+				_ => "",
 			}
 			: "";
 	}
-#pragma warning restore format
 }

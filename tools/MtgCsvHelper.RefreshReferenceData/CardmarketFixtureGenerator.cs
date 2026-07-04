@@ -73,11 +73,8 @@ internal static class CardmarketFixtureGenerator
 
 		foreach (var card in result.Collection.Cards)
 		{
-			// Catalog indexes set codes in lowercase Scryfall casing; parsed cards may be upper-case.
-			// CA1308 suppression is correct here — Scryfall identifiers are ASCII lowercase by spec.
-#pragma warning disable CA1308
+			// Lowered to Scryfall's canonical casing for the skip-log; the catalog lookup canonicalizes either way.
 			var setCode = card.Printing.Set.ToLowerInvariant();
-#pragma warning restore CA1308
 			var collectorNumber = card.Printing.CollectorNumber;
 			var refCard = catalog.FindBySetAndCollectorNumber(setCode, collectorNumber);
 			if (refCard?.CardmarketId is not int idProduct)

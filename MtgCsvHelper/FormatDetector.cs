@@ -6,13 +6,10 @@ namespace MtgCsvHelper;
 /// formats differ in casing (e.g. <c>"Name"</c> vs <c>"NAME"</c> vs <c>"title"</c>), and
 /// that difference is a load-bearing signal.
 /// </summary>
-public sealed class FormatDetector
+public sealed class FormatDetector(IReadOnlyList<FormatConfig> formats)
 {
-	readonly IReadOnlyList<FormatConfig> _formats;
 	// Empirical: every bundled format has ≥2 uniquely-cased column names; revisit if a very generic format gets added.
 	const int MinMatchesForConfidence = 2;
-
-	public FormatDetector(IReadOnlyList<FormatConfig> formats) => _formats = formats;
 
 	/// <summary>
 	/// Reads the first (non-marker) line from the stream and detects the format from it.
@@ -39,12 +36,12 @@ public sealed class FormatDetector
 	/// </summary>
 	public string? Detect(string headerLine)
 	{
-		if (string.IsNullOrWhiteSpace(headerLine)) return null;
+		if (string.IsNullOrWhiteSpace(headerLine)) { return null; }
 
 		string? bestName = null;
 		int bestScore = 0;
 		int bestConfiguredCount = int.MaxValue;
-		foreach (var fmt in _formats)
+		foreach (var fmt in formats)
 		{
 			var configured = HeadersOf(fmt).ToList();
 			// Strip surrounding quotes before comparing — many exports quote header names (Topdecked: QUANTITY,"NAME",…).
@@ -66,14 +63,16 @@ public sealed class FormatDetector
 	static string? ReadHeader(StreamReader reader)
 	{
 		var line = reader.ReadLine();
-		if (IsSepMarker(line)) line = reader.ReadLine();
+		if (IsSepMarker(line)) { line = reader.ReadLine(); }
+
 		return line;
 	}
 
 	static async Task<string?> ReadHeaderAsync(StreamReader reader)
 	{
 		var line = await reader.ReadLineAsync();
-		if (IsSepMarker(line)) line = await reader.ReadLineAsync();
+		if (IsSepMarker(line)) { line = await reader.ReadLineAsync(); }
+
 		return line;
 	}
 
