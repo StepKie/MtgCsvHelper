@@ -9,7 +9,6 @@ public class CardMapFactory(IConfiguration config, IReferenceCardCatalog catalog
 	readonly List<FormatConfig> _formatConfigs = From(config).ToList();
 
 	public static IReadOnlyList<string> Supported { get; } = ["MOXFIELD", "DRAGONSHIELD", "MANABOX", "TOPDECKED", "DECKBOX", "CARDKINGDOM", "MTGGOLDFISH", "TCGPLAYER", "CARDMARKET", "ARCHIDEKT", "MTGO"];
-	public static IReadOnlyList<string> NotYetFullySupported { get; } = ["URZAGATHERER"];
 
 	// Write-only / read-only format sets; internal so tests derive expectations from the same source of truth.
 	internal static readonly IReadOnlySet<string> WriteOnlyFormats = new HashSet<string>(StringComparer.OrdinalIgnoreCase) { "CARDKINGDOM" };

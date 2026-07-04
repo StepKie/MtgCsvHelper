@@ -4,7 +4,7 @@ namespace MtgCsvHelper.Models;
 
 // Property order follows PhysicalCardMap's CSV index order (Folder, Count, TradeQuantity,
 // Printing (Name/Set/SetName/CollectorNumber), Condition, Finish, Language, PriceBought,
-// DateBought). TradeListed has no CSV column today and sits at the end.
+// DateBought).
 public record PhysicalMtgCard
 {
 	// TODO: Folder and TradeQuantity are importer-presentation metadata, not card identity.
@@ -28,8 +28,6 @@ public record PhysicalMtgCard
 
 	public DateTime? DateBought { get; init; }
 
-	public bool? TradeListed { get; init; }
-
-	// No format maps a rarity column; backfilled from the catalog once the printing resolves.
+	// Backfilled from the catalog once the printing resolves; formats with a rarity column also map it.
 	public CardRarity Rarity { get; init; } = CardRarity.Unknown;
 }
