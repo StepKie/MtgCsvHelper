@@ -157,14 +157,69 @@ public class MtgCardCsvHandler
 		// avoids the second-write-sees-first-write-defaults hazard.
 		var rowsToWrite = cfg.RequiresWriteDefaults ? ApplyWriteDefaults(cards, cfg) : cards;
 
+		if (cfg.Columns is null)
+		{
+			WriteModeledColumns(rowsToWrite, outputStream);
+
+			return;
+		}
+
+		// Render the modeled columns, then re-emit them in the site's full native order for strict, order-sensitive importers.
+		using var modeled = new MemoryStream();
+		WriteModeledColumns(rowsToWrite, modeled);
+		modeled.Position = 0;
+		ProjectToNativeColumns(modeled, outputStream, cfg);
+	}
+
+	void WriteModeledColumns(IEnumerable<PhysicalMtgCard> rows, Stream outputStream)
+	{
 		using var writer = new StreamWriter(outputStream, leaveOpen: true);
 		using var csv = new CsvWriter(writer, CultureInfo.InvariantCulture);
 
 		csv.Context.RegisterClassMap(_factory.GenerateWriteMap(_format));
 		csv.WriteHeader<PhysicalMtgCard>();
 		csv.NextRecord();
-		csv.WriteRecords(rowsToWrite);
+		csv.WriteRecords(rows);
 		csv.Flush();
+	}
+
+	// Re-emits the modeled CSV in the declared native column order by header-name lookup, blanking unmodeled columns.
+	static void ProjectToNativeColumns(Stream modeled, Stream outputStream, FormatConfig cfg)
+	{
+		var columns = cfg.Columns!;
+		var csvCfg = new CsvConfiguration(CultureInfo.InvariantCulture) { Delimiter = cfg.Delimiter };
+
+		using var reader = new StreamReader(modeled);
+		using var csvIn = new CsvReader(reader, csvCfg);
+		csvIn.Read();
+		csvIn.ReadHeader();
+		var modeledHeaders = csvIn.HeaderRecord!;
+
+		// A modeled column absent from Columns would be silently dropped — config error, fail loudly.
+		var undeclared = modeledHeaders.Where(h => !columns.Contains(h)).ToList();
+		if (undeclared.Count > 0)
+		{
+			throw new InvalidOperationException(
+				$"Format '{cfg.Name}' emits column(s) [{string.Join(", ", undeclared)}] not declared in its Columns list.");
+		}
+
+		var modeledSet = modeledHeaders.ToHashSet();
+
+		using var writer = new StreamWriter(outputStream, leaveOpen: true);
+		using var csvOut = new CsvWriter(writer, csvCfg);
+
+		foreach (var column in columns) { csvOut.WriteField(column); }
+		csvOut.NextRecord();
+
+		while (csvIn.Read())
+		{
+			foreach (var column in columns)
+			{
+				csvOut.WriteField(modeledSet.Contains(column) ? csvIn.GetField(column) : string.Empty);
+			}
+			csvOut.NextRecord();
+		}
+		csvOut.Flush();
 	}
 
 	static IEnumerable<PhysicalMtgCard> ApplyWriteDefaults(IEnumerable<PhysicalMtgCard> cards, FormatConfig cfg)

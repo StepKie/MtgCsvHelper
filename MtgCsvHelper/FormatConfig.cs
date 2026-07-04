@@ -3,6 +3,8 @@ namespace MtgCsvHelper;
 public record FormatConfig(
 	string Name,
 	string Quantity,
+	// The site's full native header set in the site's exact column order; the writer emits every declared column, blank when unmodeled. Null = modeled columns only.
+	string[]? Columns = null,
 	// Either CardName or CardmarketId (or in the future another card-identifier kind) must be set.
 	// Most formats identify cards by name + set; Cardmarket identifies by its internal product ID and
 	// requires Scryfall reverse-lookup to fill in name/set/etc. during enrichment.
@@ -12,6 +14,10 @@ public record FormatConfig(
 	string? SetCode = null,
 	string? SetName = null,
 	string? ScryfallId = null,
+	// Catalog-stamped metadata columns, filled by CatalogValidator when the printing resolves (like ScryfallId).
+	RarityConfiguration? Rarity = null,
+	string? MultiverseId = null,
+	string? TcgplayerId = null,
 	FinishConfiguration? Finish = null,
 	ConditionConfiguration? Condition = null,
 	LanguageConfiguration? Language = null,
@@ -97,6 +103,15 @@ public record PriceConfiguration(
 	string HeaderName,
 	string Currency,
 	string CurrencySymbol) : IHeaderConfig;
+
+public record RarityConfiguration(
+	string HeaderName,
+	string Common,
+	string Uncommon,
+	string Rare,
+	string Special,
+	string Mythic,
+	string Bonus) : IHeaderConfig;
 
 // Formats is an ordered list passed straight to CsvHelper's TypeConverterOption.Format(...):
 // the FIRST entry is used for writes, ALL entries are tried in order on read. Lets a format

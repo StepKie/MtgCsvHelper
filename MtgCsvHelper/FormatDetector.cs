@@ -103,6 +103,10 @@ public sealed class FormatDetector
 		if (f.SetCode is not null) yield return f.SetCode;
 		if (f.SetName is not null) yield return f.SetName;
 		if (f.SetNumber is not null) yield return f.SetNumber;
+		if (f.ScryfallId is not null) yield return f.ScryfallId;
+		if (f.Rarity is not null) yield return f.Rarity.HeaderName;
+		if (f.MultiverseId is not null) yield return f.MultiverseId;
+		if (f.TcgplayerId is not null) yield return f.TcgplayerId;
 		if (f.Finish is not null) yield return f.Finish.HeaderName;
 		if (f.Condition is not null) yield return f.Condition.HeaderName;
 		if (f.Language is not null) yield return f.Language.HeaderName;
