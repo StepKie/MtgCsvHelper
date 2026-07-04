@@ -102,8 +102,7 @@ void RunWithOptions(CommandLineOptions opts)
 		}
 		catch (HeaderValidationException ex)
 		{
-			var missing = ex.InvalidHeaders.SelectMany(h => h.Names).Distinct().ToList();
-			Log.Error($"{fileName}: header mismatch — missing required column(s): {string.Join(", ", missing)}. Did you select the correct input format ({inputFormat})?");
+			Log.Error($"{fileName}: header mismatch — missing required column(s): {string.Join(", ", ex.MissingColumns())}. Did you select the correct input format ({inputFormat})?");
 		}
 	}
 

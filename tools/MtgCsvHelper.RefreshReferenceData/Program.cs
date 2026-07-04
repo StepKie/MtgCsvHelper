@@ -25,9 +25,7 @@ if (args.Length > 0 && args[0] == "dragonshield-guildkit")
 	return;
 }
 
-string defaultOutput = Path.GetFullPath(Path.Combine(
-	AppContext.BaseDirectory, "..", "..", "..", "..", "..",
-	"MtgCsvHelper.BlazorWebAssembly", "wwwroot", "data", "cards.min.json.gz"));
+string defaultOutput = Path.Combine(RepoRoot.Find(), "MtgCsvHelper.BlazorWebAssembly", "wwwroot", "data", "cards.min.json.gz");
 
 string outputPath = args.Length > 0 ? args[0] : defaultOutput;
 

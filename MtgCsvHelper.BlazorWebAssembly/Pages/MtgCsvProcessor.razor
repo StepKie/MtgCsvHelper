@@ -552,8 +552,7 @@
 		}
 		catch (HeaderValidationException hex)
 		{
-			var missing = hex.InvalidHeaders.SelectMany(h => h.Names).Distinct().ToList();
-			_headerError = $"This doesn't look like a valid {FormatDisplay.For(_selectedInputFormat)} CSV — missing required column(s): {string.Join(", ", missing)}. Did you select the correct input format?";
+			_headerError = $"This doesn't look like a valid {FormatDisplay.For(_selectedInputFormat)} CSV — missing required column(s): {string.Join(", ", hex.MissingColumns())}. Did you select the correct input format?";
 		}
 		catch (OperationCanceledException)
 		{

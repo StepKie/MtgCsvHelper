@@ -47,7 +47,7 @@ internal static class CardmarketFixtureGenerator
 
 	public static async Task RunAsync()
 	{
-		var repoRoot = FindRepoRoot();
+		var repoRoot = RepoRoot.Find();
 		var bundlePath = Path.Combine(repoRoot, "MtgCsvHelper.BlazorWebAssembly", "wwwroot", "data", "cards.min.json.gz");
 		var appsettingsPath = Path.Combine(repoRoot, "MtgCsvHelper", "appsettings.json");
 		var moxfieldPath = Path.Combine(repoRoot, "MtgCsvHelper", "Resources", "SampleCsvs", "Tests", "moxfield-real-export.csv");
@@ -127,14 +127,4 @@ internal static class CardmarketFixtureGenerator
 		Console.WriteLine($"Skipped {skipped} cards (missing cardmarket_id, unmapped language, or unmapped condition).");
 	}
 
-	// Walks up from the tool's bin/ output directory to find the repo root (identified by .slnx).
-	static string FindRepoRoot()
-	{
-		var dir = new DirectoryInfo(AppContext.BaseDirectory);
-		while (dir is not null && !File.Exists(Path.Combine(dir.FullName, "MtgCsvHelper.slnx")))
-		{
-			dir = dir.Parent;
-		}
-		return dir?.FullName ?? throw new InvalidOperationException("Could not locate repo root (MtgCsvHelper.slnx) above " + AppContext.BaseDirectory);
-	}
 }

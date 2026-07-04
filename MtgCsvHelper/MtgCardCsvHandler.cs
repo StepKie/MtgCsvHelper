@@ -40,8 +40,7 @@ public class MtgCardCsvHandler
 		using var reader = new StreamReader(csvStream);
 		CheckIfFirstLineCanBeIgnored(reader);
 
-		var formatConfig = _factory.GetFormatConfig(_format)
-			?? throw new InvalidOperationException($"Format '{_format}' configuration not found.");
+		var formatConfig = _factory.GetRequiredFormatConfig(_format);
 
 		using var csv = new CsvReader(reader, new CsvConfiguration(CultureInfo.InvariantCulture)
 		{
@@ -140,8 +139,7 @@ public class MtgCardCsvHandler
 
 	public void WriteCollectionCsv(IList<PhysicalMtgCard> cards, Stream outputStream)
 	{
-		var cfg = _factory.GetFormatConfig(_format)
-			?? throw new InvalidOperationException($"Format '{_format}' configuration not found.");
+		var cfg = _factory.GetRequiredFormatConfig(_format);
 
 		// Project new records when defaulting so the caller's cards stay immutable across writes.
 		var rowsToWrite = cfg.RequiresWriteDefaults ? ApplyWriteDefaults(cards, cfg) : cards;

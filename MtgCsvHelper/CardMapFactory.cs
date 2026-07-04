@@ -60,7 +60,7 @@ public class CardMapFactory(IConfiguration config, IReferenceCardCatalog catalog
 	}
 
 	// Throwing counterpart to GetFormatConfig; distinguishes "no config loaded at all" from "unknown format".
-	FormatConfig GetRequiredFormatConfig(string format)
+	internal FormatConfig GetRequiredFormatConfig(string format)
 	{
 		if (_formatConfigs.Count == 0)
 		{
