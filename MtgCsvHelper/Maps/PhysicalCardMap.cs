@@ -12,10 +12,7 @@ public class PhysicalCardMap : ClassMap<PhysicalMtgCard>
 {
 	public PhysicalCardMap(FormatConfig cfg, IReferenceCardCatalog catalog)
 	{
-		// Explicit indices override CsvHelper's clustering of nested-member maps
-		// (Printing.Name, Printing.Set, …) — registration order alone interleaves
-		// columns wrong. Unmapped indices are skipped on write, so gaps are fine.
-
+		// Explicit indices override CsvHelper's clustering of nested-member maps (registration order alone interleaves columns wrong); unmapped indices are skipped on write.
 		if (cfg.FolderName is not null) { Map(c => c.Folder).Name(cfg.FolderName).Index(0).TypeConverter<EmptyAsNullStringConverter>(); }
 
 		Map(c => c.Count).Name(cfg.Quantity).Index(1);
@@ -31,14 +28,11 @@ public class PhysicalCardMap : ClassMap<PhysicalMtgCard>
 		}
 		if (cfg.CardmarketId is not null)
 		{
-			// Stub Card object: only CardMarketId is filled here; name/set/etc. get resolved
-			// later in MtgCardCsvHandler.EnrichByCardmarketIdAsync via batched Scryfall lookup.
+			// Stub Card: only CardMarketId is set here; CardmarketIdEnricher resolves the rest via batched Scryfall lookup.
 			Map(c => c.Printing.CardMarketId).Name(cfg.CardmarketId).Index(3);
 		}
 
-		// At least one of SetCode / SetName is expected per format (sites differ on which they include).
-		// CollectorNumberConverter is applied universally (not MTGO-specific) — it's a no-op for any
-		// collector number without a "/", and "/" doesn't appear in Scryfall data.
+		// CollectorNumberConverter is applied universally: a no-op for numbers without "/", which Scryfall data never contains.
 		var setCodeMap = MapOptional(c => c.Printing.Set, cfg.SetCode);
 		if (setCodeMap is not null) { ConfigureSetCode(setCodeMap.Index(4)); }
 		var setNameMap = MapOptional(c => c.Printing.SetName, cfg.SetName);

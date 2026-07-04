@@ -16,13 +16,7 @@ public class MtgCardCsvHandler
 	{
 		_format = format;
 		_factory = new CardMapFactory(config, catalog);
-		// Order matches the prior inline implementation:
-		// 1. SetInfo + Validator run on non-stub rows (Cardmarket stubs have Name="" and are
-		//    skipped by both via their leading null-name guards).
-		// 2. CardmarketIdEnricher runs last, resolving stubs from the Scryfall network/catalog.
-		// Cardmarket-resolved cards intentionally bypass CatalogValidator: the resolver's data
-		// IS Scryfall data, so validating it against our possibly-stale local bundle would drop
-		// legitimate cards released after our last bundle refresh.
+		// Cardmarket stubs (Name="") pass through SetInfo + Validator untouched; CardmarketIdEnricher resolves them last from live Scryfall data, which outranks our bundle.
 		_pipeline =
 		[
 			new SetInfoEnricher(catalog),
@@ -31,8 +25,7 @@ public class MtgCardCsvHandler
 		];
 	}
 
-	// Sync wrappers — fine for non-Blazor callers and for formats that don't need network I/O.
-	// Cardmarket forces async (Scryfall lookups), so the sync path blocks on the async path.
+	// Sync wrappers for non-Blazor callers; they block on the async path (Cardmarket forces async via Scryfall lookups).
 	public ParseResult ParseCollectionCsv(string csvFilePath) => ParseCollectionCsvAsync(csvFilePath).GetAwaiter().GetResult();
 	public ParseResult ParseCollectionCsv(Stream csvStream) => ParseCollectionCsvAsync(csvStream).GetAwaiter().GetResult();
 
@@ -120,18 +113,15 @@ public class MtgCardCsvHandler
 			await enricher.EnrichAsync(rows, issues, ct);
 		}
 
-		// Pipeline stages emit issues in mixed order (parse loop ascending, PerCardEnricher
-		// reverse iteration descending, batch enrichers ascending). Sort by RowNumber once at
-		// the exit so consumers always see ascending row order.
+		// Pipeline stages emit issues in mixed row order; sort once at the exit.
 		var collection = new Collection { Name = $"Import {_format}, Date: {DateTime.Now}", Cards = [.. rows.Select(r => r.Card)] };
 		Log.Debug(collection.GenerateSummary());
 		return new ParseResult(collection, [.. issues.OrderBy(i => i.RowNumber)]);
 
 		static void CheckIfFirstLineCanBeIgnored(StreamReader stream)
 		{
-			// "Peek" into the first row, and if it is not a separator info row, reset the stream. (Found no more elegant way to do this)
+			// Peek at the first line; rewind unless it's a "sep=" marker row.
 			var hasSeparatorInfoFirstLine = stream.ReadLine()?.Contains("sep=") ?? false;
-			// Reset the stream to the original state if the first line is not a separator info line
 			if (!hasSeparatorInfoFirstLine)
 			{
 				stream.BaseStream.Position = 0;
@@ -153,8 +143,7 @@ public class MtgCardCsvHandler
 		var cfg = _factory.GetFormatConfig(_format)
 			?? throw new InvalidOperationException($"Format '{_format}' configuration not found.");
 
-		// Project into new records when defaulting so the caller's cards stay immutable —
-		// avoids the second-write-sees-first-write-defaults hazard.
+		// Project new records when defaulting so the caller's cards stay immutable across writes.
 		var rowsToWrite = cfg.RequiresWriteDefaults ? ApplyWriteDefaults(cards, cfg) : cards;
 
 		if (cfg.Columns is null)

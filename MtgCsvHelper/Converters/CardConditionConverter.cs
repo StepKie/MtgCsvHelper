@@ -12,10 +12,7 @@ public class CardConditionConverter(ConditionConfiguration configuration) : ITyp
 		// Blank means the export carries no condition info — not a vocabulary error.
 		if (string.IsNullOrWhiteSpace(text)) { return CardCondition.Unknown; }
 
-		// Duplicate-string collisions are handled at the config level: formats whose Mint or
-		// Excellent collapses to the same string as NearMint declare those fields as `null` in
-		// appsettings.json, so only the NearMint arm matches and switch order is irrelevant.
-		// See CardConditionConverterTests.AmbiguousString_ResolvesToNearMint for the invariant.
+		// Formats whose Mint/Excellent share NearMint's string declare them null, so only the NearMint arm matches — order-independent.
 #pragma warning disable format
 		return text switch
 		{

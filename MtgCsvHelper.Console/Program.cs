@@ -6,8 +6,7 @@ using Microsoft.Extensions.Hosting;
 using MtgCsvHelper;
 using MtgCsvHelper.Services;
 
-// Load the bundled reference catalog up-front so we can register the pre-loaded instance
-// into DI (avoids sync-over-async in a factory lambda). Bundle ships next to the exe under data/.
+// Pre-load the bundled catalog so DI registers the instance directly (no sync-over-async factory lambda).
 var bundlePath = Path.Combine(AppContext.BaseDirectory, "data", "cards.min.json.gz");
 if (!File.Exists(bundlePath))
 {
@@ -21,10 +20,7 @@ if (!File.Exists(bundlePath))
 await using var bundleStream = File.OpenRead(bundlePath);
 var catalog = await ReferenceCardCatalog.LoadGzipAsync(bundleStream);
 
-// Load appsettings.json from next to the exe, not from the user's cwd. Without this, running
-// the Console from anywhere except its bin output makes config loading silently fail and the
-// "supported formats" list ends up empty (which then surfaces as a confusing "Unsupported format"
-// error even for known formats).
+// Load appsettings.json from next to the exe — from any other cwd, config silently loads empty and every format reads as unsupported.
 IHostBuilder builder = Host
 	.CreateDefaultBuilder(args)
 	.UseContentRoot(AppContext.BaseDirectory)
@@ -38,13 +34,9 @@ IHostBuilder builder = Host
 
 using IHost host = builder.Build();
 
-// Ask the service provider for the configuration abstraction.
 var config = host.Services.GetRequiredService<IConfiguration>();
 
-// Console-specific Serilog setup. The base (MinimumLevel + Debug sink + output template) lives
-// in AppLogging so tests share it; Console layers on Console + File sinks here. Kept in code
-// rather than appsettings.json so the shared appsettings can be linked into Blazor (which uses
-// BrowserConsole instead — see appsettings.Development.json).
+// Console + File sinks layer on the shared AppLogging base; kept in code so the shared appsettings can link into Blazor.
 Log.Logger = AppLogging.CreateDefaultLoggerConfig()
 	.Enrich.FromLogContext()
 	.WriteTo.Console(outputTemplate: AppLogging.DEFAULT_OUTPUT_TEMPLATE)
