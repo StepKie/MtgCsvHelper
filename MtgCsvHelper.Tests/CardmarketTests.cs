@@ -87,7 +87,7 @@ public class CardmarketTests(CatalogFixture fixture, ITestOutputHelper output) :
 	}
 
 	[Fact]
-	public void ParseWrongFormat_AsCardmarket_ThrowsHeaderValidationException()
+	public async Task ParseWrongFormat_AsCardmarket_ThrowsHeaderValidationException()
 	{
 		// Moxfield-shaped CSV fed to the CARDMARKET handler — the required 'idProduct' / 'groupCount' headers are absent.
 		var csv = "Count,Name,Edition,Collector Number,Foil,Condition,Language,Purchase Price\n"
@@ -95,7 +95,7 @@ public class CardmarketTests(CatalogFixture fixture, ITestOutputHelper output) :
 
 		var act = async () => await Handler().ParseCollectionCsvAsync(CsvStream(csv));
 
-		act.Should().ThrowAsync<HeaderValidationException>();
+		await act.Should().ThrowAsync<HeaderValidationException>();
 	}
 
 	[Fact]

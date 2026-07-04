@@ -15,10 +15,7 @@ public class FormatDetectorTests(ITestOutputHelper output) : BaseTest(output)
 	[InlineData("Quantity,Name,Finish,Condition,Date Added,Language,Purchase Price,Tags,Edition Name,Edition Code,Multiverse Id,Scryfall ID,Collector Number", "ARCHIDEKT")]
 	[InlineData("Card Name,Quantity,ID #,Rarity,Set,Collector #,Premium,Sideboarded,Annotation", "MTGO")]
 	[InlineData("idProduct;groupCount;isFoil;condition;idLanguage;price", "CARDMARKET")]
-	// CARDKINGDOM uses lowercase headers, distinct from any other format in the configured set.
-	// No matching fixture in Resources/SampleCsvs/Collection (the sample file uses Title-Case
-	// headers that don't match the configured map — see appsettings.json) — covering with
-	// an explicit InlineData until #61 fills in proper per-format fixtures.
+	// CARDKINGDOM has no committed fixture (write-only format); its lowercase header is covered inline.
 	[InlineData("quantity,title,edition,foil", "CARDKINGDOM")]
 	// Quoted-header variants — real exports from these sites quote some/all column names.
 	[InlineData("QUANTITY,\"NAME\",SETCODE,\"SETNAME\",\"COLLECTOR NUMBER\",FINISH,PRICE,RARITY,ID,ACQUIRED DATE,ACQUIRED PRICE,LANG,PRICE SALE,SIGNING,ALTERATION,CONDITION,NOTES,TAGS", "TOPDECKED")]
@@ -46,10 +43,7 @@ public class FormatDetectorTests(ITestOutputHelper output) : BaseTest(output)
 		NewDetector().Detect("Quantity,Card Name,Set Code,Set Name,Card Number").Should().Be("DRAGONSHIELD");
 	}
 
-	// Regression: ensure detection works against the real fixture files, including any
-	// quoting / casing quirks of each export. Hand-typed header strings in the theory
-	// above missed that Topdecked and Moxfield quote some columns — only reading the
-	// actual file catches that.
+	// Real fixture files carry the quoting/casing quirks hand-typed headers miss (Topdecked and Moxfield quote some columns).
 	[Theory]
 	[InlineData("dragonshield-collection.csv", "DRAGONSHIELD")]
 	[InlineData("moxfield-haves.csv", "MOXFIELD")]

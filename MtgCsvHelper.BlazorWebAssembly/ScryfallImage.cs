@@ -10,12 +10,11 @@ public static class ScryfallImage
 {
 	const string CdnBase = "https://cards.scryfall.io";
 
-	/// <summary>Image size — see <c>https://scryfall.com/docs/api/images</c>.</summary>
 	[SuppressMessage("Design", "CA1055:URI-like return values should not be strings", Justification = "Consumed by MudImage.Src and <img src>, both of which take string.")]
-	public static string Url(Guid scryfallId, string size = "normal")
+	public static string Url(Guid scryfallId)
 	{
 		var hex = scryfallId.ToString("D");
-		return $"{CdnBase}/{size}/front/{hex[0]}/{hex[1]}/{hex}.jpg";
+		return $"{CdnBase}/normal/front/{hex[0]}/{hex[1]}/{hex}.jpg";
 	}
 
 	/// <summary>Canonical Scryfall page for a specific printing.</summary>

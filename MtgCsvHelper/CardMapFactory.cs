@@ -9,7 +9,6 @@ public class CardMapFactory(IConfiguration config, IReferenceCardCatalog catalog
 	readonly List<FormatConfig> _formatConfigs = From(config).ToList();
 
 	public static IReadOnlyList<string> Supported { get; } = ["MOXFIELD", "DRAGONSHIELD", "MANABOX", "TOPDECKED", "DECKBOX", "CARDKINGDOM", "MTGGOLDFISH", "TCGPLAYER", "CARDMARKET", "ARCHIDEKT", "MTGO"];
-	public static IReadOnlyList<string> NotYetFullySupported { get; } = ["URZAGATHERER"];
 
 	// Write-only / read-only format sets; internal so tests derive expectations from the same source of truth.
 	internal static readonly IReadOnlySet<string> WriteOnlyFormats = new HashSet<string>(StringComparer.OrdinalIgnoreCase) { "CARDKINGDOM" };
@@ -60,10 +59,7 @@ public class CardMapFactory(IConfiguration config, IReferenceCardCatalog catalog
 		return new PhysicalCardMap(cfg, catalog);
 	}
 
-	// Throwing counterpart to GetFormatConfig (matches the GetService/GetRequiredService convention).
-	// Two distinct failure modes, in order of precondition:
-	//   1. _formatConfigs is empty       — appsettings.json never loaded; system is misconfigured.
-	//   2. format isn't in _formatConfigs — caller asked for something we don't know.
+	// Throwing counterpart to GetFormatConfig; distinguishes "no config loaded at all" from "unknown format".
 	FormatConfig GetRequiredFormatConfig(string format)
 	{
 		if (_formatConfigs.Count == 0)

@@ -11,11 +11,7 @@ namespace MtgCsvHelper;
 /// </summary>
 public sealed class ReferenceCardCatalog : IReferenceCardCatalog
 {
-	// "Double-faced" detection matches the existing CachedMtgApi behavior exactly: any printing
-	// whose Scryfall `name` contains " // ". This catches transform, modal_dfc, split, meld
-	// pairs, and double-faced tokens uniformly, while correctly EXCLUDING adventures (which
-	// only carry the creature-face name in `name`) and other layouts where the back-face name
-	// is hidden in `card_faces` rather than the top-level `name`.
+	// A " // " in the top-level Scryfall name marks a DFC (transform, modal, split, meld); adventures keep only the creature face there and are correctly excluded.
 	const string DoubleFacedSeparator = " // ";
 
 	static readonly HashSet<string> TokenLayouts = new(StringComparer.OrdinalIgnoreCase)

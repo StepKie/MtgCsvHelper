@@ -195,9 +195,7 @@ public class ReferenceCardCatalogTests
 		c.IsTokenName("Lightning Bolt").Should().BeFalse();
 	}
 
-	// Guards the split-vs-DFC distinction CardNameConverter relies on: "// " names with layout
-	// = "split" must keep the full name on export, layouts like "transform" should be stripped
-	// to the front face. Adventures don't carry "// " in their Scryfall name so they're n/a here.
+	// Split layouts keep the full "A // B" name on export; transform-like layouts strip to the front face (CardNameConverter relies on this).
 	[Theory]
 	[InlineData("Commit // Memory", "split")]
 	[InlineData("Delver of Secrets // Insectile Aberration", "transform")]

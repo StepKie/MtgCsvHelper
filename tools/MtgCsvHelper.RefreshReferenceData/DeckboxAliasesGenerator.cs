@@ -43,27 +43,13 @@ internal static class DeckboxAliasesGenerator
 		var sets = catalog.GetSets(); // Set code (UPPER) → Scryfall canonical name
 		Console.WriteLine($"  {sets.Count} Scryfall sets loaded.");
 
-		// Two output maps emitted in lockstep:
-		//   - SetCodeToDeckboxName  (deckbox-set-aliases.json):  Scryfall code → Deckbox edition name
-		//     Used on the WRITE side to emit the Edition column with Deckbox's curated names.
-		//   - DeckboxCodeToSetCode  (deckbox-code-aliases.json): Deckbox edition code → Scryfall code
-		//     Used on the READ side to translate Deckbox-internal codes like `ex_127` into the
-		//     Scryfall codes the catalog can resolve. Only emitted when the codes differ.
+		// deckbox-code-aliases.json (read side): Deckbox edition code → Scryfall code, emitted only when they differ.
 		var codeAliases = new SortedDictionary<string, string>(StringComparer.OrdinalIgnoreCase);
 
-		// Build the alias map across three Deckbox row shapes:
-		//   1. Canonical regular sets — Deckbox code matches esym (e.g. AFC/afc, M14/m14).
-		//      Map esym (upper) → Deckbox name. Skip if Deckbox already matches Scryfall.
-		//   2. "Promo Pack: …" rows — Deckbox code like PP_NEO, esym is the parent (neo).
-		//      The corresponding Scryfall set is `p<esym>` (PNEO, "Kamigawa: Neon Dynasty Promos").
-		//   3. "Extras: …" rows (tokens) — Deckbox code like EX_45, esym is the parent.
-		//      The corresponding Scryfall set is `t<esym>` (TM14, "Magic 2014 Tokens").
-		// Sub-products that don't fit any of these (OAFC, OS_*, AFR_AMP, …) are skipped — they
-		// reuse a parent set's esym but don't correspond to a distinct Scryfall set we'd ever
-		// emit.
-		// Reverse name index. Scryfall set names are unique in our catalog so a Dictionary suffices.
+		// Reverse name index; Scryfall set names are unique in our catalog.
 		var scryfallCodeByName = sets.ToDictionary(kv => kv.Value, kv => kv.Key, StringComparer.Ordinal);
 
+		// deckbox-set-aliases.json (write side): Scryfall code → Deckbox's curated edition name.
 		var aliases = new SortedDictionary<string, string>(StringComparer.OrdinalIgnoreCase);
 		int aliasedByName = 0, aliasedByCode = 0, aliasedPromo = 0, aliasedToken = 0;
 		int skippedExactMatch = 0, skippedSubProduct = 0;
@@ -71,8 +57,7 @@ internal static class DeckboxAliasesGenerator
 		{
 			var name = WebUtility.HtmlDecode(e.DeckboxName);
 
-			// 1. Exact-name match — most reliable, catches legacy-code cases (1E↔LEA, AL↔ALL,
-			//    PLIST↔PLST) where the names agree but Deckbox uses old codes.
+			// 1. Exact-name match — most reliable; catches legacy codes (1E↔LEA, AL↔ALL, PLIST↔PLST) where names agree.
 			if (scryfallCodeByName.TryGetValue(name, out var matchedByName))
 			{
 				if (!string.Equals(e.DeckboxCode, matchedByName, StringComparison.OrdinalIgnoreCase))
@@ -116,10 +101,7 @@ internal static class DeckboxAliasesGenerator
 				}
 			}
 
-			// 4. Deckbox code matches a Scryfall code → Scryfall set exists but Deckbox renamed it
-			//    ("Magic 2014" → "Magic 2014 Core Set", "Forgotten Realms Commander" → "Adventures
-			//    in the Forgotten Realms Commander"). Emit a name alias; codes already agree so no
-			//    code alias needed.
+			// 4. Codes agree but Deckbox renamed the set ("Magic 2014" → "Magic 2014 Core Set") — name alias only.
 			var deckboxUpper = e.DeckboxCode.ToUpperInvariant();
 			if (sets.TryGetValue(deckboxUpper, out var scryfallNameByCode)
 				&& !string.Equals(scryfallNameByCode, name, StringComparison.Ordinal))
@@ -129,14 +111,11 @@ internal static class DeckboxAliasesGenerator
 				continue;
 			}
 
-			// 5. Sub-products (OAFC, AFR_AMP, …) and Deckbox-only editions (Summer of Magic) fall
-			//    through. Don't trust esym alone — it's the set *symbol*, which Deckbox reuses for
-			//    arbitrary promos and box-topper variants that aren't the parent set.
+			// 5. Sub-products (OAFC, AFR_AMP, …) and Deckbox-only editions fall through; esym alone is untrustworthy (reused for arbitrary promos).
 			skippedSubProduct++;
 		}
 
-		// 4. "Love your LGS" is a one-to-many: a single Deckbox edition that aggregates every
-		//    Scryfall PLGYY set. Map them all to the same Deckbox name.
+		// "Love your LGS" aggregates every Scryfall PLGYY set under one Deckbox edition — map them all to its name.
 		var lgs = entries.FirstOrDefault(e => e.DeckboxName.Equals("Love your LGS", StringComparison.Ordinal));
 		int aliasedLgs = 0;
 		if (lgs is not null)

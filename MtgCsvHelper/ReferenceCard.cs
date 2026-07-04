@@ -39,11 +39,7 @@ public sealed record ReferenceCard(
 	// Unknown in bundles generated before the field existed.
 	CardRarity Rarity = CardRarity.Unknown)
 {
-	// Normalized at construction: Set and MtgoCode are uppercased for any primary-constructor
-	// invocation (factory, JSON deserialization, direct ctor in tests). The catalog's lookup
-	// invariants depend on uppercase storage. Note: `with { Set = "mir" }` would bypass the
-	// initializer; no such callers exist today, but a future one would need to uppercase
-	// manually or this can be upgraded to a normalizing init setter.
+	// Uppercased at construction — the catalog's lookup invariants depend on it; a `with { Set = … }` would bypass this initializer.
 	public string Set { get; init; } = Set.ToUpperInvariant();
 	public string? MtgoCode { get; init; } = MtgoCode?.ToUpperInvariant();
 

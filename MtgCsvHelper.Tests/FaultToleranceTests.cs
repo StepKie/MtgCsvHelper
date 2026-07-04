@@ -92,10 +92,7 @@ public class FaultToleranceTests(CatalogFixture fixture, ITestOutputHelper outpu
 	[Fact]
 	public void NonPositiveCount_RaisesError_RowDropped_WithRawContent()
 	{
-		// Guards the parse-time RawContent capture (not the enricher pipeline). The Count
-		// validation runs inside the GetRecord try-block in MtgCardCsvHandler before the row
-		// reaches any enricher; if csv.Parser.RawRecord isn't captured there too the field is
-		// null on the emitted issue.
+		// Count validation runs in the parse loop before any enricher — RawContent must be captured there too or it's null on the issue.
 		var csv = MoxHeader + "\n"
 			+ "0,Lightning Bolt,M11,149,,Near Mint,English,\n";
 

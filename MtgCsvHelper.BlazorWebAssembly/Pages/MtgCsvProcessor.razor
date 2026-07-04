@@ -196,11 +196,7 @@
 
 	@if (r.Issues.Count > 0)
 	{
-		// Per-row deduplication: a row that ends up dropped (Error) often also collected a
-		// precondition Warning earlier in the pipeline (e.g. SetInfoEnricher's "Set code 'MB1'
-		// not found" + CatalogValidator's "No printing at MB1 #N"). Show only the most-severe
-		// issue per row — the Error already names the failure precisely; the Warning is just
-		// noise once we know the row was dropped. Chip counts are row-based for the same reason.
+		// A dropped row often also collected a precondition Warning; show only the most-severe issue per row (chip counts likewise).
 		var rowsWithErrors = r.Issues
 			.Where(i => i.Severity == IssueSeverity.Error)
 			.Select(i => i.RowNumber)
@@ -433,9 +429,7 @@
 		_detector ??= new FormatDetector([.. CardMapFactory.SupportedConfigs(Config)]);
 		try
 		{
-			// maxAllowedSize is a *whole-file* size cap, not a read window — must be at
-			// least as large as anything we'd accept for conversion, or OpenReadStream
-			// throws and detection silently fails for big files.
+			// maxAllowedSize is a whole-file cap, not a read window — smaller than the file and OpenReadStream throws, silently failing detection.
 			await using var stream = _csvFile.OpenReadStream(maxAllowedSize: MaxFileSize);
 			var detected = await _detector.DetectAsync(stream);
 			if (detected is not null)
@@ -455,8 +449,7 @@
 		}
 	}
 
-	// Keep input ≠ output. When the user picks a value that matches the other select, snap
-	// the other one to the first format in the list that isn't the new value.
+	// Keep input ≠ output: when the pick collides, snap the other select to the first different format.
 	void OnInputFormatChanged(string value)
 	{
 		_selectedInputFormat = value;
@@ -473,10 +466,7 @@
 			_selectedInputFormat = _inputFormats.First(f => f != value);
 	}
 
-	// Imported PhysicalMtgCard objects don't carry the Scryfall Id (the CSV parse only fills
-	// Set/CollectorNumber/Name). We look up the reference printing here to source the image
-	// URL and the canonical Scryfall page link. Returns null for stub rows that don't match
-	// a real printing (e.g. unresolved Cardmarket imports).
+	// Resolves the reference printing behind the image + Scryfall page links; null for stub rows that don't match a real printing.
 	ReferenceCard? ResolveRef(PhysicalMtgCard card)
 	{
 		if (string.IsNullOrEmpty(card.Printing.Set) || string.IsNullOrEmpty(card.Printing.CollectorNumber))
