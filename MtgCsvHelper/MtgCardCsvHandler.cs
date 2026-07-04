@@ -143,7 +143,7 @@ public class MtgCardCsvHandler
 	public void WriteCollectionCsv(IList<PhysicalMtgCard> cards, string? outputFileName = null)
 	{
 		outputFileName ??= $"{_format.ToLower()}-output-{DateTime.Now:yyyy-MM-dd_HH-mm-ss}.csv";
-		Log.Information($"Writing {cards.Sum(c => c.Count)} cards ({cards.Count} unique) cards to {outputFileName}");
+		Log.Information($"Writing {cards.Sum(c => c.Count)} cards ({cards.Count} unique) to {outputFileName}");
 		using var stream = File.Create(outputFileName);
 		WriteCollectionCsv(cards, stream);
 	}

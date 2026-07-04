@@ -58,8 +58,7 @@ Parser.Default.ParseArguments<CommandLineOptions>(args)
 	.WithNotParsed(HandleParseError)
 	.WithParsed(RunWithOptions);
 
-Log.Information($"Done. Press Ctrl+C to exit");
-Console.ReadLine();
+Log.Information("Done.");
 
 void RunWithOptions(CommandLineOptions opts)
 {
