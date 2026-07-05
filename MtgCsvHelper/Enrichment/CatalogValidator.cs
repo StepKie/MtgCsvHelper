@@ -7,7 +7,8 @@ namespace MtgCsvHelper.Enrichment;
 /// The one validator in the post-parse pipeline. Resolves each row to a catalog printing — by the
 /// Scryfall id when the row carries one (authoritative; survives sites that reshape collector
 /// numbers), else by (Set, CollectorNumber). Drops rows that don't resolve, whose Name doesn't match
-/// the resolved printing, or whose Finish claims an unsupported finish.
+/// the resolved printing (except non-English rows, whose localized name is replaced with a warning),
+/// or whose Finish claims an unsupported finish.
 /// Named "Validator" rather than "Enricher" because it mainly
 /// checks-and-drops; its only mutations are the issues collection, canonicalizing the
 /// name of a short-named or front-face-ambiguous double-faced card to the resolved printing,
@@ -73,12 +74,20 @@ public sealed class CatalogValidator(IReferenceCardCatalog catalog) : PerCardEnr
 		{
 			if (!EqualsNormalized(FrontFace(p.Name), FrontFace(match.Name)) && !ExtendsCanonicalName(p.Name, match.Name))
 			{
-				issues.Add(new ImportIssue(IssueSeverity.Error, row.RowNumber,
-					$"Name '{p.Name}' does not match printing at {p.Set} #{p.CollectorNumber} ('{match.Name}')",
+				// A localized name can't match the English-only catalog; the resolved (Set, #) is the identity, so keep the row.
+				if (row.Card.Language is null or "en")
+				{
+					issues.Add(new ImportIssue(IssueSeverity.Error, row.RowNumber,
+						$"Name '{p.Name}' does not match printing at {p.Set} #{p.CollectorNumber} ('{match.Name}')",
+						CardName: p.Name, RawContent: row.RawContent));
+					return false;
+				}
+
+				issues.Add(new ImportIssue(IssueSeverity.Warning, row.RowNumber,
+					$"Non-English name '{p.Name}' replaced with '{match.Name}' from printing at {p.Set} #{p.CollectorNumber}",
 					CardName: p.Name, RawContent: row.RawContent));
-				return false;
 			}
-			// (Set, #) already pins the printing; adopt its canonical name for a short, shared-front-face, or decorated import.
+			// (Set, #) already pins the printing; adopt its canonical name for a short, shared-front-face, decorated, or localized import.
 			p.Name = match.Name;
 		}
 
