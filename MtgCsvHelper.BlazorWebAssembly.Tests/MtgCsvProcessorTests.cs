@@ -25,8 +25,7 @@ public class MtgCsvProcessorTests : BunitContext, IAsyncLifetime
 	public Task InitializeAsync() => Task.CompletedTask;
 	Task IAsyncLifetime.DisposeAsync() => DisposeAsync().AsTask();
 
-	// MudSelect popovers render their content under a MudPopoverProvider, so the page is rendered
-	// alongside one and tests search from the shared root.
+	// MudSelect popovers teleport into a MudPopoverProvider, so the page renders alongside one and tests search from the shared root.
 	IRenderedComponent<IComponent> RenderProcessor() => Render(b =>
 	{
 		b.OpenComponent<MudPopoverProvider>(0);
@@ -122,6 +121,22 @@ public class MtgCsvProcessorTests : BunitContext, IAsyncLifetime
 		await root.FindAll("button").Single(b => b.TextContent.Contains("Convert")).ClickAsync(new());
 
 		await root.WaitForAssertionAsync(() => root.FindComponent<MudAlert>().Markup.Should().Contain("missing required column"));
+	}
+
+	// Covers the page's StateChanged += StateHasChanged subscription: loader progress must re-render without user input.
+	[Fact]
+	public async Task CatalogLoadProgress_UpdatesUiOnStateChange()
+	{
+		_catalogLoader.Catalog = null;
+		_catalogLoader.Progress = CatalogLoadProgress.Idle;
+
+		var root = RenderProcessor();
+		root.Markup.Should().NotContain("Loading card data");
+
+		_catalogLoader.Progress = new(CatalogLoadPhase.Downloading, 42, 42, 100);
+		await root.InvokeAsync(_catalogLoader.RaiseStateChanged);
+
+		root.Markup.Should().Contain("Loading card data… 42%");
 	}
 
 	[Fact]
