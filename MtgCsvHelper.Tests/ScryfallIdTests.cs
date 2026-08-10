@@ -1,5 +1,3 @@
-using System.Text;
-
 namespace MtgCsvHelper.Tests;
 
 /// <summary>CatalogValidator resolves a row by its Scryfall id when present (correcting a reshaped (set, #)),
@@ -7,14 +5,8 @@ namespace MtgCsvHelper.Tests;
 [Collection(CatalogCollection.Name)]
 public class ScryfallIdTests(CatalogFixture fixture, ITestOutputHelper output) : ApiBaseTest(fixture, output)
 {
-	string Write(string format, IList<PhysicalMtgCard> cards)
-	{
-		var handler = new MtgCardCsvHandler(_catalog, _resolver, _config, format);
-		using var stream = new MemoryStream();
-		handler.WriteCollectionCsv(cards, stream);
-
-		return Encoding.UTF8.GetString(stream.ToArray());
-	}
+	string Write(string format, IList<PhysicalMtgCard> cards) =>
+		CsvFixture.WriteToString(new MtgCardCsvHandler(_catalog, _resolver, _config, format), cards);
 
 	IList<PhysicalMtgCard> ReferenceCards(string format)
 	{
@@ -60,7 +52,7 @@ public class ScryfallIdTests(CatalogFixture fixture, ITestOutputHelper output) :
 			1,"Demonic Tutor",lea,"Limited Edition Alpha",13,nonfoil,,uncommon,711d4d54-5520-4de8-9b93-79902ed8e562,2023-01-01T00:00:00.000Z,,en,,,false,near mint
 			""";
 		var handler = new MtgCardCsvHandler(_catalog, _resolver, _config, "TOPDECKED");
-		using var stream = new MemoryStream(Encoding.UTF8.GetBytes(csv));
+		using var stream = CsvFixture.CsvStream(csv);
 
 		var result = handler.ParseCollectionCsv(stream);
 

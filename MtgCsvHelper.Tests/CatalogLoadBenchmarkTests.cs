@@ -19,12 +19,6 @@ public class CatalogLoadBenchmarkTests(ITestOutputHelper output) : BaseTest(outp
 	[Fact]
 	public async Task Phase_Breakdown_ProductionPath()
 	{
-		if (!File.Exists(BundlePath))
-		{
-			output.WriteLine($"Bundle missing at {BundlePath}; benchmark skipped.");
-			return;
-		}
-
 		var bytes = await File.ReadAllBytesAsync(BundlePath);
 		output.WriteLine($"Bundle on disk: {bytes.Length:N0} bytes ({bytes.Length / 1024.0 / 1024.0:0.##} MB compressed)");
 
@@ -53,6 +47,7 @@ public class CatalogLoadBenchmarkTests(ITestOutputHelper output) : BaseTest(outp
 		sw.Restart();
 		var catalog = new ReferenceCardCatalog(cards);
 		output.WriteLine($"  Index build: {sw.ElapsedMilliseconds} ms ({catalog.Count:N0} printings, {catalog.GetSets().Count:N0} sets)");
+		catalog.Count.Should().BePositive();
 
 		// Total production path (decompress + parse + index)
 		sw.Restart();

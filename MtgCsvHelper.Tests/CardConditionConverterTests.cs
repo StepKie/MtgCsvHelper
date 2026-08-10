@@ -3,17 +3,13 @@ using MtgCsvHelper.Converters;
 
 namespace MtgCsvHelper.Tests;
 
-// Pins the behaviour for formats whose appsettings.json declares Mint or Excellent as null
-// because they collapse to NearMint on write. The invariant: ambiguous reads resolve to
-// NearMint (not Mint or Excellent), and writes of Mint/Excellent emit the NearMint string.
-//
-// The four affected formats today are Archidekt (Mint + Excellent → NearMint), Moxfield,
-// TopDecked, Deckbox (Excellent → NearMint). TCGPlayer has a different collision pattern
-// (Excellent + Good both → "Lightly Played") and is not covered by this test — see
-// CONVERSION_LIMITATIONS.md for the pre-existing-issue note.
-public class CardConditionConverterTests : BaseTest
+/// <summary>
+/// Pins the null-collapse invariant for formats declaring Mint/Excellent as null: ambiguous reads
+/// resolve to NearMint, and writes of Mint/Excellent emit the NearMint string. TCGPlayer's separate
+/// collision (Excellent + Good → "Lightly Played") is out of scope — see CONVERSION_LIMITATIONS.md.
+/// </summary>
+public class CardConditionConverterTests(ITestOutputHelper output) : BaseTest(output)
 {
-	public CardConditionConverterTests(ITestOutputHelper output) : base(output) { }
 
 	static CardConditionConverter ConverterFor(string? mint, string nearMint, string? excellent) =>
 		new(new ConditionConfiguration(

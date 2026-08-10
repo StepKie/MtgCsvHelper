@@ -13,10 +13,11 @@ public class CatalogValidatorTests(CatalogFixture fixture)
 	const string SharedFrontNumber = "15";
 	const string SharedFront = "Monster";
 
-	static ParsedRow Row(string name, string set, string collectorNumber) =>
+	static ParsedRow Row(string name, string set, string collectorNumber, string? language = null) =>
 		new(new PhysicalMtgCard
 		{
 			Count = 1,
+			Language = language,
 			Printing = new Card { Name = name, Set = set, CollectorNumber = collectorNumber, SetName = "" },
 		}, RowNumber: 1);
 
@@ -94,6 +95,26 @@ public class CatalogValidatorTests(CatalogFixture fixture)
 	public async Task WrongName_AtValidSetAndNumber_IsDropped()
 	{
 		var (kept, issues) = await Validate(Row("Lightning Bolt", SharedFrontSet, SharedFrontNumber));
+
+		kept.Should().BeEmpty();
+		issues.Should().ContainSingle().Which.Severity.Should().Be(IssueSeverity.Error);
+	}
+
+	// The catalog is English-only, so a localized name can never match; the resolved (Set, #) identifies the printing.
+	[Fact]
+	public async Task NonEnglishRow_NameMismatch_IsKeptWithEnglishName_AndWarning()
+	{
+		var canonical = fixture.Catalog.FindBySetAndCollectorNumber("M11", "149")!.Name;
+		var (kept, issues) = await Validate(Row("Fulmine", "M11", "149", language: "it"));
+
+		kept.Should().ContainSingle().Which.Card.Printing.Name.Should().Be(canonical);
+		issues.Should().ContainSingle().Which.Severity.Should().Be(IssueSeverity.Warning);
+	}
+
+	[Fact]
+	public async Task EnglishRow_NameMismatch_IsStillDropped()
+	{
+		var (kept, issues) = await Validate(Row("Fulmine", "M11", "149", language: "en"));
 
 		kept.Should().BeEmpty();
 		issues.Should().ContainSingle().Which.Severity.Should().Be(IssueSeverity.Error);

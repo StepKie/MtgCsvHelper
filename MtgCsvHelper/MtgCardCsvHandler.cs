@@ -16,13 +16,7 @@ public class MtgCardCsvHandler
 	{
 		_format = format;
 		_factory = new CardMapFactory(config, catalog);
-		// Order matches the prior inline implementation:
-		// 1. SetInfo + Validator run on non-stub rows (Cardmarket stubs have Name="" and are
-		//    skipped by both via their leading null-name guards).
-		// 2. CardmarketIdEnricher runs last, resolving stubs from the Scryfall network/catalog.
-		// Cardmarket-resolved cards intentionally bypass CatalogValidator: the resolver's data
-		// IS Scryfall data, so validating it against our possibly-stale local bundle would drop
-		// legitimate cards released after our last bundle refresh.
+		// Cardmarket stubs (Name="") pass through SetInfo + Validator untouched; CardmarketIdEnricher resolves them last from live Scryfall data, which outranks our bundle.
 		_pipeline =
 		[
 			new SetInfoEnricher(catalog),
@@ -31,8 +25,7 @@ public class MtgCardCsvHandler
 		];
 	}
 
-	// Sync wrappers — fine for non-Blazor callers and for formats that don't need network I/O.
-	// Cardmarket forces async (Scryfall lookups), so the sync path blocks on the async path.
+	// Sync wrappers for non-Blazor callers; they block on the async path (Cardmarket forces async via Scryfall lookups).
 	public ParseResult ParseCollectionCsv(string csvFilePath) => ParseCollectionCsvAsync(csvFilePath).GetAwaiter().GetResult();
 	public ParseResult ParseCollectionCsv(Stream csvStream) => ParseCollectionCsvAsync(csvStream).GetAwaiter().GetResult();
 
@@ -43,12 +36,11 @@ public class MtgCardCsvHandler
 	{
 		if (!csvStream.CanSeek) { throw new ArgumentException("Stream must be seekable", nameof(csvStream)); }
 
-		Log.Information($"Parsing input format {_format} ...");
+		Log.Information("Parsing input format {Format} ...", _format);
 		using var reader = new StreamReader(csvStream);
 		CheckIfFirstLineCanBeIgnored(reader);
 
-		var formatConfig = _factory.GetFormatConfig(_format)
-			?? throw new InvalidOperationException($"Format '{_format}' configuration not found.");
+		var formatConfig = _factory.GetRequiredFormatConfig(_format);
 
 		using var csv = new CsvReader(reader, new CsvConfiguration(CultureInfo.InvariantCulture)
 		{
@@ -120,18 +112,15 @@ public class MtgCardCsvHandler
 			await enricher.EnrichAsync(rows, issues, ct);
 		}
 
-		// Pipeline stages emit issues in mixed order (parse loop ascending, PerCardEnricher
-		// reverse iteration descending, batch enrichers ascending). Sort by RowNumber once at
-		// the exit so consumers always see ascending row order.
+		// Pipeline stages emit issues in mixed row order; sort once at the exit.
 		var collection = new Collection { Name = $"Import {_format}, Date: {DateTime.Now}", Cards = [.. rows.Select(r => r.Card)] };
 		Log.Debug(collection.GenerateSummary());
 		return new ParseResult(collection, [.. issues.OrderBy(i => i.RowNumber)]);
 
 		static void CheckIfFirstLineCanBeIgnored(StreamReader stream)
 		{
-			// "Peek" into the first row, and if it is not a separator info row, reset the stream. (Found no more elegant way to do this)
+			// Peek at the first line; rewind unless it's a "sep=" marker row.
 			var hasSeparatorInfoFirstLine = stream.ReadLine()?.Contains("sep=") ?? false;
-			// Reset the stream to the original state if the first line is not a separator info line
 			if (!hasSeparatorInfoFirstLine)
 			{
 				stream.BaseStream.Position = 0;
@@ -143,28 +132,81 @@ public class MtgCardCsvHandler
 	public void WriteCollectionCsv(IList<PhysicalMtgCard> cards, string? outputFileName = null)
 	{
 		outputFileName ??= $"{_format.ToLower()}-output-{DateTime.Now:yyyy-MM-dd_HH-mm-ss}.csv";
-		Log.Information($"Writing {cards.Sum(c => c.Count)} cards ({cards.Count} unique) cards to {outputFileName}");
+		Log.Information("Writing {TotalCount} cards ({UniqueCount} unique) to {FileName}", cards.Sum(c => c.Count), cards.Count, outputFileName);
 		using var stream = File.Create(outputFileName);
 		WriteCollectionCsv(cards, stream);
 	}
 
 	public void WriteCollectionCsv(IList<PhysicalMtgCard> cards, Stream outputStream)
 	{
-		var cfg = _factory.GetFormatConfig(_format)
-			?? throw new InvalidOperationException($"Format '{_format}' configuration not found.");
+		var cfg = _factory.GetRequiredFormatConfig(_format);
 
-		// Project into new records when defaulting so the caller's cards stay immutable —
-		// avoids the second-write-sees-first-write-defaults hazard.
+		// Project new records when defaulting so the caller's cards stay immutable across writes.
 		var rowsToWrite = cfg.RequiresWriteDefaults ? ApplyWriteDefaults(cards, cfg) : cards;
 
+		if (cfg.Columns is null)
+		{
+			WriteModeledColumns(rowsToWrite, outputStream);
+
+			return;
+		}
+
+		// Render the modeled columns, then re-emit them in the site's full native order for strict, order-sensitive importers.
+		using var modeled = new MemoryStream();
+		WriteModeledColumns(rowsToWrite, modeled);
+		modeled.Position = 0;
+		ProjectToNativeColumns(modeled, outputStream, cfg);
+	}
+
+	void WriteModeledColumns(IEnumerable<PhysicalMtgCard> rows, Stream outputStream)
+	{
 		using var writer = new StreamWriter(outputStream, leaveOpen: true);
 		using var csv = new CsvWriter(writer, CultureInfo.InvariantCulture);
 
 		csv.Context.RegisterClassMap(_factory.GenerateWriteMap(_format));
 		csv.WriteHeader<PhysicalMtgCard>();
 		csv.NextRecord();
-		csv.WriteRecords(rowsToWrite);
+		csv.WriteRecords(rows);
 		csv.Flush();
+	}
+
+	// Re-emits the modeled CSV in the declared native column order by header-name lookup, blanking unmodeled columns.
+	static void ProjectToNativeColumns(Stream modeled, Stream outputStream, FormatConfig cfg)
+	{
+		var columns = cfg.Columns!;
+		var csvCfg = new CsvConfiguration(CultureInfo.InvariantCulture) { Delimiter = cfg.Delimiter };
+
+		using var reader = new StreamReader(modeled);
+		using var csvIn = new CsvReader(reader, csvCfg);
+		csvIn.Read();
+		csvIn.ReadHeader();
+		var modeledHeaders = csvIn.HeaderRecord!;
+
+		// A modeled column absent from Columns would be silently dropped — config error, fail loudly.
+		var undeclared = modeledHeaders.Where(h => !columns.Contains(h)).ToList();
+		if (undeclared.Count > 0)
+		{
+			throw new InvalidOperationException(
+				$"Format '{cfg.Name}' emits column(s) [{string.Join(", ", undeclared)}] not declared in its Columns list.");
+		}
+
+		var modeledSet = modeledHeaders.ToHashSet();
+
+		using var writer = new StreamWriter(outputStream, leaveOpen: true);
+		using var csvOut = new CsvWriter(writer, csvCfg);
+
+		foreach (var column in columns) { csvOut.WriteField(column); }
+		csvOut.NextRecord();
+
+		while (csvIn.Read())
+		{
+			foreach (var column in columns)
+			{
+				csvOut.WriteField(modeledSet.Contains(column) ? csvIn.GetField(column) : string.Empty);
+			}
+			csvOut.NextRecord();
+		}
+		csvOut.Flush();
 	}
 
 	static IEnumerable<PhysicalMtgCard> ApplyWriteDefaults(IEnumerable<PhysicalMtgCard> cards, FormatConfig cfg)

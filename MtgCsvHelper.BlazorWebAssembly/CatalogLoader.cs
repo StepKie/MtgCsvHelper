@@ -1,4 +1,3 @@
-using System.Diagnostics.CodeAnalysis;
 using Serilog;
 
 namespace MtgCsvHelper.BlazorWebAssembly;
@@ -15,7 +14,14 @@ public interface ICatalogLoader
 	IReferenceCardCatalog? Catalog { get; }
 	CatalogLoadProgress Progress { get; }
 	Exception? Error { get; }
-	[SuppressMessage("Design", "CA1003:Use generic event handler instances", Justification = "Action is intentional — subscribers only need a re-render ping, not args.")]
+
+	/// <summary>
+	/// When the served bundle was last written, from its <c>Last-Modified</c> response header —
+	/// the deploy that generated it, and so the age of the card data. Null when the host omits
+	/// the header. Set once <see cref="LoadAsync"/> has a response.
+	/// </summary>
+	DateTimeOffset? BundleLastModified { get; }
+
 	event Action? StateChanged;
 	Task LoadAsync(CancellationToken ct = default);
 }
@@ -35,14 +41,13 @@ public sealed class CatalogLoader(HttpClient http) : ICatalogLoader
 	const long EstimatedBundleBytes = 12_000_000;  // dev server omits Content-Length; production has it
 
 	readonly HttpClient _http = http;
-	// 0 = idle or failed (retryable); 1 = in-flight or succeeded. Reset to 0 in the catch
-	// so RetryCatalogLoad can call LoadAsync again after a failure.
+	// 0 = idle or failed (retryable), 1 = in-flight or succeeded; the catches reset to 0 so a retry can run.
 	int _started;
 
 	public IReferenceCardCatalog? Catalog { get; private set; }
 	public CatalogLoadProgress Progress { get; private set; } = CatalogLoadProgress.Idle;
 	public Exception? Error { get; private set; }
-	[SuppressMessage("Design", "CA1003:Use generic event handler instances", Justification = "Action is intentional — subscribers only need a re-render ping, not args.")]
+	public DateTimeOffset? BundleLastModified { get; private set; }
 	public event Action? StateChanged;
 
 	public async Task LoadAsync(CancellationToken ct = default)
@@ -54,6 +59,7 @@ public sealed class CatalogLoader(HttpClient http) : ICatalogLoader
 		{
 			using var response = await _http.GetAsync("data/cards.min.json.gz", HttpCompletionOption.ResponseHeadersRead, ct);
 			response.EnsureSuccessStatusCode();
+			BundleLastModified = response.Content.Headers.LastModified;
 
 			var totalBytes = response.Content.Headers.ContentLength is > 0
 				? response.Content.Headers.ContentLength.Value
@@ -88,8 +94,7 @@ public sealed class CatalogLoader(HttpClient http) : ICatalogLoader
 		}
 		catch (OperationCanceledException)
 		{
-			// Component teardown — silent. Reset so a fresh LoadAsync can run after the
-			// cancelled one (would otherwise leave the loader permanently un-retryable).
+			// Component teardown — silent; reset so a fresh LoadAsync stays possible.
 			Interlocked.Exchange(ref _started, 0);
 			throw;
 		}
@@ -98,8 +103,7 @@ public sealed class CatalogLoader(HttpClient http) : ICatalogLoader
 			Error = ex;
 			SetProgress(new CatalogLoadProgress(CatalogLoadPhase.Failed, 0, 0, null));
 			Log.Error(ex, "Background catalog load failed");
-			// Reset so callers can retry — the idempotency guard at the top is for in-flight
-			// double-LoadAsync, not for "load once, never retry".
+			// Reset so callers can retry; the guard at the top only blocks in-flight double-loads.
 			Interlocked.Exchange(ref _started, 0);
 		}
 	}

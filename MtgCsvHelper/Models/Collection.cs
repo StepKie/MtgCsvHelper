@@ -1,26 +1,22 @@
-﻿using System.Text;
+using System.Text;
 
 namespace MtgCsvHelper.Models;
 
 public record Collection
 {
-	public string Name { get; init; }
+	public required string Name { get; init; }
 	public List<PhysicalMtgCard> Cards { get; init; } = [];
 
 	public string GenerateSummary()
 	{
+		var summary = CollectionSummary.From(Cards);
 		StringBuilder sb = new();
-		int numOfCards = Cards.Sum(c => c.Count);
-		int numOfUniqueCards = Cards.Count;
-
-		var mostExpensive = Cards.OrderByDescending(c => c.PriceBought?.Value).FirstOrDefault();
-
 		sb.AppendLine(Name);
 		sb.AppendLine("-------------------");
-		sb.AppendLine($"Total cards: {numOfCards}");
-		sb.AppendLine($"Total unique cards: {numOfUniqueCards}");
+		sb.AppendLine($"Total cards: {summary.TotalCount}");
+		sb.AppendLine($"Total unique cards: {summary.UniqueCount}");
 
-		if (mostExpensive?.PriceBought is not null)
+		if (summary.MostExpensive is { PriceBought: not null } mostExpensive)
 		{
 			sb.AppendLine($"Most expensive card: {mostExpensive.Printing.Name} ({mostExpensive.PriceBought.Print()})");
 		}
@@ -37,8 +33,6 @@ public record Collection
 
 		sb.AppendLine("-------------------");
 
-		var summary = sb.ToString();
-		return summary;
+		return sb.ToString();
 	}
 }
-

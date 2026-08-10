@@ -1,5 +1,3 @@
-using System.Text;
-
 namespace MtgCsvHelper.Tests;
 
 /// <summary>
@@ -20,16 +18,7 @@ public class ReferenceCsvSyncTests(CatalogFixture fixture, ITestOutputHelper out
 	// DragonShield stamps DateTime.Today onto a null purchase date on write; seed a fixed one so its committed sample stays deterministic.
 	static readonly DateTime GenerationDate = new(2024, 1, 1);
 
-	public static TheoryData<string> WritableFormats()
-	{
-		var data = new TheoryData<string>();
-		foreach (var format in CardMapFactory.WritableFormats)
-		{
-			data.Add(format);
-		}
-
-		return data;
-	}
+	public static TheoryData<string> WritableFormats() => new(CardMapFactory.WritableFormats);
 
 	[Theory]
 	[MemberData(nameof(WritableFormats))]
@@ -56,11 +45,7 @@ public class ReferenceCsvSyncTests(CatalogFixture fixture, ITestOutputHelper out
 			cards = cards.Select(c => c with { DateBought = c.DateBought ?? GenerationDate }).ToList();
 		}
 
-		var handler = new MtgCardCsvHandler(_catalog, _resolver, _config, format);
-		using var stream = new MemoryStream();
-		handler.WriteCollectionCsv(cards, stream);
-
-		return Encoding.UTF8.GetString(stream.ToArray());
+		return CsvFixture.WriteToString(new MtgCardCsvHandler(_catalog, _resolver, _config, format), cards);
 	}
 
 	// Compare on content, not line endings — git may normalize CRLF/LF differently across machines.

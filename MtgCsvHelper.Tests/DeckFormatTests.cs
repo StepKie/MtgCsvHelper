@@ -5,31 +5,19 @@ namespace MtgCsvHelper.Tests;
 [Collection(CatalogCollection.Name)]
 public class DeckFormatTests(CatalogFixture fixture, ITestOutputHelper output) : ApiBaseTest(fixture, output)
 {
+	public static TheoryData<string> ReadableFormats() => new(CardMapFactory.ReadableFormats);
+	public static TheoryData<string> WritableFormats() => new(CardMapFactory.WritableFormats);
+
 	[Theory]
-	[InlineData("DRAGONSHIELD")]
-	[InlineData("MOXFIELD")]
-	[InlineData("MANABOX")]
-	[InlineData("TOPDECKED")]
-	[InlineData("DECKBOX")]
-	[InlineData("MTGGOLDFISH")]
-	[InlineData("TCGPLAYER")]
-	[InlineData("ARCHIDEKT")]
-	public void GenerateReadMap_ForBidirectionalFormats_Succeeds(string deckFormatName)
+	[MemberData(nameof(ReadableFormats))]
+	public void GenerateReadMap_ForReadableFormats_Succeeds(string deckFormatName)
 	{
 		var map = new CardMapFactory(_config, _catalog).GenerateReadMap(deckFormatName);
 		map.Should().NotBeNull();
 	}
 
 	[Theory]
-	[InlineData("DRAGONSHIELD")]
-	[InlineData("MOXFIELD")]
-	[InlineData("MANABOX")]
-	[InlineData("TOPDECKED")]
-	[InlineData("DECKBOX")]
-	[InlineData("MTGGOLDFISH")]
-	[InlineData("TCGPLAYER")]
-	[InlineData("CARDKINGDOM")]
-	[InlineData("ARCHIDEKT")]
+	[MemberData(nameof(WritableFormats))]
 	public void GenerateWriteMap_ForAllSupportedFormats_Succeeds(string deckFormatName)
 	{
 		var map = new CardMapFactory(_config, _catalog).GenerateWriteMap(deckFormatName);
@@ -56,13 +44,12 @@ public class DeckFormatTests(CatalogFixture fixture, ITestOutputHelper output) :
 	}
 
 	[Fact]
-	public void GenerateReadMap_WithNoConfigLoaded_ThrowsHelpfulError()
+	public void Construction_WithNoConfigLoaded_ThrowsHelpfulError()
 	{
-		// Empty configuration — simulates appsettings.json failing to load.
+		// Empty configuration — simulates appsettings.json failing to load; the factory fails fast at construction.
 		var emptyConfig = new Microsoft.Extensions.Configuration.ConfigurationBuilder().Build();
-		var factory = new CardMapFactory(emptyConfig, _catalog);
 
-		var act = () => factory.GenerateReadMap("MOXFIELD");
+		var act = () => new CardMapFactory(emptyConfig, _catalog);
 
 		act.Should().Throw<InvalidOperationException>()
 			.WithMessage("*No format configurations loaded*");

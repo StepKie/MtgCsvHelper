@@ -25,9 +25,7 @@ if (args.Length > 0 && args[0] == "dragonshield-guildkit")
 	return;
 }
 
-string defaultOutput = Path.GetFullPath(Path.Combine(
-	AppContext.BaseDirectory, "..", "..", "..", "..", "..",
-	"MtgCsvHelper.BlazorWebAssembly", "wwwroot", "data", "cards.min.json.gz"));
+string defaultOutput = Path.Combine(RepoRoot.Find(), "MtgCsvHelper.BlazorWebAssembly", "wwwroot", "data", "cards.min.json.gz");
 
 string outputPath = args.Length > 0 ? args[0] : defaultOutput;
 
@@ -59,13 +57,18 @@ var manifest = await http.GetFromJsonAsync<BulkDataManifest>("https://api.scryfa
 var defaultCards = manifest.Data.FirstOrDefault(d => d.Type == "default_cards")
 	?? throw new InvalidOperationException("default_cards entry not found in bulk-data manifest.");
 
-Console.WriteLine($"Downloading {defaultCards.Name} ({defaultCards.Size / 1e6:F1} MB) from {defaultCards.DownloadUri}…");
-using var responseStream = await http.GetStreamAsync(defaultCards.DownloadUri);
+_ = defaultCards.JsonlDownloadUri ?? throw new InvalidOperationException("default_cards carries no jsonl_download_uri — Scryfall's bulk-data schema changed.");
+
+Console.WriteLine($"Downloading {defaultCards.Name} ({defaultCards.CompressedSize / 1e6:F1} MB) from {defaultCards.JsonlDownloadUri}…");
+using var responseStream = await http.GetStreamAsync(defaultCards.JsonlDownloadUri);
+// Served as a .gz file, not Content-Encoding: gzip, so HttpClient hands us the compressed bytes.
+using var cardStream = new GZipStream(responseStream, CompressionMode.Decompress);
 
 int total = 0, kept = 0;
 List<ReferenceCard> stripped = new(80_000);
 
-await foreach (var card in JsonSerializer.DeserializeAsyncEnumerable<ScryfallCardJson>(responseStream, serializerOptions))
+// topLevelValues: the bulk file is JSONL — one card object per line, not a JSON array.
+await foreach (var card in JsonSerializer.DeserializeAsyncEnumerable<ScryfallCardJson>(cardStream, topLevelValues: true, serializerOptions))
 {
 	total++;
 	if (card is null) { continue; }
@@ -89,8 +92,9 @@ var size = new FileInfo(outputPath).Length;
 Console.WriteLine($"Done. Bundle size: {size / 1024.0:F1} KB ({size / 1e6:F2} MB).");
 
 internal sealed record BulkDataManifest(List<BulkDataEntry> Data);
-internal sealed record BulkDataEntry(string Type, string Name, long Size,
-	[property: JsonPropertyName("download_uri")] string DownloadUri);
+internal sealed record BulkDataEntry(string Type, string Name,
+	[property: JsonPropertyName("compressed_size")] long CompressedSize,
+	[property: JsonPropertyName("jsonl_download_uri")] string? JsonlDownloadUri);
 
 internal sealed record ScryfallList<T>(List<T> Data, [property: JsonPropertyName("has_more")] bool HasMore);
 internal sealed record ScryfallSetJson(string Code, [property: JsonPropertyName("mtgo_code")] string? MtgoCode);

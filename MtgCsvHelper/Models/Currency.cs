@@ -18,8 +18,6 @@ public record Currency(string Symbol, string ShortName, string LongName, NumberF
 	public static readonly Currency EUR = new("€", "EUR", "Euro", EUR_WITH_DOT());
 	public static readonly Currency USD = new("$", "USD", "US Dollar", CultureInfo.CreateSpecificCulture("en-US").NumberFormat);
 
-	public static readonly List<Currency> SupportedCurrencies = [EUR, USD];
-
 	public static Currency FromString(string? input) => input switch
 	{
 		nameof(EUR) => EUR,

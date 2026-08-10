@@ -1,5 +1,5 @@
+using Microsoft.Extensions.Configuration;
 using ScryfallApi.Client.Models;
-using Serilog;
 
 namespace MtgCsvHelper.Tests;
 
@@ -14,16 +14,8 @@ public class MtgCardCsvHandlerTests(CatalogFixture fixture, ITestOutputHelper ou
 	/// preserves only the fields it has a column for, so the comparison excludes what it structurally
 	/// cannot carry (derived from its config below) rather than hard-coding per-format expectations.
 	/// </summary>
-	public static TheoryData<string> RoundTrippableFormats()
-	{
-		var data = new TheoryData<string>();
-		foreach (var format in CardMapFactory.WritableFormats.Intersect(CardMapFactory.ReadableFormats, StringComparer.OrdinalIgnoreCase))
-		{
-			data.Add(format);
-		}
-
-		return data;
-	}
+	public static TheoryData<string> RoundTrippableFormats() =>
+		new(CardMapFactory.WritableFormats.Intersect(CardMapFactory.ReadableFormats, StringComparer.OrdinalIgnoreCase));
 
 	/// <summary>
 	/// Conditions a format's vocabulary can't represent, with the grade each deterministically degrades
@@ -83,7 +75,12 @@ public class MtgCardCsvHandlerTests(CatalogFixture fixture, ITestOutputHelper ou
 		var expectedCards = originalCards.Select(c =>
 		{
 			if (condDeg is not null && condDeg.TryGetValue(c.Condition, out var cond)) { c = c with { Condition = cond }; }
-			if (finDeg is not null && finDeg.TryGetValue(c.Finish, out var fin)) { c = c with { Finish = fin }; }
+			if (finDeg is not null && finDeg.TryGetValue(c.Finish, out var fin))
+			{
+				// The degraded finish re-stamps the finish-appropriate TCGplayer product id on re-import.
+				c.Printing.TcgplayerId = _catalog.FindBySetAndCollectorNumber(c.Printing.Set, c.Printing.CollectorNumber)?.TcgplayerId ?? 0;
+				c = c with { Finish = fin };
+			}
 
 			return c;
 		}).ToList();
@@ -101,12 +98,21 @@ public class MtgCardCsvHandlerTests(CatalogFixture fixture, ITestOutputHelper ou
 		});
 	}
 
+	// Derived from config so a format gaining an etched string is round-trip-tested automatically.
+	public static TheoryData<string> EtchedSupportingFormats()
+	{
+		var config = new ConfigurationBuilder().AddJsonFile("appsettings.json").Build();
+
+		return new(CardMapFactory.From(config)
+			.Where(cfg => cfg.Finish?.Etched is not null
+				&& CardMapFactory.WritableFormats.Contains(cfg.Name, StringComparer.OrdinalIgnoreCase)
+				&& CardMapFactory.ReadableFormats.Contains(cfg.Name, StringComparer.OrdinalIgnoreCase))
+			.Select(cfg => cfg.Name));
+	}
+
 	// Demonic Tutor CMM #509 has an etched printing.
 	[Theory]
-	[InlineData("MOXFIELD")]
-	[InlineData("MANABOX")]
-	[InlineData("TOPDECKED")]
-	[InlineData("ARCHIDEKT")]
+	[MemberData(nameof(EtchedSupportingFormats))]
 	public void EtchedFinish_RoundTripsThroughEtchedSupportingFormats(string format)
 	{
 		var handler = CreateHandler(format);
@@ -141,17 +147,24 @@ public class MtgCardCsvHandlerTests(CatalogFixture fixture, ITestOutputHelper ou
 		Printing = new Card { Name = "Demonic Tutor", Set = "CMM", SetName = "Commander Masters", CollectorNumber = "509" },
 	};
 
-	[Theory]
-	[InlineData($"{TESTS_FOLDER}/dragonshield-field-fidelity.csv", "DRAGONSHIELD", "USD")]
-	[InlineData($"{TESTS_FOLDER}/moxfield-field-fidelity.csv", "MOXFIELD", "EUR")]
-	[InlineData($"{TESTS_FOLDER}/manabox-field-fidelity.csv", "MANABOX", "USD")]
-	[InlineData($"{TESTS_FOLDER}/topdecked-field-fidelity.csv", "TOPDECKED", "USD")]
-	[InlineData($"{TESTS_FOLDER}/deckbox-field-fidelity.csv", "DECKBOX", "USD")]
-	public void ParseSampleCsv_WithValidInput_ParsesCards(string csvFilePath, string deckFormatName, string currency)
+	// CARDMARKET's fixture is excluded: its semicolon/stub shape is exercised by CardmarketTests.
+	public static TheoryData<string> FieldFidelityFixtures()
 	{
-		// Arrange
+		return new(Directory.EnumerateFiles(TESTS_FOLDER, "*-field-fidelity.csv")
+			.Select(Path.GetFileName)
+			.Where(name => !name!.StartsWith("cardmarket", StringComparison.OrdinalIgnoreCase))!);
+	}
+
+	[Theory]
+	[MemberData(nameof(FieldFidelityFixtures))]
+	public void ParseSampleCsv_WithValidInput_ParsesCards(string filename)
+	{
+		// Arrange — format and currency derive from the fixture name and its config.
+		var deckFormatName = CsvFixture.FormatFromFilename(filename);
+		var csvFilePath = $"{TESTS_FOLDER}/{filename}";
+		var cfg = CardMapFactory.From(_config).First(c => c.Name.Equals(deckFormatName, StringComparison.OrdinalIgnoreCase));
 		MtgCardCsvHandler handler = CreateHandler(deckFormatName);
-		IList<PhysicalMtgCard> expectedCards = CanonicalReference.LoadCards(_config, _catalog, _resolver, Currency.FromString(currency));
+		IList<PhysicalMtgCard> expectedCards = CanonicalReference.LoadCards(_config, _catalog, _resolver, cfg.Currency);
 		var expectedSubset = expectedCards
 			.Where(c => FieldFidelityPrintings.Contains((c.Printing.Name, c.Printing.Set, c.Printing.CollectorNumber)))
 			.ToList();
@@ -178,25 +191,32 @@ public class MtgCardCsvHandlerTests(CatalogFixture fixture, ITestOutputHelper ou
 	[InlineData($"{COLLECTIONS_FOLDER}/tcgplayer-collection.csv", "TCGPLAYER", "MANABOX")]
 	public void ConvertCollectionCsvTest(string csvFilePath, string deckFormatIn, string deckFormatOut)
 	{
-		// Arrange
 		MtgCardCsvHandler handlerIn = CreateHandler(deckFormatIn);
 		MtgCardCsvHandler handlerOut = CreateHandler(deckFormatOut);
 
-		var result = handlerIn.ParseCollectionCsv(csvFilePath);
-		var cards = result.Collection.Cards;
-		var resultFileName = $"unittest_{deckFormatIn}-to-{deckFormatOut}_{DateTime.Now:yyyy-MM-dd_HH-mm-ss}.csv";
-		handlerOut.WriteCollectionCsv(cards, resultFileName);
-
-		Log.Information(result.Collection.GenerateSummary());
+		var cards = handlerIn.ParseCollectionCsv(csvFilePath).Collection.Cards;
 		cards.Should().HaveCountGreaterThan(500);
+
+		using var output = new MemoryStream();
+		handlerOut.WriteCollectionCsv(cards, output);
+
+		if (!CardMapFactory.ReadableFormats.Contains(deckFormatOut, StringComparer.OrdinalIgnoreCase))
+		{
+			output.Length.Should().BePositive();
+
+			return;
+		}
+
+		output.Position = 0;
+		var reparsed = handlerOut.ParseCollectionCsv(output);
+		(reparsed.Collection.Cards.Count + reparsed.ErrorCount).Should().Be(cards.Count,
+			"every converted card must re-import as a card or a diagnosed error — anything in between is a silent swallow");
 	}
 
 	[Fact]
 	public void Mtgo_AllRowsParse_WithCollectorNumberStrippedAndMtgoCodeAliased()
 	{
-		// MTGO fixture has 7 rows of old-set printings (Mirage, Visions, Tempest, Exodus).
-		// Two MTGO-specific quirks the parser handles: collector numbers in "N/M" form
-		// (116/350 → 116) and 2-letter set codes (MI → MIR via the bundled mtgo_code map).
+		// The 7 old-set rows exercise both MTGO quirks: "N/M" collector numbers (116/350 → 116) and 2-letter set codes (MI → MIR).
 		var handler = CreateHandler("MTGO");
 		var result = handler.ParseCollectionCsv($"{COLLECTIONS_FOLDER}/mtgo-collection.csv");
 
@@ -208,8 +228,7 @@ public class MtgCardCsvHandlerTests(CatalogFixture fixture, ITestOutputHelper ou
 		result.Collection.Cards.Select(c => c.Printing.CollectorNumber)
 			.Should().AllSatisfy(n => n.Should().NotContain("/"));
 
-		// MTGO 2-letter codes (MI, VI, TE, EX) must be rewritten to canonical 3-letter Scryfall
-		// codes (MIR, VIS, TMP, EXO) so MTGO → other-format conversions emit the right code.
+		// 2-letter MTGO codes must come out as canonical 3-letter Scryfall codes (MI → MIR) for cross-format conversions.
 		result.Collection.Cards.Should().AllSatisfy(c =>
 			c.Printing.Set.Should().HaveLength(3, "MTGO 2-letter codes should be resolved to canonical Scryfall codes"));
 	}
@@ -217,16 +236,12 @@ public class MtgCardCsvHandlerTests(CatalogFixture fixture, ITestOutputHelper ou
 	[Fact]
 	public void Mtgo_ConvertToMoxfield_EmitsCanonicalSetCodesInOutput()
 	{
-		// End-to-end through the WRITE path: parse MTGO, write to Moxfield, then inspect the
-		// emitted CSV. Catches any regression that bypasses the in-memory canonicalization but
-		// still produces a non-canonical code in the output column.
+		// End-to-end through the write path — catches a regression that canonicalizes in memory but emits a non-canonical code.
 		var reader = CreateHandler("MTGO");
 		var writer = CreateHandler("MOXFIELD");
 
 		var cards = reader.ParseCollectionCsv($"{COLLECTIONS_FOLDER}/mtgo-collection.csv").Collection.Cards;
-		using var output = new MemoryStream();
-		writer.WriteCollectionCsv(cards, output);
-		var csv = System.Text.Encoding.UTF8.GetString(output.ToArray());
+		var csv = CsvFixture.WriteToString(writer, cards);
 
 		// Each canonical 3-letter code from the 7 fixture rows must appear in the output.
 		foreach (var canonical in new[] { "MIR", "VIS", "TMP", "EXO" })
@@ -251,9 +266,7 @@ public class MtgCardCsvHandlerTests(CatalogFixture fixture, ITestOutputHelper ou
 				Folder = "MyDeck", PriceBought = new Money(2.50m, Currency.FromString("USD")), DateBought = new DateTime(2024, 1, 1) },
 		};
 
-		using var output = new MemoryStream();
-		handler.WriteCollectionCsv(input, output);
-		var csv = System.Text.Encoding.UTF8.GetString(output.ToArray());
+		var csv = CsvFixture.WriteToString(handler, input);
 
 		// Null/unset fields get the DS defaults.
 		csv.Should().Contain("Imported,1").And.Contain("Lightning Bolt");

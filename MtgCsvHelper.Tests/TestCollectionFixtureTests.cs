@@ -1,14 +1,11 @@
 namespace MtgCsvHelper.Tests;
 
-// Fixture suffixes wired to theories in this class:
-//   *-real-export.csv                  → all rows parse, Cards.Count == data-row count
-//   *-rejected.csv                     → all rows error, no cards land
-//   *-mixed-warnings-and-errors.csv    → Cards.Count + ErrorCount == data-row count
-//   *-field-fidelity.csv               → driven by MtgCardCsvHandlerTests (not this class)
-//
-// Other fixtures in Tests/ (warnings-only.csv, wrong-format-headers.csv,
-// blank-and-delimiter-rows.csv) are deliberately not wired — they're manual-testing
-// inputs for eyeballing Console / Blazor UX with edge-case CSVs.
+/// <summary>
+/// Fixture suffixes wired to theories here: <c>*-real-export.csv</c> (all rows parse),
+/// <c>*-rejected.csv</c> (all rows error), <c>*-mixed-warnings-and-errors.csv</c> (cards + errors
+/// account for every row). <c>*-field-fidelity.csv</c> is driven by MtgCardCsvHandlerTests; the
+/// remaining fixtures in Tests/ are unwired manual-testing inputs for Console / Blazor UX.
+/// </summary>
 [Collection(CatalogCollection.Name)]
 public class TestCollectionFixtureTests(CatalogFixture fixture, ITestOutputHelper output) : ApiBaseTest(fixture, output)
 {
@@ -99,17 +96,5 @@ public class TestCollectionFixtureTests(CatalogFixture fixture, ITestOutputHelpe
 			$"every data row in {filename} must end up either as a card or as an error — anything in between is a silent swallow");
 	}
 
-	static string FormatFromFilename(string filename)
-	{
-		// "moxfield-foil-rejected.csv" -> "MOXFIELD"
-		// "manabox-real-export.csv" -> "MANABOX"
-		var stem = Path.GetFileNameWithoutExtension(filename);
-		var firstDash = stem.IndexOf('-');
-		if (firstDash < 0)
-		{
-			throw new InvalidOperationException($"Fixture filename '{filename}' does not follow the '<format>-<suffix>.csv' convention.");
-		}
-
-		return stem[..firstDash].ToUpperInvariant();
-	}
+	static string FormatFromFilename(string filename) => CsvFixture.FormatFromFilename(filename);
 }

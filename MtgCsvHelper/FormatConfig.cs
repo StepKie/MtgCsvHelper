@@ -3,15 +3,19 @@ namespace MtgCsvHelper;
 public record FormatConfig(
 	string Name,
 	string Quantity,
-	// Either CardName or CardmarketId (or in the future another card-identifier kind) must be set.
-	// Most formats identify cards by name + set; Cardmarket identifies by its internal product ID and
-	// requires Scryfall reverse-lookup to fill in name/set/etc. during enrichment.
+	// The site's full native header set in the site's exact column order; the writer emits every declared column, blank when unmodeled. Null = modeled columns only.
+	string[]? Columns = null,
+	// Either CardName or CardmarketId must be set; Cardmarket identifies by product id, resolved via Scryfall during enrichment.
 	CardNameConfiguration? CardName = null,
 	string? CardmarketId = null,
 	string? SetNumber = null,
 	string? SetCode = null,
 	string? SetName = null,
 	string? ScryfallId = null,
+	// Catalog-stamped metadata columns, filled by CatalogValidator when the printing resolves (like ScryfallId).
+	RarityConfiguration? Rarity = null,
+	string? MultiverseId = null,
+	string? TcgplayerId = null,
 	FinishConfiguration? Finish = null,
 	ConditionConfiguration? Condition = null,
 	LanguageConfiguration? Language = null,
@@ -19,13 +23,9 @@ public record FormatConfig(
 	DateBoughtConfiguration? DateBought = null,
 	string? FolderName = null,
 	string? TradeQuantity = null,
-	// True if the importer rejects rows with null cells in declared columns (Dragon Shield).
-	// Triggers a pre-write defaulting pass that fills nulls. Coupling: also expects
-	// PriceBought to be configured (its Currency drives the default price) and a
-	// DefaultFolderName to be set.
+	// Importer rejects null cells (Dragon Shield): triggers a pre-write defaulting pass using PriceBought's currency and DefaultFolderName.
 	bool RequiresWriteDefaults = false,
-	// Folder label stamped on rows whose Folder is null/empty when RequiresWriteDefaults
-	// is true. No effect otherwise.
+	// Folder stamped on null/empty Folder cells when RequiresWriteDefaults is set; no effect otherwise.
 	string DefaultFolderName = "Imported",
 	// CSV delimiter. Most sites use comma; Cardmarket exports use semicolon.
 	string Delimiter = ","
@@ -44,8 +44,7 @@ public record FormatConfig(
 	}
 };
 
-// Shared shape for the rich sub-record configurations: all expose the CSV header they bind to.
-// Lets the map base class register them generically without per-type branching.
+// Shared shape for the rich sub-configs: exposing the bound CSV header lets the map base class register them generically.
 public interface IHeaderConfig
 {
 	string HeaderName { get; }
@@ -62,10 +61,7 @@ public record FinishConfiguration(
 	string Normal,
 	string? Etched = null) : IHeaderConfig;
 
-// Mint and Excellent are nullable so a format with no separate tier for them can declare
-// `null` instead of duplicating another condition's string. The write-side falls back to
-// NearMint when these are null; the read-side simply doesn't match (CsvMatch.MatchesConfig
-// returns false for null), so duplicate-string collisions don't depend on switch arm order.
+// Mint/Excellent are nullable: writes fall back to NearMint, reads simply don't match — so duplicate-string collisions don't depend on switch arm order.
 public record ConditionConfiguration(
 	string HeaderName,
 	string NearMint,
@@ -98,10 +94,16 @@ public record PriceConfiguration(
 	string Currency,
 	string CurrencySymbol) : IHeaderConfig;
 
-// Formats is an ordered list passed straight to CsvHelper's TypeConverterOption.Format(...):
-// the FIRST entry is used for writes, ALL entries are tried in order on read. Lets a format
-// emit a canonical ISO date but still parse a vendor's historical export shape (e.g. Dragon
-// Shield's own exports use M/d/yyyy alongside the yyyy-MM-dd it accepts on import).
+public record RarityConfiguration(
+	string HeaderName,
+	string Common,
+	string Uncommon,
+	string Rare,
+	string Special,
+	string Mythic,
+	string Bonus) : IHeaderConfig;
+
+// Ordered list for CsvHelper's TypeConverterOption.Format: the first entry writes, all entries are tried on read (vendors' historical export shapes).
 public record DateBoughtConfiguration(
 	string HeaderName,
 	string[]? Formats = null) : IHeaderConfig

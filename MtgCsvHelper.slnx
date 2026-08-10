@@ -3,6 +3,7 @@
     <File Path=".editorconfig" />
     <File Path="README.md" />
   </Folder>
+  <Project Path="MtgCsvHelper.BlazorWebAssembly.Tests/MtgCsvHelper.BlazorWebAssembly.Tests.csproj" />
   <Project Path="MtgCsvHelper.BlazorWebAssembly/MtgCsvHelper.BlazorWebAssembly.csproj" />
   <Project Path="MtgCsvHelper.Console/MtgCsvHelper.Console.csproj" />
   <Project Path="MtgCsvHelper.Tests/MtgCsvHelper.Tests.csproj" />

@@ -8,11 +8,7 @@ public class SetInfoEnricherTests(CatalogFixture fixture)
 {
 	readonly SetInfoEnricher _enricher = new(fixture.Catalog);
 
-	// Guards the "catalog always wins for SetName" invariant relied on by the Deckbox round-trip
-	// path: when a row imports with a non-canonical SetName (e.g. Deckbox's "Extras: Modern
-	// Horizons 2") but a resolvable Set code, the catalog's canonical name takes precedence.
-	// Required so downstream writers (Moxfield, Manabox, …) emit the canonical form regardless of
-	// which CSV the cards came from.
+	// Catalog always wins for SetName: a non-canonical import name (Deckbox "Extras: …") with a resolvable code gets the canonical name, so every writer emits the canonical form.
 	[Fact]
 	public async Task EnrichAsync_NonCanonicalSetName_OverwrittenByCatalog()
 	{
@@ -34,10 +30,7 @@ public class SetInfoEnricherTests(CatalogFixture fixture)
 			because: "the catalog's Scryfall-canonical name must always win over the CSV's value when the set code resolves");
 	}
 
-	// Companion to the test above: when the CSV already carries the Scryfall canonical name
-	// (Moxfield / Manabox / Archidekt / TopDecked all emit canonical names), the catalog
-	// overwrite is a no-op. Documents the intended boundary so the "catalog always wins" rule
-	// can't silently degrade into "catalog overwrites with garbage when name lookup misfires".
+	// Companion boundary: an already-canonical SetName passes through as a no-op overwrite.
 	[Fact]
 	public async Task EnrichAsync_AlreadyCanonicalSetName_PassesThroughUnchanged()
 	{
@@ -59,10 +52,7 @@ public class SetInfoEnricherTests(CatalogFixture fixture)
 			because: "a row that already carries the Scryfall canonical name must come out unchanged");
 	}
 
-	// Diagnostic — pinning the current behavior for an "MB1 + Mystery Booster" row whose
-	// set code is unknown to the catalog. Reported by user: both SetInfoEnricher emits a
-	// warning ("Set code 'MB1' not found") AND CatalogValidator emits an error
-	// ("No printing at MB1 #N"). One issue per row, not two, is the expected UX.
+	// One issue per row: an unknown set code with a CSV-provided name must not warn here on top of CatalogValidator's downstream error.
 	[Fact]
 	public async Task EnrichAsync_UnknownSetCode_WithCsvProvidedSetName_DoesNotWarn()
 	{
@@ -81,7 +71,6 @@ public class SetInfoEnricherTests(CatalogFixture fixture)
 		var issues = new List<ImportIssue>();
 		await _enricher.EnrichAsync([row], issues, CancellationToken.None);
 
-		issues.Should().BeEmpty(
-			because: "the CSV supplied both a set code and a set name; SetInfoEnricher's role is to canonicalize against the catalog, not to flag every unknown set — CatalogValidator's downstream lookup will already emit a precise (Set, CollectorNumber) error.");
+		issues.Should().BeEmpty(because: "CatalogValidator's downstream lookup already emits the precise error for this row");
 	}
 }

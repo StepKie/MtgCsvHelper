@@ -1,30 +1,30 @@
-Quantity,Simple Name,Set Code,Set,Card Number,Condition,Name,Printing,Language
-1,Ambitious Farmhand,MID,Innistrad: Midnight Hunt,2,Mint,Ambitious Farmhand // Seasoned Cathar,Normal,English
-1,Ambitious Farmhand,MID,Innistrad: Midnight Hunt,2,Mint,Ambitious Farmhand // Seasoned Cathar,Normal,Traditional Chinese
-2,Ambitious Farmhand,MID,Innistrad: Midnight Hunt,2,Near Mint,Ambitious Farmhand // Seasoned Cathar,Foil,German
-1,Ambitious Farmhand,MID,Innistrad: Midnight Hunt,2,Lightly Played,Ambitious Farmhand // Seasoned Cathar,Normal,English
-1,Ambitious Farmhand,MID,Innistrad: Midnight Hunt,2,Moderately Played,Ambitious Farmhand // Seasoned Cathar,Normal,English
-1,Ambitious Farmhand,MID,Innistrad: Midnight Hunt,2,Heavily Played,Ambitious Farmhand // Seasoned Cathar,Normal,English
-1,Ambitious Farmhand,MID,Innistrad: Midnight Hunt,2,Damaged,Ambitious Farmhand // Seasoned Cathar,Normal,English
-1,Clue,TMH2,Modern Horizons 2 Tokens,14,Near Mint,Clue,Normal,English
-1,Food,TLTR,Tales of Middle-earth Tokens,10,Near Mint,Food,Normal,English
-1,Demonic Tutor,CMM,Commander Masters,509,Near Mint,Demonic Tutor,Foil,English
-1,Lightning Bolt,M11,Magic 2011,149,Near Mint,Lightning Bolt,Normal,English
-1,Lightning Bolt,M11,Magic 2011,149,Near Mint,Lightning Bolt,Normal,Spanish
-1,Lightning Bolt,M11,Magic 2011,149,Near Mint,Lightning Bolt,Normal,French
-1,Lightning Bolt,M11,Magic 2011,149,Near Mint,Lightning Bolt,Normal,German
-1,Lightning Bolt,M11,Magic 2011,149,Near Mint,Lightning Bolt,Normal,Italian
-1,Lightning Bolt,M11,Magic 2011,149,Near Mint,Lightning Bolt,Normal,Portuguese
-1,Lightning Bolt,M11,Magic 2011,149,Near Mint,Lightning Bolt,Normal,Japanese
-1,Lightning Bolt,M11,Magic 2011,149,Near Mint,Lightning Bolt,Normal,Korean
-1,Lightning Bolt,M11,Magic 2011,149,Near Mint,Lightning Bolt,Normal,Russian
-1,Lightning Bolt,M11,Magic 2011,149,Near Mint,Lightning Bolt,Normal,Chinese
-1,Lightning Bolt,M11,Magic 2011,149,Near Mint,Lightning Bolt,Normal,Traditional Chinese
-1,Mardu Outrider,MB2,Mystery Booster 2,1,Near Mint,Mardu Outrider,Normal,English
-1,Viscera Seer,SLD,Secret Lair Drop,VS,Near Mint,Viscera Seer,Foil,English
-1,"Isperia, Supreme Judge",GK2,RNA Guild Kit,1,Near Mint,"Isperia, Supreme Judge",Foil,English
-1,Ral's Vanguard,CMB1,Mystery Booster Playtest Cards 2019,1,Near Mint,Ral's Vanguard,Normal,English
-1,Demonic Tutor,PLST,The List,DDC-49,Near Mint,Demonic Tutor,Normal,English
-1,Orcish Bowmasters,LTR,The Lord of the Rings: Tales of Middle-earth,433,Near Mint,Orcish Bowmasters (Borderless),Normal,English
-1,Brazen Borrower,ELD,Throne of Eldraine,39,Near Mint,Brazen Borrower // Petty Theft,Normal,English
-1,Fire // Ice,APC,Apocalypse,128,Near Mint,Fire // Ice,Normal,English
+Quantity,Name,Simple Name,Set,Card Number,Set Code,Printing,Condition,Language,Rarity,Product ID,SKU
+1,Ambitious Farmhand // Seasoned Cathar,Ambitious Farmhand,Innistrad: Midnight Hunt,2,MID,Normal,Mint,English,Uncommon,248154,
+1,Ambitious Farmhand // Seasoned Cathar,Ambitious Farmhand,Innistrad: Midnight Hunt,2,MID,Normal,Mint,Traditional Chinese,Uncommon,248154,
+2,Ambitious Farmhand // Seasoned Cathar,Ambitious Farmhand,Innistrad: Midnight Hunt,2,MID,Foil,Near Mint,German,Uncommon,248154,
+1,Ambitious Farmhand // Seasoned Cathar,Ambitious Farmhand,Innistrad: Midnight Hunt,2,MID,Normal,Lightly Played,English,Uncommon,248154,
+1,Ambitious Farmhand // Seasoned Cathar,Ambitious Farmhand,Innistrad: Midnight Hunt,2,MID,Normal,Moderately Played,English,Uncommon,248154,
+1,Ambitious Farmhand // Seasoned Cathar,Ambitious Farmhand,Innistrad: Midnight Hunt,2,MID,Normal,Heavily Played,English,Uncommon,248154,
+1,Ambitious Farmhand // Seasoned Cathar,Ambitious Farmhand,Innistrad: Midnight Hunt,2,MID,Normal,Damaged,English,Uncommon,248154,
+1,Clue,Clue,Modern Horizons 2 Tokens,14,TMH2,Normal,Near Mint,English,Common,,
+1,Food,Food,Tales of Middle-earth Tokens,10,TLTR,Normal,Near Mint,English,Common,,
+1,Demonic Tutor,Demonic Tutor,Commander Masters,509,CMM,Foil,Near Mint,English,Mythic,504603,
+1,Lightning Bolt,Lightning Bolt,Magic 2011,149,M11,Normal,Near Mint,English,Common,35427,
+1,Lightning Bolt,Lightning Bolt,Magic 2011,149,M11,Normal,Near Mint,Spanish,Common,35427,
+1,Lightning Bolt,Lightning Bolt,Magic 2011,149,M11,Normal,Near Mint,French,Common,35427,
+1,Lightning Bolt,Lightning Bolt,Magic 2011,149,M11,Normal,Near Mint,German,Common,35427,
+1,Lightning Bolt,Lightning Bolt,Magic 2011,149,M11,Normal,Near Mint,Italian,Common,35427,
+1,Lightning Bolt,Lightning Bolt,Magic 2011,149,M11,Normal,Near Mint,Portuguese,Common,35427,
+1,Lightning Bolt,Lightning Bolt,Magic 2011,149,M11,Normal,Near Mint,Japanese,Common,35427,
+1,Lightning Bolt,Lightning Bolt,Magic 2011,149,M11,Normal,Near Mint,Korean,Common,35427,
+1,Lightning Bolt,Lightning Bolt,Magic 2011,149,M11,Normal,Near Mint,Russian,Common,35427,
+1,Lightning Bolt,Lightning Bolt,Magic 2011,149,M11,Normal,Near Mint,Chinese,Common,35427,
+1,Lightning Bolt,Lightning Bolt,Magic 2011,149,M11,Normal,Near Mint,Traditional Chinese,Common,35427,
+1,Mardu Outrider,Mardu Outrider,Mystery Booster 2,1,MB2,Normal,Near Mint,English,Rare,563115,
+1,Viscera Seer,Viscera Seer,Secret Lair Drop,VS,SLD,Foil,Near Mint,English,Common,257331,
+1,"Isperia, Supreme Judge","Isperia, Supreme Judge",RNA Guild Kit,1,GK2,Foil,Near Mint,English,Mythic,183595,
+1,Ral's Vanguard,Ral's Vanguard,Mystery Booster Playtest Cards 2019,1,CMB1,Normal,Near Mint,English,Rare,202660,
+1,Demonic Tutor,Demonic Tutor,The List,DDC-49,PLST,Normal,Near Mint,English,Uncommon,203644,
+1,Orcish Bowmasters (Borderless),Orcish Bowmasters,The Lord of the Rings: Tales of Middle-earth,433,LTR,Normal,Near Mint,English,Rare,498425,
+1,Brazen Borrower // Petty Theft,Brazen Borrower,Throne of Eldraine,39,ELD,Normal,Near Mint,English,Mythic,199387,
+1,Fire // Ice,Fire // Ice,Apocalypse,128,APC,Normal,Near Mint,English,Uncommon,7951,

@@ -16,8 +16,6 @@ public class CachedMtgApi : IMtgApi
 	// ConcurrentDictionary because CachedMtgApi is a DI singleton — keeps the cache consistent under concurrent callers (duplicate fetches of the same id are still possible but idempotent).
 	readonly ConcurrentDictionary<int, ReferenceCard> _cardsByCardmarketId = new();
 
-	public CachedMtgApi() => Log.Debug("CachedMtgApi created");
-
 	// Scryfall requires UserAgent and Accept headers since 09/2024.
 	static readonly HttpClient ScryfallHttpClient = new()
 	{
@@ -49,7 +47,7 @@ public class CachedMtgApi : IMtgApi
 			var id = notYetFetched[i];
 			try
 			{
-				var response = await ScryfallHttpClient.GetAsync(new Uri($"https://api.scryfall.com/cards/cardmarket/{id}"), ct);
+				var response = await ScryfallHttpClient.GetAsync(new Uri($"cards/cardmarket/{id}", UriKind.Relative), ct);
 				if (response.StatusCode == System.Net.HttpStatusCode.NotFound)
 				{
 					continue; // not found — caller will see this id absent from the returned dictionary
@@ -64,7 +62,7 @@ public class CachedMtgApi : IMtgApi
 			}
 			catch (HttpRequestException ex)
 			{
-				Log.Warning(ex, $"Failed to resolve cardmarket_id {id}");
+				Log.Warning(ex, "Failed to resolve cardmarket_id {Id}", id);
 			}
 
 			if (i + 1 < notYetFetched.Count)
