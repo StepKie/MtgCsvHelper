@@ -6,6 +6,8 @@ Unreleased work targets the next minor version once a coherent feature set is re
 
 ## [Unreleased]
 
+## [1.6.0] — 2026-08-10
+
 ### Fixed
 
 - **Card data refreshes again, and keeps refreshing** ([#141](https://github.com/StepKie/MtgCsvHelper/issues/141)). Cards from recently released sets were skipped wholesale with `No printing at <SET> #N in Scryfall data` — reported for The Hobbit (HOB), where 77 of 694 rows dropped. Two causes: the bundle generator had stopped working against Scryfall's bulk-data API (which moved to JSONL downloads under new field names), and the deploy that regenerates the bundle only ran when a release was cut. The generator is fixed, and the site now redeploys weekly with freshly generated card data — plus on demand, without cutting a release. The refreshed bundle carries all 321 HOB printings.
@@ -160,7 +162,8 @@ First stable release. Web app + Console app.
 - [0.1.0] — 2022-12-02
 - [0.0.3] — 2022-11-15
 
-[Unreleased]: https://github.com/StepKie/MtgCsvHelper/compare/1.5.0...HEAD
+[Unreleased]: https://github.com/StepKie/MtgCsvHelper/compare/1.6.0...HEAD
+[1.6.0]: https://github.com/StepKie/MtgCsvHelper/compare/1.5.0...1.6.0
 [1.5.0]: https://github.com/StepKie/MtgCsvHelper/compare/1.4.1...1.5.0
 [1.4.1]: https://github.com/StepKie/MtgCsvHelper/compare/1.4.0...1.4.1
 [1.4.0]: https://github.com/StepKie/MtgCsvHelper/compare/1.3.0...1.4.0
