@@ -13,6 +13,12 @@ on:
 permissions:
   contents: write
 
+# The deploy action force-pushes gh-pages, so overlapping runs would race. Queue rather than
+# cancel: a scheduled refresh and a release push both need to land.
+concurrency:
+  group: pages
+  cancel-in-progress: false
+
 jobs:
   deploy:
     runs-on: ubuntu-latest
