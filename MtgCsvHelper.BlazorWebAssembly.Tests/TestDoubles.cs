@@ -8,6 +8,7 @@ sealed class FakeCatalogLoader : ICatalogLoader
 	public IReferenceCardCatalog? Catalog { get; set; } = new ReferenceCardCatalog([]);
 	public CatalogLoadProgress Progress { get; set; } = new(CatalogLoadPhase.Ready, 100, 0, null);
 	public Exception? Error { get; set; }
+	public DateTimeOffset? BundleLastModified { get; set; }
 	public event Action? StateChanged;
 	public int LoadCalls { get; private set; }
 
