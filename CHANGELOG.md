@@ -6,6 +6,22 @@ Unreleased work targets the next minor version once a coherent feature set is re
 
 ## [Unreleased]
 
+## [1.6.0] — 2026-08-10
+
+### Fixed
+
+- **Card data refreshes again, and keeps refreshing** ([#141](https://github.com/StepKie/MtgCsvHelper/issues/141)). Cards from recently released sets were skipped wholesale with `No printing at <SET> #N in Scryfall data` — reported for The Hobbit (HOB), where 77 of 694 rows dropped. Two causes: the bundle generator had stopped working against Scryfall's bulk-data API (which moved to JSONL downloads under new field names), and the deploy that regenerates the bundle only ran when a release was cut. The generator is fixed, and the site now redeploys weekly with freshly generated card data — plus on demand, without cutting a release. The refreshed bundle carries all 321 HOB printings.
+- **Non-English rows are no longer dropped over their localized card name** ([#103](https://github.com/StepKie/MtgCsvHelper/issues/103)). When a row's `(Set, Collector#)` resolves to a printing but the localized name (e.g. Italian `Fulmine`) doesn't match the English-only catalog, the row is now kept with the catalog's English name and a Warning, instead of being skipped as a name-mismatch error. Applies only to rows whose Language column explicitly says non-English; English rows keep the strict corruption guard.
+
+### Changed
+
+- **The age of the loaded card data is shown in the footer** ([#141](https://github.com/StepKie/MtgCsvHelper/issues/141)). A line like `Card data: 115,432 printings, updated 3 Jul 2026` now sits below the page — the first thing to check when a freshly released set won't import.
+- **Exports match each site's native column layout** ([#134](https://github.com/StepKie/MtgCsvHelper/issues/134)). Every writable format now emits the site's full header set in the site's exact column order — instead of only the modeled columns in our own order. Strict, order-sensitive importers (Archidekt, TCGplayer) accept the files, and they diff cleanly against real site exports. Catalog-derived columns are filled (rarity, Multiverse Id, TCGplayer product id — extending the Scryfall id from 1.5.0); the rest are left blank. The native layout is declared per format in `appsettings.json` and anchored to a captured export by test.
+
+### Internal
+
+- **bUnit component tests for the web UI** ([#70](https://github.com/StepKie/MtgCsvHelper/issues/70)). New `MtgCsvHelper.BlazorWebAssembly.Tests` project covering the converter page: format dropdown contents, auto-detect on file upload, input/output collision snapping, the header-mismatch error alert, and the catalog-load failure/retry path.
+
 ## [1.5.0] — 2026-07-03
 
 ### Added
@@ -146,7 +162,8 @@ First stable release. Web app + Console app.
 - [0.1.0] — 2022-12-02
 - [0.0.3] — 2022-11-15
 
-[Unreleased]: https://github.com/StepKie/MtgCsvHelper/compare/1.5.0...HEAD
+[Unreleased]: https://github.com/StepKie/MtgCsvHelper/compare/1.6.0...HEAD
+[1.6.0]: https://github.com/StepKie/MtgCsvHelper/compare/1.5.0...1.6.0
 [1.5.0]: https://github.com/StepKie/MtgCsvHelper/compare/1.4.1...1.5.0
 [1.4.1]: https://github.com/StepKie/MtgCsvHelper/compare/1.4.0...1.4.1
 [1.4.0]: https://github.com/StepKie/MtgCsvHelper/compare/1.3.0...1.4.0
