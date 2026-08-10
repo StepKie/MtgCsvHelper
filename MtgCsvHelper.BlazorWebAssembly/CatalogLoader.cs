@@ -14,6 +14,14 @@ public interface ICatalogLoader
 	IReferenceCardCatalog? Catalog { get; }
 	CatalogLoadProgress Progress { get; }
 	Exception? Error { get; }
+
+	/// <summary>
+	/// When the served bundle was last written, from its <c>Last-Modified</c> response header —
+	/// the deploy that generated it, and so the age of the card data. Null when the host omits
+	/// the header. Set once <see cref="LoadAsync"/> has a response.
+	/// </summary>
+	DateTimeOffset? BundleLastModified { get; }
+
 	event Action? StateChanged;
 	Task LoadAsync(CancellationToken ct = default);
 }
@@ -39,6 +47,7 @@ public sealed class CatalogLoader(HttpClient http) : ICatalogLoader
 	public IReferenceCardCatalog? Catalog { get; private set; }
 	public CatalogLoadProgress Progress { get; private set; } = CatalogLoadProgress.Idle;
 	public Exception? Error { get; private set; }
+	public DateTimeOffset? BundleLastModified { get; private set; }
 	public event Action? StateChanged;
 
 	public async Task LoadAsync(CancellationToken ct = default)
@@ -50,6 +59,7 @@ public sealed class CatalogLoader(HttpClient http) : ICatalogLoader
 		{
 			using var response = await _http.GetAsync("data/cards.min.json.gz", HttpCompletionOption.ResponseHeadersRead, ct);
 			response.EnsureSuccessStatusCode();
+			BundleLastModified = response.Content.Headers.LastModified;
 
 			var totalBytes = response.Content.Headers.ContentLength is > 0
 				? response.Content.Headers.ContentLength.Value

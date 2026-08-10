@@ -4,9 +4,20 @@ on:
   push:
     branches:
       - main
+  # The bundled card data is only as fresh as the last deploy, so newly released sets fail
+  # to import until one happens. Scheduled runs always use the default branch (main).
+  workflow_dispatch:
+  schedule:
+    - cron: '0 4 * * 1'
 
 permissions:
   contents: write
+
+# The deploy action force-pushes gh-pages, so overlapping runs would race. Queue rather than
+# cancel: a scheduled refresh and a release push both need to land.
+concurrency:
+  group: pages
+  cancel-in-progress: false
 
 jobs:
   deploy:

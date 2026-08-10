@@ -1,4 +1,5 @@
 @inherits LayoutComponentBase
+@using System.Globalization
 @using System.Reflection
 @inject ICatalogLoader CatalogLoader
 @inject ISnackbar Snackbar
@@ -45,6 +46,14 @@
 		<MudContainer MaxWidth="MaxWidth.Large" Class="py-6">
 			@Body
 		</MudContainer>
+		@if (CatalogFreshness is { } freshness)
+		{
+			<MudContainer MaxWidth="MaxWidth.Large" Class="pb-4">
+				<MudTooltip Text="Sets released after this date are missing until the site redeploys.">
+					<MudText Typo="Typo.caption" Align="Align.Center" Class="d-block mud-text-secondary">@freshness</MudText>
+				</MudTooltip>
+			</MudContainer>
+		}
 	</MudMainContent>
 </MudLayout>
 
@@ -82,6 +91,24 @@
 
 	void ToggleTheme() => _isDarkMode = !_isDarkMode;
 
+	/// <summary>
+	/// Footer line naming the loaded catalog's size and age; null until the catalog is loaded.
+	/// The age is the first thing to check when a freshly released set imports as
+	/// "No printing at &lt;SET&gt; #N in Scryfall data".
+	/// </summary>
+	string? CatalogFreshness
+	{
+		get
+		{
+			if (CatalogLoader.Catalog is not { } catalog) { return null; }
+
+			var printings = catalog.Count.ToString("N0", CultureInfo.InvariantCulture);
+			if (CatalogLoader.BundleLastModified is not { } updated) { return $"Card data: {printings} printings"; }
+
+			return $"Card data: {printings} printings, updated {updated.ToLocalTime().ToString("d MMM yyyy", CultureInfo.InvariantCulture)}";
+		}
+	}
+
 	protected override async Task OnInitializedAsync()
 	{
 		CatalogLoader.StateChanged += OnCatalogStateChanged;
@@ -95,6 +122,8 @@
 		if (CatalogLoader.Progress.Phase == CatalogLoadPhase.Ready)
 		{
 			Snackbar.Add("Card data loaded.", Severity.Success);
+			// The footer only has something to show once the catalog is loaded.
+			_ = InvokeAsync(StateHasChanged);
 		}
 		else if (CatalogLoader.Progress.Phase == CatalogLoadPhase.Failed)
 		{
