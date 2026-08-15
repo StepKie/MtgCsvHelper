@@ -3,7 +3,7 @@ namespace MtgCsvHelper.Tests;
 /// <summary>CatalogValidator resolves a row by its Scryfall id when present (correcting a reshaped (set, #)),
 /// backfills the resolved id onto Printing.Id, and writers emit it where the format declares a Scryfall ID column.</summary>
 [Collection(CatalogCollection.Name)]
-public class ScryfallIdTests(CatalogFixture fixture, ITestOutputHelper output) : ApiBaseTest(fixture, output)
+public class ScryfallIdTests(CatalogFixture fixture) : ApiBaseTest(fixture)
 {
 	string Write(string format, IList<PhysicalMtgCard> cards) =>
 		CsvFixture.WriteToString(new MtgCardCsvHandler(_catalog, _resolver, _config, format), cards);

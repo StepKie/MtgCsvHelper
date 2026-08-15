@@ -4,7 +4,7 @@ using ScryfallApi.Client.Models;
 namespace MtgCsvHelper.Tests;
 
 [Collection(CatalogCollection.Name)]
-public class MtgCardCsvHandlerTests(CatalogFixture fixture, ITestOutputHelper output) : ApiBaseTest(fixture, output)
+public class MtgCardCsvHandlerTests(CatalogFixture fixture) : ApiBaseTest(fixture)
 {
 	public const string TESTS_FOLDER = "Resources/SampleCsvs/Tests";
 	public const string COLLECTIONS_FOLDER = "Resources/SampleCsvs/Collection";

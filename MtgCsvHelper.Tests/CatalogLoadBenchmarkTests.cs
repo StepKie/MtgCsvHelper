@@ -12,14 +12,14 @@ namespace MtgCsvHelper.Tests;
 /// Run from CLI with verbose output to see timings:
 ///   dotnet test --filter "FullyQualifiedName~CatalogLoadBenchmark" -v normal
 /// </summary>
-public class CatalogLoadBenchmarkTests(ITestOutputHelper output) : BaseTest(output)
+public class CatalogLoadBenchmarkTests(ITestOutputHelper output) : BaseTest
 {
 	static string BundlePath => Path.Combine(AppContext.BaseDirectory, "data", "cards.min.json.gz");
 
 	[Fact]
 	public async Task Phase_Breakdown_ProductionPath()
 	{
-		var bytes = await File.ReadAllBytesAsync(BundlePath);
+		var bytes = await File.ReadAllBytesAsync(BundlePath, TestContext.Current.CancellationToken);
 		output.WriteLine($"Bundle on disk: {bytes.Length:N0} bytes ({bytes.Length / 1024.0 / 1024.0:0.##} MB compressed)");
 
 		// Phase 1: decompress only
@@ -28,7 +28,7 @@ public class CatalogLoadBenchmarkTests(ITestOutputHelper output) : BaseTest(outp
 		using (var gzip = new GZipStream(src, CompressionMode.Decompress))
 		await using (var sink = new MemoryStream())
 		{
-			await gzip.CopyToAsync(sink);
+			await gzip.CopyToAsync(sink, TestContext.Current.CancellationToken);
 			output.WriteLine($"  Decompress: {sw.ElapsedMilliseconds} ms → {sink.Length:N0} bytes raw JSON");
 		}
 
@@ -38,7 +38,7 @@ public class CatalogLoadBenchmarkTests(ITestOutputHelper output) : BaseTest(outp
 		await using (var src = new MemoryStream(bytes))
 		using (var gzip = new GZipStream(src, CompressionMode.Decompress))
 		{
-			cards = await JsonSerializer.DeserializeAsync<List<ReferenceCard>>(gzip, ReferenceCardCatalog.BundleSerializerOptions);
+			cards = await JsonSerializer.DeserializeAsync<List<ReferenceCard>>(gzip, ReferenceCardCatalog.BundleSerializerOptions, TestContext.Current.CancellationToken);
 		}
 		var parseMs = sw.ElapsedMilliseconds;
 		output.WriteLine($"  Parse: {parseMs} ms → {cards!.Count:N0} cards");
@@ -53,7 +53,7 @@ public class CatalogLoadBenchmarkTests(ITestOutputHelper output) : BaseTest(outp
 		sw.Restart();
 		await using (var src = new MemoryStream(bytes))
 		{
-			_ = await ReferenceCardCatalog.LoadGzipAsync(src);
+			_ = await ReferenceCardCatalog.LoadGzipAsync(src, TestContext.Current.CancellationToken);
 		}
 		output.WriteLine($"Total LoadGzipAsync: {sw.ElapsedMilliseconds} ms (CLR; WASM interpreter ≈ ×15, AOT ≈ same as CLR ×~1-3)");
 	}
