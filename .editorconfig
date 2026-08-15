@@ -215,6 +215,24 @@ dotnet_naming_rule.interface_should_be_begins_with_i.severity = suggestion
 dotnet_naming_rule.interface_should_be_begins_with_i.symbols = interface
 dotnet_naming_rule.interface_should_be_begins_with_i.style = begins_with_i
 
+# Constants and static readonly fields are PascalCase; the _ prefix marks mutable instance state, which neither is.
+# Both rules must precede the private-field rule below, because the first matching rule wins.
+dotnet_naming_rule.constants_should_be_pascal_case.severity = suggestion
+dotnet_naming_rule.constants_should_be_pascal_case.symbols = constant_fields
+dotnet_naming_rule.constants_should_be_pascal_case.style = pascal_case
+
+dotnet_naming_symbols.constant_fields.applicable_kinds = field
+dotnet_naming_symbols.constant_fields.applicable_accessibilities = *
+dotnet_naming_symbols.constant_fields.required_modifiers = const
+
+dotnet_naming_rule.static_readonly_fields_should_be_pascal_case.severity = suggestion
+dotnet_naming_rule.static_readonly_fields_should_be_pascal_case.symbols = static_readonly_fields
+dotnet_naming_rule.static_readonly_fields_should_be_pascal_case.style = pascal_case
+
+dotnet_naming_symbols.static_readonly_fields.applicable_kinds = field
+dotnet_naming_symbols.static_readonly_fields.applicable_accessibilities = *
+dotnet_naming_symbols.static_readonly_fields.required_modifiers = static, readonly
+
 dotnet_naming_rule.private_fields_should_be_underscore_camel_case.severity = suggestion
 dotnet_naming_rule.private_fields_should_be_underscore_camel_case.symbols = private_fields
 dotnet_naming_rule.private_fields_should_be_underscore_camel_case.style = underscore_camel_case
@@ -1071,6 +1089,11 @@ dotnet_diagnostic.IDE0007.severity = silent
 # IDE0008: Use explicit type
 dotnet_diagnostic.IDE0008.severity = silent
 
+# IDE0010: Populate switch
+# Same false positives as IDE0072 below, on switch statements: it fires on type-pattern switches that
+# cannot enumerate their cases, and on enum switches whose remaining values are handled elsewhere.
+dotnet_diagnostic.IDE0010.severity = none
+
 # IDE0019: Use pattern matching
 dotnet_diagnostic.IDE0019.severity = suggestion
 
@@ -1119,6 +1142,11 @@ dotnet_diagnostic.IDE0077.severity=suggestion
 
 # IDE0130: Namespace does not match folder structure
 dotnet_diagnostic.IDE0130.severity = suggestion
+
+# IDE0305: Collection initialization can be simplified
+# Asks to rewrite .Select(...).ToList() as [.. ...]. House style prefers ToList(): it is explicit about
+# materialization and unambiguous for readers who do not recognize the spread operator.
+dotnet_diagnostic.IDE0305.severity = silent
 
 # MVC1000: Use of IHtmlHelper.{0} should be avoided.
 dotnet_diagnostic.MVC1000.severity = warning
