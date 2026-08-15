@@ -15,7 +15,7 @@ public class CatalogFixture : IAsyncLifetime
 	private IMtgApi Api { get; set; } = null!;
 	public ICardmarketResolver Resolver { get; private set; } = null!;
 
-	public async Task InitializeAsync()
+	public async ValueTask InitializeAsync()
 	{
 		Log.Logger = AppLogging.CreateDefaultLoggerConfig().CreateLogger();
 
@@ -42,7 +42,7 @@ public class CatalogFixture : IAsyncLifetime
 		Resolver = new CardmarketResolver(() => Catalog, Api);
 	}
 
-	public Task DisposeAsync() => Task.CompletedTask;
+	public ValueTask DisposeAsync() => ValueTask.CompletedTask;
 }
 
 [CollectionDefinition(CatalogCollection.Name)]

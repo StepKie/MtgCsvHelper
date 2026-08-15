@@ -5,7 +5,8 @@ using MudBlazor.Services;
 
 namespace MtgCsvHelper.BlazorWebAssembly.Tests;
 
-public class MainLayoutTests : BunitContext, IAsyncLifetime
+// Some MudBlazor services are IAsyncDisposable-only; xunit tears the class down via BunitContext.DisposeAsync.
+public class MainLayoutTests : BunitContext
 {
 	readonly FakeCatalogLoader _catalogLoader = new();
 
@@ -15,9 +16,6 @@ public class MainLayoutTests : BunitContext, IAsyncLifetime
 		Services.AddMudServices();
 		Services.AddSingleton<ICatalogLoader>(_catalogLoader);
 	}
-
-	public Task InitializeAsync() => Task.CompletedTask;
-	Task IAsyncLifetime.DisposeAsync() => DisposeAsync().AsTask();
 
 	static ReferenceCard Ref(string collectorNumber) =>
 		new(Id: Guid.NewGuid(), OracleId: null, Name: "Orcish Bowmasters", Set: "LTR", SetName: "The Lord of the Rings",

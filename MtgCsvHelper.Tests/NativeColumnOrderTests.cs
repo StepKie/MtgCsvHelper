@@ -10,7 +10,7 @@ namespace MtgCsvHelper.Tests;
 /// independent, so without this a wrong column order would pass silently — defeating the purpose of
 /// emitting the site's exact shape.
 /// </summary>
-public class NativeColumnOrderTests(ITestOutputHelper output) : BaseTest(output)
+public class NativeColumnOrderTests : BaseTest
 {
 	const string ResourceRoot = "Resources/SampleCsvs";
 

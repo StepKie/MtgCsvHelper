@@ -3,7 +3,7 @@ using ScryfallApi.Client.Models;
 namespace MtgCsvHelper.Tests;
 
 [Collection(CatalogCollection.Name)]
-public class DeckFormatTests(CatalogFixture fixture, ITestOutputHelper output) : ApiBaseTest(fixture, output)
+public class DeckFormatTests(CatalogFixture fixture) : ApiBaseTest(fixture)
 {
 	public static TheoryData<string> ReadableFormats() => new(CardMapFactory.ReadableFormats);
 	public static TheoryData<string> WritableFormats() => new(CardMapFactory.WritableFormats);

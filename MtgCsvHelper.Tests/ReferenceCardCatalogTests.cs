@@ -221,11 +221,11 @@ public class ReferenceCardCatalogTests
 		using var compressed = new MemoryStream();
 		using (var gz = new GZipStream(compressed, CompressionMode.Compress, leaveOpen: true))
 		{
-			await gz.WriteAsync(bytes);
+			await gz.WriteAsync(bytes, TestContext.Current.CancellationToken);
 		}
 		compressed.Position = 0;
 
-		var catalog = await ReferenceCardCatalog.LoadGzipAsync(compressed);
+		var catalog = await ReferenceCardCatalog.LoadGzipAsync(compressed, TestContext.Current.CancellationToken);
 
 		catalog.Count.Should().Be(5);
 		catalog.FindByCardmarketId(5395).Should().NotBeNull().And.BeEquivalentTo(LightningBoltM11);

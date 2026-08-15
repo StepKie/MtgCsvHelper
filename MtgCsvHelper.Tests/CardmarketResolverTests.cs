@@ -3,7 +3,7 @@ using MtgCsvHelper.Services;
 namespace MtgCsvHelper.Tests;
 
 [Collection(CatalogCollection.Name)]
-public class CardmarketResolverTests(CatalogFixture fixture, ITestOutputHelper output) : ApiBaseTest(fixture, output)
+public class CardmarketResolverTests(CatalogFixture fixture) : ApiBaseTest(fixture)
 {
 	/// <summary>
 	/// Spy IMtgApi: never expected to be called in catalog-hit tests; if it is, the spy
@@ -29,7 +29,7 @@ public class CardmarketResolverTests(CatalogFixture fixture, ITestOutputHelper o
 		var spy = new SpyMtgApi();
 		var resolver = new CardmarketResolver(() => _catalog, spy);
 
-		var resolved = await resolver.ResolveAsync([266380]);
+		var resolved = await resolver.ResolveAsync([266380], TestContext.Current.CancellationToken);
 
 		resolved.Should().ContainKey(266380);
 		resolved[266380].Name.Should().Be("Putrid Leech");
@@ -64,7 +64,7 @@ public class CardmarketResolverTests(CatalogFixture fixture, ITestOutputHelper o
 		};
 		var resolver = new CardmarketResolver(() => _catalog, spy);
 
-		var resolved = await resolver.ResolveAsync([missingId]);
+		var resolved = await resolver.ResolveAsync([missingId], TestContext.Current.CancellationToken);
 
 		spy.CallsReceived.Should().BeEquivalentTo([missingId], "the missing id must reach the API exactly once");
 		resolved.Should().ContainKey(missingId);
@@ -82,7 +82,7 @@ public class CardmarketResolverTests(CatalogFixture fixture, ITestOutputHelper o
 		};
 		var resolver = new CardmarketResolver(() => _catalog, spy);
 
-		var resolved = await resolver.ResolveAsync([hitId, missId]);
+		var resolved = await resolver.ResolveAsync([hitId, missId], TestContext.Current.CancellationToken);
 
 		spy.CallsReceived.Should().BeEquivalentTo([missId], "the catalog hit must not be passed to the API");
 		resolved.Should().HaveCount(1);

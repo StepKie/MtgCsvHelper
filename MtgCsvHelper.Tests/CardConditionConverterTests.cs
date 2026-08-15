@@ -8,7 +8,7 @@ namespace MtgCsvHelper.Tests;
 /// resolve to NearMint, and writes of Mint/Excellent emit the NearMint string. TCGPlayer's separate
 /// collision (Excellent + Good → "Lightly Played") is out of scope — see CONVERSION_LIMITATIONS.md.
 /// </summary>
-public class CardConditionConverterTests(ITestOutputHelper output) : BaseTest(output)
+public class CardConditionConverterTests : BaseTest
 {
 
 	static CardConditionConverter ConverterFor(string? mint, string nearMint, string? excellent) =>

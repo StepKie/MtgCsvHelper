@@ -13,7 +13,7 @@ Tool for converting Magic: The Gathering card collection CSV files between forma
 
 - .NET 10.0, C#
 - Blazor WebAssembly for the web frontend
-- xUnit + AwesomeAssertions for tests
+- xUnit.v3 + AwesomeAssertions for tests
 - CsvHelper for CSV parsing
 - Serilog for logging
 - Format mappings configured in `MtgCsvHelper/appsettings.json`
