@@ -373,7 +373,7 @@
       "url": "css\/bootstrap\/bootstrap.min.css.map"
     },
     {
-      "hash": "sha256-\/ZvHM\/A65QHj4eOhdNwr3aeUN3VV5h26IyGMIhTcaXA=",
+      "hash": "sha256-h+MeTAfanGVq44yMdSS4FKREczLh9KUgCNAZiXa4svY=",
       "url": "data\/cards.min.json.gz"
     },
     {
@@ -401,5 +401,5 @@
       "url": "brotliloader.min.js"
     }
   ],
-  "version": "DcfFaVio"
+  "version": "NsQCGF87"
 };
