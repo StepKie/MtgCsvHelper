@@ -23,6 +23,7 @@ Both import and export, unless noted.
 | --- | --- |
 | Moxfield | |
 | Dragon Shield | |
+| Sorted | Successor to the Dragon Shield scanner apps. Deck rows import with the deck name as their folder. |
 | Manabox | |
 | Topdecked | |
 | Deckbox | Curated edition names + legacy edition codes are aliased back to Scryfall codes on read/write. |

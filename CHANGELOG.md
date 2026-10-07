@@ -6,6 +6,10 @@ Unreleased work targets the next minor version once a coherent feature set is re
 
 ## [Unreleased]
 
+### Added
+
+- **Sorted format** ([#147](https://github.com/StepKie/MtgCsvHelper/issues/147)). Sorted, the app replacing the Dragon Shield scanner apps, can now be converted from and to. Its export is close to Dragon Shield's, but uses two-letter language codes and also lists your decks: deck cards import with the deck name as their folder.
+
 ## [1.6.0] — 2026-08-10
 
 ### Fixed

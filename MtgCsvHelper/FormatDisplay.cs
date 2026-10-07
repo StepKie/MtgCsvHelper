@@ -16,6 +16,7 @@ public static class FormatDisplay
 		{
 			["MOXFIELD"] = "Moxfield",
 			["DRAGONSHIELD"] = "Dragon Shield",
+			["SORTED"] = "Sorted",
 			["MANABOX"] = "Manabox",
 			["TOPDECKED"] = "Topdecked",
 			["DECKBOX"] = "Deckbox",

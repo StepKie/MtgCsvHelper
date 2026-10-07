@@ -5,7 +5,8 @@ using MtgCsvHelper.Models;
 namespace MtgCsvHelper.Maps;
 
 /// <summary>
-/// Bidirectional map for the DRAGONSHIELD format. Inherits the standard <see cref="PhysicalCardMap"/>
+/// Bidirectional map for the DRAGONSHIELD format and its successor app's SORTED format, which inherited
+/// DragonShield's set codes and edition names. Inherits the standard <see cref="PhysicalCardMap"/>
 /// shape and customizes two columns via the Configure* hooks, for Ravnica Guild Kits (which DragonShield
 /// splits into per-guild editions):
 /// <list type="bullet">

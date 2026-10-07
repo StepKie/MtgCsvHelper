@@ -8,7 +8,7 @@ public class CardMapFactory(IConfiguration config, IReferenceCardCatalog catalog
 {
 	readonly List<FormatConfig> _formatConfigs = LoadOrThrow(config);
 
-	public static IReadOnlyList<string> Supported { get; } = ["MOXFIELD", "DRAGONSHIELD", "MANABOX", "TOPDECKED", "DECKBOX", "CARDKINGDOM", "MTGGOLDFISH", "TCGPLAYER", "CARDMARKET", "ARCHIDEKT", "MTGO"];
+	public static IReadOnlyList<string> Supported { get; } = ["MOXFIELD", "DRAGONSHIELD", "SORTED", "MANABOX", "TOPDECKED", "DECKBOX", "CARDKINGDOM", "MTGGOLDFISH", "TCGPLAYER", "CARDMARKET", "ARCHIDEKT", "MTGO"];
 
 	// Write-only / read-only format sets; internal so tests derive expectations from the same source of truth.
 	internal static readonly IReadOnlySet<string> WriteOnlyFormats = new HashSet<string>(StringComparer.OrdinalIgnoreCase) { "CARDKINGDOM" };
@@ -44,7 +44,7 @@ public class CardMapFactory(IConfiguration config, IReferenceCardCatalog catalog
 		return format.ToUpperInvariant() switch
 		{
 			"DECKBOX" => new DeckboxMap(cfg, catalog),
-			"DRAGONSHIELD" => new DragonShieldMap(cfg, catalog),
+			"DRAGONSHIELD" or "SORTED" => new DragonShieldMap(cfg, catalog),
 			_ => new PhysicalCardMap(cfg, catalog),
 		};
 	}
@@ -61,7 +61,7 @@ public class CardMapFactory(IConfiguration config, IReferenceCardCatalog catalog
 		{
 			"CARDKINGDOM" => new CardKingdomWriteMap(cfg, catalog),
 			"DECKBOX" => new DeckboxMap(cfg, catalog),
-			"DRAGONSHIELD" => new DragonShieldMap(cfg, catalog),
+			"DRAGONSHIELD" or "SORTED" => new DragonShieldMap(cfg, catalog),
 			"TCGPLAYER" => new TCGPlayerWriteMap(cfg, catalog),
 			_ => new PhysicalCardMap(cfg, catalog),
 		};

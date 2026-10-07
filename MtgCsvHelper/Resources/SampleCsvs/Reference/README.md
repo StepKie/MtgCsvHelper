@@ -39,6 +39,7 @@ failure.
 |---|---|---|---|---|
 | Moxfield | `moxfield.csv` | moxfield.com → Collection → Import | ☐ | ☐ |
 | DragonShield | `dragonshield.csv` | mtg.dragonshield.com → Import | ☐ | ☐ |
+| Sorted | `sorted.csv` | Sorted app → Import | ☐ | ☐ |
 | Manabox | `manabox.csv` | Manabox app → Import CSV | ☐ | ☐ |
 | TopDecked | `topdecked.csv` | TopDecked app → Import | ☐ | ☐ |
 | Deckbox | `deckbox.csv` | deckbox.org → Mtg → Import | ☐ | ☐ |

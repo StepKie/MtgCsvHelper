@@ -37,6 +37,7 @@ public class MtgCardCsvHandlerTests(CatalogFixture fixture) : ApiBaseTest(fixtur
 		{
 			// No etched tier — etched degrades to foil on write.
 			["DRAGONSHIELD"] = new Dictionary<CardFinish, CardFinish> { [CardFinish.Etched] = CardFinish.Foil },
+			["SORTED"] = new Dictionary<CardFinish, CardFinish> { [CardFinish.Etched] = CardFinish.Foil },
 			["TCGPLAYER"] = new Dictionary<CardFinish, CardFinish> { [CardFinish.Etched] = CardFinish.Foil },
 			["MTGO"] = new Dictionary<CardFinish, CardFinish> { [CardFinish.Etched] = CardFinish.Foil },
 			["DECKBOX"] = new Dictionary<CardFinish, CardFinish> { [CardFinish.Etched] = CardFinish.Foil },
