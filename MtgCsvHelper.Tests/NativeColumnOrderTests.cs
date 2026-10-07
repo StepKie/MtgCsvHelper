@@ -25,6 +25,7 @@ public class NativeColumnOrderTests : BaseTest
 		["MTGGOLDFISH"] = "Tests/mtggoldfish-real-export.csv",
 		["DECKBOX"] = "Tests/deckbox-real-export.csv",
 		["DRAGONSHIELD"] = "Tests/dragonshield-real-export.csv",
+		["SORTED"] = "Tests/sorted-real-export.csv",
 		["MTGO"] = "Collection/mtgo-collection.csv",
 	};
 

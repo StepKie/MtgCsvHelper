@@ -151,6 +151,25 @@ So the **Set Code is irrelevant** — the Set Name is the lever. **The prior `GK
 
 ---
 
+## Sorted
+
+Status: read verified against a real export (October 2026) of a collection migrated from DragonShield — 17,967 rows parse; `sorted-real-export.csv` is a 40-row excerpt. **Import of our `sorted.csv` into the Sorted app is unverified.** Sorted replaces the DragonShield scanner apps (mobile only, no web client); logging in migrates the DragonShield collection automatically.
+
+**Schema:** first-line `"sep=,"` marker like DragonShield, then 21 columns: `List Type, List Name, Collection, Format, Board, Quantity, Card Name, Set Code, Set Name, Card Number, Condition, Printing, Rarity, Language, Price Bought, Date Bought, Parent List Type, Parent List Name, Current Price (tcgplayer_marketsellprice), List Cover Image, Parent List Cover Image`.
+- Card columns, condition strings (incl. `LightPlayed`), `Printing` values (`Normal`/`Foil` + treatment foils) and `yyyy-MM-dd` dates are DragonShield's.
+- `List Name` replaces `Folder Name`; `Trade Quantity` and `LOW/MID/MARKET` are gone.
+- `Language` uses two-letter codes, three of them non-Scryfall: `jp` (ja), `cn` (zhs), `tw` (zht).
+- `Collection` is always `mtg` (Sorted is multi-game).
+
+**Deck rows** (`List Type = Deck`) export alongside folders, with lowercase set codes, `Board` = `Main Deck`/`Sideboard`, and blank `Language`/`Price Bought`/`Date Bought`. We import them like folder rows, with the deck name as the folder.
+
+**Normalizes during the DragonShield migration** (seen by diffing our DragonShield reference import against the Sorted export):
+- Guild kits keep DragonShield's `GK2_AZORIU` code and `Guild Kit: Azorius` name, so `DragonShieldMap` serves both formats.
+- Adventure cards gain the full name (`Brazen Borrower` → `Brazen Borrower // Petty Theft`).
+- The List `PLST DDC-49` Demonic Tutor became `DVD 49`; the Korean Lightning Bolt became `en`.
+
+---
+
 ## TopDecked
 
 Status: 43/43 rows round-trip cleanly (May 2026). Full parity with Moxfield. **June 2026:** the 29-row reference set round-trips cleanly — all 11 languages preserved (incl. Spanish, where Archidekt's Moxfield path dropped it), etched preserved, borderless → exact Scryfall ID, guild kit `gk2 #1`, The List `plst`. No finish auto-correction needed (we sent the right finishes). Gold-standard result alongside Moxfield/Manabox.

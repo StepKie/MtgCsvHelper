@@ -378,3 +378,4 @@ MtgCsvHelper.BlazorWebAssembly/wwwroot/CHANGELOG.md
 # Claude Code local settings + runtime files
 .claude/settings.local.json
 .claude/scheduled_tasks.lock
+.claude/local/
