@@ -6,6 +6,8 @@ Unreleased work targets the next minor version once a coherent feature set is re
 
 ## [Unreleased]
 
+## [1.7.0] — 2026-10-07
+
 ### Added
 
 - **Sorted format** ([#147](https://github.com/StepKie/MtgCsvHelper/issues/147)). Sorted, the app replacing the Dragon Shield scanner apps, can now be converted from and to. Its export is close to Dragon Shield's, but uses two-letter language codes and also lists your decks: deck cards import with the deck name as their folder.
@@ -13,6 +15,10 @@ Unreleased work targets the next minor version once a coherent feature set is re
 ### Changed
 
 - **Dragon Shield and Sorted exports: full adventure names, and The List cards as their original printing** ([#147](https://github.com/StepKie/MtgCsvHelper/issues/147)). Sorted rejects `Brazen Borrower` (it wants `Brazen Borrower // Petty Theft`) and The List numbers like `DDC-49`; those cards are now written as `Demonic Tutor` from `DDC` #49. Dragon Shield already converted The List cards this way on import.
+
+### Internal
+
+- **Test projects migrated to xUnit v3** (PR [#144](https://github.com/StepKie/MtgCsvHelper/pull/144)).
 
 ## [1.6.0] — 2026-08-10
 
@@ -170,7 +176,8 @@ First stable release. Web app + Console app.
 - [0.1.0] — 2022-12-02
 - [0.0.3] — 2022-11-15
 
-[Unreleased]: https://github.com/StepKie/MtgCsvHelper/compare/1.6.0...HEAD
+[Unreleased]: https://github.com/StepKie/MtgCsvHelper/compare/1.7.0...HEAD
+[1.7.0]: https://github.com/StepKie/MtgCsvHelper/compare/1.6.0...1.7.0
 [1.6.0]: https://github.com/StepKie/MtgCsvHelper/compare/1.5.0...1.6.0
 [1.5.0]: https://github.com/StepKie/MtgCsvHelper/compare/1.4.1...1.5.0
 [1.4.1]: https://github.com/StepKie/MtgCsvHelper/compare/1.4.0...1.4.1
