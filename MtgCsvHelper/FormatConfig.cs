@@ -50,10 +50,18 @@ public interface IHeaderConfig
 	string HeaderName { get; }
 }
 
+/// <summary>
+/// With <see cref="ShortNames"/>, two-faced names are written as their front face except for the Scryfall
+/// layouts in <see cref="FullNameLayouts"/> (default: split), which keep both halves.
+/// </summary>
 public record CardNameConfiguration(
 	string HeaderName,
 	bool ShortNames = false,
-	bool EncodeToken = false) : IHeaderConfig;
+	bool EncodeToken = false,
+	IReadOnlyList<string>? FullNameLayouts = null) : IHeaderConfig
+{
+	public IReadOnlyList<string> FullNameLayoutsOrDefault => FullNameLayouts ?? ["split"];
+}
 
 public record FinishConfiguration(
 	string HeaderName,

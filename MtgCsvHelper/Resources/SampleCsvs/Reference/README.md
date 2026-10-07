@@ -19,10 +19,10 @@ fed to each live site for the import check below.
 | Condition grades | same DFC at Good / Lightly Played / Played / Poor (Mint + Near Mint covered above) | Condition vocabulary. *Excellent is omitted — not all sites have it.* |
 | Tokens | Clue (TMH2 #14), Food (TLTR #10) | Token-set name / collector-number encoding, token prices |
 | Etched | Demonic Tutor (CMM #509) | Etched finish; degrades to foil on sites with no etched tier |
-| Language sweep | Lightning Bolt (M11 #149) × all 11 mapped languages | Each site's distinct language vocabulary (e.g. Archidekt `JP`/`KR`/`CS`/`CT`, Manabox `zh_CN`/`zh_TW`, Cardmarket numeric ids) |
+| Language sweep | Lightning Bolt (CLB #187) × all 11 mapped languages — a printing that exists in every one (M11 #149 has no Korean) | Each site's distinct language vocabulary (e.g. Archidekt `JP`/`KR`/`CS`/`CT`, Manabox `zh_CN`/`zh_TW`, Cardmarket numeric ids) |
 | Special products | Mardu Outrider (MB2 #1), Viscera Seer (SLD #VS), Isperia, Supreme Judge (GK2 #1), Ral's Vanguard (CMB1 #1), Demonic Tutor (PLST #DDC-49) | Non-standard set codes and collector-number shapes: Mystery Booster 2, Secret Lair, Ravnica Guild Kit, playtest cards, and The List's `<origset>-<num>` numbers. Acceptance per site tracked below. |
 | Borderless / alternate frame | Orcish Bowmasters (LTR #433 — borderless; #103 is the normal printing) | Variant-frame printing: TCGplayer decorates the name (`Orcish Bowmasters (Borderless)`) while keeping `Simple Name` plain; other sites encode the variant in the collector number. CardKingdom omits the collector number (`title,edition,foil,quantity`), so its row can't distinguish the borderless from the normal printing — no borderless signal there. Catches the alternate-printing mismatch from the borderless issue. |
-| Non-transform DFC layouts | Brazen Borrower // Petty Theft (ELD #39 — adventure), Fire // Ice (APC #128 — split) | DragonShield writes the full `A // B` name for adventure/split, unlike the short name for the transform DFC in row 1. Verifies layout-specific name handling — these rows already surfaced that our writer shortens adventure (`Brazen Borrower`) but keeps split full, which the live import will adjudicate. |
+| Non-transform DFC layouts | Brazen Borrower // Petty Theft (ELD #39 — adventure), Fire // Ice (APC #128 — split) | DragonShield writes the full `A // B` name for adventure/split, unlike the short name for the transform DFC in row 1. Verifies layout-specific name handling: DragonShield and Sorted get both in full (Sorted rejects the short adventure name). |
 
 Deliberately **not** yet covered (lossless-only, added as the underlying support lands):
 non-English card *names* and regional set codes, and foil *treatments* like Rainbow Foil.
@@ -62,7 +62,7 @@ What our writer emits per coordinate:
 
 | Coordinate | Reference card | Emitted as |
 |---|---|---|
-| The List | Demonic Tutor PLST #DDC-49 | `plst` / `DDC-49` (canonical) |
+| The List | Demonic Tutor PLST #DDC-49 | `plst` / `DDC-49` (canonical); to DragonShield and Sorted the original printing `DDC` / `49` — Sorted rejects The List numbers |
 | Ravnica Guild Kit | Isperia, Supreme Judge GK2 #1 | canonical `gk2`; to DragonShield the native per-guild set name (`Guild Kit: Azorius`) — DragonShield resolves by set name, not code |
 | Secret Lair | Viscera Seer SLD #VS | `sld` / `VS` |
 | Mystery Booster 2 | Mardu Outrider MB2 #1 | `mb2` / `1` |

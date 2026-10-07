@@ -7,6 +7,7 @@ public class CardNameConverter(CardNameConfiguration configuration, IReferenceCa
 {
 	readonly bool _useShortNames = configuration.ShortNames;
 	readonly bool _encodeToken = configuration.EncodeToken;
+	readonly IReadOnlyList<string> _fullNameLayouts = configuration.FullNameLayoutsOrDefault;
 
 	public object? ConvertFromString(string? text, IReaderRow row, MemberMapData memberMapData)
 	{
@@ -25,13 +26,11 @@ public class CardNameConverter(CardNameConfiguration configuration, IReferenceCa
 		string cardName = value as string ?? throw new ArgumentException($"{value} should be a string");
 		bool hasTwoHalves = cardName.Contains(" // ");
 
-		// Split cards keep both halves (both ARE the front face); DFC-style layouts strip
-		// to the front face. Unknown layout falls back to stripping so brand-new DFC sets
-		// not yet in the catalog don't regress on export.
+		// Unknown layout strips too, so brand-new DFC sets not yet in the catalog don't regress on export.
 		if (hasTwoHalves && _useShortNames)
 		{
 			var layout = catalog.GetLayoutByName(cardName);
-			if (!string.Equals(layout, "split", StringComparison.OrdinalIgnoreCase))
+			if (layout is null || !_fullNameLayouts.Contains(layout, StringComparer.OrdinalIgnoreCase))
 			{
 				cardName = cardName.Split(" // ").First();
 			}
