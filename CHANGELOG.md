@@ -10,6 +10,10 @@ Unreleased work targets the next minor version once a coherent feature set is re
 
 - **Sorted format** ([#147](https://github.com/StepKie/MtgCsvHelper/issues/147)). Sorted, the app replacing the Dragon Shield scanner apps, can now be converted from and to. Its export is close to Dragon Shield's, but uses two-letter language codes and also lists your decks: deck cards import with the deck name as their folder.
 
+### Changed
+
+- **Dragon Shield and Sorted exports: full adventure names, and The List cards as their original printing** ([#147](https://github.com/StepKie/MtgCsvHelper/issues/147)). Sorted rejects `Brazen Borrower` (it wants `Brazen Borrower // Petty Theft`) and The List numbers like `DDC-49`; those cards are now written as `Demonic Tutor` from `DDC` #49. Dragon Shield already converted The List cards this way on import.
+
 ## [1.6.0] — 2026-08-10
 
 ### Fixed

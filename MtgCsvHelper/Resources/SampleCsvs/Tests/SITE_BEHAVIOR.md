@@ -153,13 +153,18 @@ So the **Set Code is irrelevant** — the Set Name is the lever. **The prior `GK
 
 ## Sorted
 
-Status: read verified against a real export (October 2026) of a collection migrated from DragonShield — 17,967 rows parse; `sorted-real-export.csv` is a 40-row excerpt. **Import of our `sorted.csv` into the Sorted app is unverified.** Sorted replaces the DragonShield scanner apps (mobile only, no web client); logging in migrates the DragonShield collection automatically.
+Status: read verified against a real export (October 2026) of a collection migrated from DragonShield — 17,967 rows parse; `sorted-real-export.csv` is a 40-row excerpt. Import of our `sorted.csv` (October 2026): blank `List Type`/`Collection` are accepted; the three rejected rows below are fixed. Sorted replaces the DragonShield scanner apps (mobile only, no web client); logging in migrates the DragonShield collection automatically.
 
 **Schema:** first-line `"sep=,"` marker like DragonShield, then 21 columns: `List Type, List Name, Collection, Format, Board, Quantity, Card Name, Set Code, Set Name, Card Number, Condition, Printing, Rarity, Language, Price Bought, Date Bought, Parent List Type, Parent List Name, Current Price (tcgplayer_marketsellprice), List Cover Image, Parent List Cover Image`.
 - Card columns, condition strings (incl. `LightPlayed`), `Printing` values (`Normal`/`Foil` + treatment foils) and `yyyy-MM-dd` dates are DragonShield's.
 - `List Name` replaces `Folder Name`; `Trade Quantity` and `LOW/MID/MARKET` are gone.
 - `Language` uses two-letter codes, three of them non-Scryfall: `jp` (ja), `cn` (zhs), `tw` (zht).
 - `Collection` is always `mtg` (Sorted is multi-game).
+
+**Rejects on import** (Sorted's error rows are the file line + 1):
+- Adventure front-face names (`Brazen Borrower`): `Invalid Card Name`. We write the full name.
+- The List numbers (`ddc-49`): `Invalid Expansion Number`. We write the original printing (`DDC` #49).
+- Languages the printing doesn't exist in: `Invalid Language (ko)` for the Korean M11 Lightning Bolt, which was never printed in Korean. Sorted validates language per printing (it also read `kr`/`KR`/`Korean` as `ko`); our offline catalog is English-only and can't catch this.
 
 **Deck rows** (`List Type = Deck`) export alongside folders, with lowercase set codes, `Board` = `Main Deck`/`Sideboard`, and blank `Language`/`Price Bought`/`Date Bought`. We import them like folder rows, with the deck name as the folder.
 

@@ -76,7 +76,7 @@ Writing to Deckbox without the right alias risks the card landing as "Unspecifie
 
 ### 6. DFC name shapes
 
-Double-faced cards have several layouts (transform, modal_dfc, adventure, split, meld). DragonShield specifically requires *short* names for `transform` and `modal_dfc` but *full* names (`A // B`) for `adventure` and `split`. Other formats are mixed. Our parser is layout-agnostic on read (uses the catalog's DFC index), but write-side determinism varies per format.
+Double-faced cards have several layouts (transform, modal_dfc, adventure, split, meld). DragonShield and Sorted require *short* names for `transform` and `modal_dfc` but *full* names (`A // B`) for `adventure` and `split`, and our writer emits them that way. Other formats are mixed. Our parser is layout-agnostic on read (uses the catalog's DFC index), but write-side determinism varies per format.
 
 ### 7. Cardmarket: idProduct-only model
 

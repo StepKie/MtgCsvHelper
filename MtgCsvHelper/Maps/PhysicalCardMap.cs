@@ -37,7 +37,8 @@ public class PhysicalCardMap : ClassMap<PhysicalMtgCard>
 		if (setCodeMap is not null) { ConfigureSetCode(setCodeMap.Index(4)); }
 		var setNameMap = MapOptional(c => c.Printing.SetName, cfg.SetName);
 		if (setNameMap is not null) { ConfigureSetName(setNameMap.Index(5)); }
-		MapOptional(c => c.Printing.CollectorNumber, cfg.SetNumber)?.TypeConverter<CollectorNumberConverter>().Index(6);
+		var collectorNumberMap = MapOptional(c => c.Printing.CollectorNumber, cfg.SetNumber);
+		if (collectorNumberMap is not null) { ConfigureCollectorNumber(collectorNumberMap.TypeConverter<CollectorNumberConverter>().Index(6)); }
 
 		// Printing.Id is a non-nullable Guid, so it can't go through MapOptional (which expects a nullable member).
 		if (cfg.ScryfallId is not null) { Map(c => c.Printing.Id).Name(cfg.ScryfallId).TypeConverter<ScryfallIdConverter>().Index(12).Optional(); }
@@ -64,6 +65,9 @@ public class PhysicalCardMap : ClassMap<PhysicalMtgCard>
 
 	/// <summary>Configures the Set Name column; default is pass-through. Override to emit a format's curated edition names (Deckbox aliases, Dragon Shield guild kits).</summary>
 	protected virtual void ConfigureSetName(MemberMap<PhysicalMtgCard, string> map) { }
+
+	/// <summary>Configures the Card Number column beyond the shared read converter; default is pass-through. Override to emit a format's own numbering (Dragon Shield's unwound The List printings).</summary>
+	protected virtual void ConfigureCollectorNumber(MemberMap<PhysicalMtgCard, string> map) { }
 
 	MemberMap<PhysicalMtgCard, TMember>? MapOptional<TMember>(
 		Expression<Func<PhysicalMtgCard, TMember?>> property,
