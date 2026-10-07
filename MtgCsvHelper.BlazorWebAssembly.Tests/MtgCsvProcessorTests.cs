@@ -7,7 +7,8 @@ using MudBlazor.Services;
 
 namespace MtgCsvHelper.BlazorWebAssembly.Tests;
 
-public class MtgCsvProcessorTests : BunitContext, IAsyncLifetime
+// Some MudBlazor services are IAsyncDisposable-only; xunit tears the class down via BunitContext.DisposeAsync.
+public class MtgCsvProcessorTests : BunitContext
 {
 	readonly FakeCatalogLoader _catalogLoader = new();
 	readonly IConfiguration _config = new ConfigurationBuilder().AddJsonFile("appsettings.json").Build();
@@ -20,10 +21,6 @@ public class MtgCsvProcessorTests : BunitContext, IAsyncLifetime
 		Services.AddSingleton<ICatalogLoader>(_catalogLoader);
 		Services.AddSingleton<ICardmarketResolver>(new FakeCardmarketResolver());
 	}
-
-	// Some MudBlazor services are IAsyncDisposable-only; the context must be torn down via DisposeAsync.
-	public Task InitializeAsync() => Task.CompletedTask;
-	Task IAsyncLifetime.DisposeAsync() => DisposeAsync().AsTask();
 
 	// MudSelect popovers teleport into a MudPopoverProvider, so the page renders alongside one and tests search from the shared root.
 	IRenderedComponent<IComponent> RenderProcessor() => Render(b =>

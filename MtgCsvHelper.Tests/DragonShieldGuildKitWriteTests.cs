@@ -10,7 +10,7 @@ namespace MtgCsvHelper.Tests;
 /// (the <c>GK&lt;n&gt;_&lt;GUILD&gt;</c> set codes DragonShield exports) is covered by <see cref="DragonShieldCodeReadConverterTests"/>.
 /// </summary>
 [Collection(CatalogCollection.Name)]
-public class DragonShieldGuildKitWriteTests(CatalogFixture fixture, ITestOutputHelper output) : ApiBaseTest(fixture, output)
+public class DragonShieldGuildKitWriteTests(CatalogFixture fixture) : ApiBaseTest(fixture)
 {
 	static PhysicalMtgCard Card(string name, string set, string collectorNumber, string setName = "") => new()
 	{

@@ -7,7 +7,7 @@ namespace MtgCsvHelper.Tests;
 /// remaining fixtures in Tests/ are unwired manual-testing inputs for Console / Blazor UX.
 /// </summary>
 [Collection(CatalogCollection.Name)]
-public class TestCollectionFixtureTests(CatalogFixture fixture, ITestOutputHelper output) : ApiBaseTest(fixture, output)
+public class TestCollectionFixtureTests(CatalogFixture fixture) : ApiBaseTest(fixture)
 {
 	const string TestCollectionsRoot = "Resources/SampleCsvs/Tests";
 

@@ -6,7 +6,7 @@ namespace MtgCsvHelper.Tests;
 /// lossless (round-trips its own output). If either breaks, every generated reference CSV is suspect.
 /// </summary>
 [Collection(CatalogCollection.Name)]
-public class CanonicalReferenceTests(CatalogFixture fixture, ITestOutputHelper output) : ApiBaseTest(fixture, output)
+public class CanonicalReferenceTests(CatalogFixture fixture) : ApiBaseTest(fixture)
 {
 	[Fact]
 	public void Master_ParsesWithoutErrors()

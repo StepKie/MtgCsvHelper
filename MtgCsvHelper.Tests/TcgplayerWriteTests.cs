@@ -3,7 +3,7 @@ using ScryfallApi.Client.Models;
 namespace MtgCsvHelper.Tests;
 
 [Collection(CatalogCollection.Name)]
-public class TcgplayerWriteTests(CatalogFixture fixture, ITestOutputHelper output) : ApiBaseTest(fixture, output)
+public class TcgplayerWriteTests(CatalogFixture fixture) : ApiBaseTest(fixture)
 {
 	static PhysicalMtgCard Card(string name, string set, string collectorNumber) => new()
 	{

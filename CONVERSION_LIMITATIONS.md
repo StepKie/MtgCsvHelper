@@ -11,6 +11,7 @@ Per-format detail (with screenshots and round-trip notes) lives in [`MtgCsvHelpe
 | **Moxfield**     | ✅   | ✅   | 6            | 11        | ✅            | —              | Excellent collapses to "Near Mint" on write                          |
 | **Manabox**      | ✅   | ✅   | 7            | 11        | ✅            | —              | Corrects rarity, fills internal IDs                                  |
 | **DragonShield** | ✅   | ✅   | 7            | 11        | ❌            | Rainbow / Double Rainbow / Gilded — collapsed to Foil | Cross-format importer is lossy (see below) |
+| **Sorted**       | ✅   | ✅   | 7            | 11        | ❌            | Same as DragonShield, plus Mana / Ampersand — collapsed to Foil | DragonShield's successor: same condition strings, two-letter language codes |
 | **TopDecked**    | ✅   | ✅   | 6            | 11        | ✅            | —              | TCGPlayer condition vocabulary                                       |
 | **Deckbox**      | ✅   | ✅   | 6            | 11        | ⚠️ stored as Foil | —          | Collapses etched → foil on storage; uses internal edition aliases    |
 | **Archidekt**    | ✅   | ✅   | 5            | 11        | ✅            | —              | TCGPlayer-standard 5 (NM/LP/MP/HP/D); Mint + Excellent → NM on write |
@@ -55,7 +56,7 @@ Our internal model has 7 conditions: `Mint, NearMint, Excellent, Good, LightlyPl
 
 MtgGoldfish CSVs have no Language column. Round-tripping through MtgGoldfish loses *all* language information — Japanese / German / Russian cards come out indistinguishable from English on the way back in (defaulted to `null`).
 
-All other formats support the same 11 Scryfall language codes (en, fr, de, es, it, zhs, ja, pt, ru, ko, zht), though each uses its own string vocabulary (e.g., Archidekt writes `EN`, Moxfield writes `English`, Cardmarket writes `1`).
+All other formats support the same 11 Scryfall language codes (en, fr, de, es, it, zhs, ja, pt, ru, ko, zht), though each uses its own string vocabulary (e.g., Archidekt writes `EN`, Moxfield writes `English`, Cardmarket writes `1`, Sorted writes `jp`/`cn`/`tw` for Japanese and Simplified/Traditional Chinese).
 
 ### 4. DragonShield variant foils
 
@@ -75,7 +76,7 @@ Writing to Deckbox without the right alias risks the card landing as "Unspecifie
 
 ### 6. DFC name shapes
 
-Double-faced cards have several layouts (transform, modal_dfc, adventure, split, meld). DragonShield specifically requires *short* names for `transform` and `modal_dfc` but *full* names (`A // B`) for `adventure` and `split`. Other formats are mixed. Our parser is layout-agnostic on read (uses the catalog's DFC index), but write-side determinism varies per format.
+Double-faced cards have several layouts (transform, modal_dfc, adventure, split, meld). DragonShield and Sorted require *short* names for `transform` and `modal_dfc` but *full* names (`A // B`) for `adventure` and `split`, and our writer emits them that way. Other formats are mixed. Our parser is layout-agnostic on read (uses the catalog's DFC index), but write-side determinism varies per format.
 
 ### 7. Cardmarket: idProduct-only model
 

@@ -1,6 +1,6 @@
 namespace MtgCsvHelper.Tests;
 
-public class FormatDetectorTests(ITestOutputHelper output) : BaseTest(output)
+public class FormatDetectorTests : BaseTest
 {
 	FormatDetector NewDetector() => new([.. CardMapFactory.SupportedConfigs(_config)]);
 

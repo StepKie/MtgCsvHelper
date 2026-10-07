@@ -4,7 +4,7 @@ using CsvHelper;
 namespace MtgCsvHelper.Tests;
 
 [Collection(CatalogCollection.Name)]
-public class FaultToleranceTests(CatalogFixture fixture, ITestOutputHelper output) : ApiBaseTest(fixture, output)
+public class FaultToleranceTests(CatalogFixture fixture) : ApiBaseTest(fixture)
 {
 	const string MoxHeader = "Count,Name,Edition,Collector Number,Foil,Condition,Language,Purchase Price";
 

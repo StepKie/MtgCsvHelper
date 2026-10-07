@@ -11,7 +11,7 @@ namespace MtgCsvHelper.Tests;
 /// committed files are in sync.
 /// </summary>
 [Collection(CatalogCollection.Name)]
-public class ReferenceCsvSyncTests(CatalogFixture fixture, ITestOutputHelper output) : ApiBaseTest(fixture, output)
+public class ReferenceCsvSyncTests(CatalogFixture fixture) : ApiBaseTest(fixture)
 {
 	static readonly string ReferenceDir = Path.Combine(CanonicalReference.RepoRoot(), "MtgCsvHelper", "Resources", "SampleCsvs", "Reference");
 

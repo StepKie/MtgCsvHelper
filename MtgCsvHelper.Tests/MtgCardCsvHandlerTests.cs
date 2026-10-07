@@ -4,7 +4,7 @@ using ScryfallApi.Client.Models;
 namespace MtgCsvHelper.Tests;
 
 [Collection(CatalogCollection.Name)]
-public class MtgCardCsvHandlerTests(CatalogFixture fixture, ITestOutputHelper output) : ApiBaseTest(fixture, output)
+public class MtgCardCsvHandlerTests(CatalogFixture fixture) : ApiBaseTest(fixture)
 {
 	public const string TESTS_FOLDER = "Resources/SampleCsvs/Tests";
 	public const string COLLECTIONS_FOLDER = "Resources/SampleCsvs/Collection";
@@ -37,10 +37,14 @@ public class MtgCardCsvHandlerTests(CatalogFixture fixture, ITestOutputHelper ou
 		{
 			// No etched tier — etched degrades to foil on write.
 			["DRAGONSHIELD"] = new Dictionary<CardFinish, CardFinish> { [CardFinish.Etched] = CardFinish.Foil },
+			["SORTED"] = new Dictionary<CardFinish, CardFinish> { [CardFinish.Etched] = CardFinish.Foil },
 			["TCGPLAYER"] = new Dictionary<CardFinish, CardFinish> { [CardFinish.Etched] = CardFinish.Foil },
 			["MTGO"] = new Dictionary<CardFinish, CardFinish> { [CardFinish.Etched] = CardFinish.Foil },
 			["DECKBOX"] = new Dictionary<CardFinish, CardFinish> { [CardFinish.Etched] = CardFinish.Foil },
 		};
+
+	/// <summary>Formats that write The List printings as their original printing (<c>PLST DDC-49</c> → <c>DDC #49</c>).</summary>
+	static readonly IReadOnlySet<string> TheListUnwindingFormats = new HashSet<string>(StringComparer.OrdinalIgnoreCase) { "DRAGONSHIELD", "SORTED" };
 
 	/// <summary>
 	/// The canonical printings the field-fidelity fixtures are built from — the Ambitious Farmhand
@@ -69,11 +73,13 @@ public class MtgCardCsvHandlerTests(CatalogFixture fixture, ITestOutputHelper ou
 		handler.WriteCollectionCsv(originalCards, fileName);
 		List<PhysicalMtgCard> parsedCards = handler.ParseCollectionCsv(fileName).Collection.Cards;
 
-		// Fold each format's deterministic remaps (a grade/finish it can't carry) into the expected cards.
+		// Fold each format's deterministic remaps (a grade/finish/printing it can't carry) into the expected cards.
 		var condDeg = ConditionDegradations.GetValueOrDefault(format);
 		var finDeg = FinishDegradations.GetValueOrDefault(format);
+		var unwindsTheList = TheListUnwindingFormats.Contains(format);
 		var expectedCards = originalCards.Select(c =>
 		{
+			if (unwindsTheList && c.Printing.Set == "PLST") { c = AsTheListOriginal(c); }
 			if (condDeg is not null && condDeg.TryGetValue(c.Condition, out var cond)) { c = c with { Condition = cond }; }
 			if (finDeg is not null && finDeg.TryGetValue(c.Finish, out var fin))
 			{
@@ -96,6 +102,16 @@ public class MtgCardCsvHandlerTests(CatalogFixture fixture, ITestOutputHelper ou
 
 			return opts;
 		});
+	}
+
+	/// <summary>The card as the original printing its The List collector number encodes, enriched through the canonical pipeline like any master row.</summary>
+	PhysicalMtgCard AsTheListOriginal(PhysicalMtgCard card)
+	{
+		var setAndNumber = card.Printing.CollectorNumber!.Split('-', 2);
+		var canonical = CreateHandler(CanonicalReference.FormatName);
+		var csv = CsvFixture.WriteToString(canonical, [card with { Printing = new Card { Name = card.Printing.Name, Set = setAndNumber[0], CollectorNumber = setAndNumber[1] } }]);
+
+		return canonical.ParseCollectionCsv(CsvFixture.CsvStream(csv)).Collection.Cards.Single();
 	}
 
 	// Derived from config so a format gaining an etched string is round-trip-tested automatically.

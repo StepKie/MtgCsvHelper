@@ -3,7 +3,7 @@ using CsvHelper;
 namespace MtgCsvHelper.Tests;
 
 [Collection(CatalogCollection.Name)]
-public class CardmarketTests(CatalogFixture fixture, ITestOutputHelper output) : ApiBaseTest(fixture, output)
+public class CardmarketTests(CatalogFixture fixture) : ApiBaseTest(fixture)
 {
 	const string SamplePath = "Resources/SampleCsvs/Tests/cardmarket-field-fidelity.csv";
 
@@ -12,7 +12,7 @@ public class CardmarketTests(CatalogFixture fixture, ITestOutputHelper output) :
 	[Fact]
 	public async Task ParseSample_ResolvesAllFiveCardsFromCatalog()
 	{
-		var result = await Handler().ParseCollectionCsvAsync(SamplePath);
+		var result = await Handler().ParseCollectionCsvAsync(SamplePath, TestContext.Current.CancellationToken);
 
 		result.Collection.Cards.Should().HaveCount(5);
 		result.ErrorCount.Should().Be(0);
@@ -34,7 +34,7 @@ public class CardmarketTests(CatalogFixture fixture, ITestOutputHelper output) :
 	[Fact]
 	public async Task ParseSample_FoilFlagDecodedCorrectly()
 	{
-		var result = await Handler().ParseCollectionCsvAsync(SamplePath);
+		var result = await Handler().ParseCollectionCsvAsync(SamplePath, TestContext.Current.CancellationToken);
 		var byName = result.Collection.Cards.ToDictionary(c => c.Printing.Name);
 
 		byName["Master's Rebuke"].Finish.Should().Be(CardFinish.Foil);   // isFoil=1 in fixture
@@ -45,7 +45,7 @@ public class CardmarketTests(CatalogFixture fixture, ITestOutputHelper output) :
 	[Fact]
 	public async Task ParseSample_ConditionDecodedCorrectly()
 	{
-		var result = await Handler().ParseCollectionCsvAsync(SamplePath);
+		var result = await Handler().ParseCollectionCsvAsync(SamplePath, TestContext.Current.CancellationToken);
 		var byName = result.Collection.Cards.ToDictionary(c => c.Printing.Name);
 
 		byName["Pillory of the Sleepless"].Condition.Should().Be(CardCondition.Excellent); // condition=3
@@ -56,7 +56,7 @@ public class CardmarketTests(CatalogFixture fixture, ITestOutputHelper output) :
 	[Fact]
 	public async Task ParseSample_LanguageDecodedCorrectly()
 	{
-		var result = await Handler().ParseCollectionCsvAsync(SamplePath);
+		var result = await Handler().ParseCollectionCsvAsync(SamplePath, TestContext.Current.CancellationToken);
 
 		// All rows in the fixture have idLanguage=1 → English ("en")
 		result.Collection.Cards.Should().AllSatisfy(c => c.Language.Should().Be("en"));
@@ -70,7 +70,7 @@ public class CardmarketTests(CatalogFixture fixture, ITestOutputHelper output) :
 			+ "266380;1;0.15;1;2;;;;;;;;;\n"     // valid: Putrid Leech
 			+ "99999999;1;0.10;1;2;;;;;;;;;\n";  // invalid: unknown ID
 
-		var result = await Handler().ParseCollectionCsvAsync(CsvFixture.CsvStream(csv));
+		var result = await Handler().ParseCollectionCsvAsync(CsvFixture.CsvStream(csv), TestContext.Current.CancellationToken);
 
 		// The unresolved card is dropped (without name/set we can't write a meaningful row).
 		result.Collection.Cards.Should().HaveCount(1);
@@ -90,7 +90,7 @@ public class CardmarketTests(CatalogFixture fixture, ITestOutputHelper output) :
 		var csv = "Count,Name,Edition,Collector Number,Foil,Condition,Language,Purchase Price\n"
 			+ "1,Lightning Bolt,M11,149,,Near Mint,English,\n";
 
-		var act = async () => await Handler().ParseCollectionCsvAsync(CsvFixture.CsvStream(csv));
+		var act = async () => await Handler().ParseCollectionCsvAsync(CsvFixture.CsvStream(csv), TestContext.Current.CancellationToken);
 
 		await act.Should().ThrowAsync<HeaderValidationException>();
 	}

@@ -13,7 +13,7 @@ namespace MtgCsvHelper.Tests;
 /// stable common printing.
 /// </summary>
 [Collection(CatalogCollection.Name)]
-public class BackfillTests(CatalogFixture fixture, ITestOutputHelper output) : ApiBaseTest(fixture, output)
+public class BackfillTests(CatalogFixture fixture) : ApiBaseTest(fixture)
 {
 	[Fact]
 	public void CatalogValidator_StampsIdsAndRarity_OnResolve()
