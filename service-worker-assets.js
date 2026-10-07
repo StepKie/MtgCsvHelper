@@ -117,12 +117,12 @@
       "url": "_framework\/Microsoft.JSInterop.ifnm5tv8of.wasm.br"
     },
     {
-      "hash": "sha256-+8hLnjI8EB+5SUF1aQissZTPgGfSMsK44fgkboHk74s=",
-      "url": "_framework\/MtgCsvHelper.0jama97bqa.wasm.br"
+      "hash": "sha256-OV0hIgJ61X8W5bpGXOx0juWau\/C2hKuzdo\/GYNpFYjo=",
+      "url": "_framework\/MtgCsvHelper.BlazorWebAssembly.ftim4tjqrr.wasm.br"
     },
     {
-      "hash": "sha256-ClajmPsqi0tVGwTRIV2SfX+wgF8jUtrRX0eu8lsiTxU=",
-      "url": "_framework\/MtgCsvHelper.BlazorWebAssembly.rud4wr312c.wasm.br"
+      "hash": "sha256-ARhD+5iumalYUyaqZiPeimwnpLY9\/FPfoiZf+Ib7eeU=",
+      "url": "_framework\/MtgCsvHelper.fjtlyb1gz6.wasm.br"
     },
     {
       "hash": "sha256-z6OLFhcTK2xMFnoNusgUIMKqwxEUNj6eq5siwwrfODI=",
@@ -325,12 +325,12 @@
       "url": "_framework\/blazor.webassembly.js"
     },
     {
-      "hash": "sha256-6jBYqhzcoclueiigYMwSzad8ntqy+63RIS1cy0+S6Mg=",
+      "hash": "sha256-gTu91jlKCamJEbYluK2mHSUQvLrd1ekEPVTN1GN7CQ8=",
       "url": "_framework\/dotnet.js"
     },
     {
-      "hash": "sha256-i2UVFUnZ2GObZDi2FzWXQVXhxuzeFv344K4EvtylIM4=",
-      "url": "_framework\/dotnet.native.3ojvhhahs9.wasm.br"
+      "hash": "sha256-2nVUVwx6OUObxgtwj6YROJpNs\/5WgbxtWJ\/Wq4t45a8=",
+      "url": "_framework\/dotnet.native.30tc6v8mfj.wasm.br"
     },
     {
       "hash": "sha256-jzfJuXtQGKx7NujTmiXtkmM2OrrcByEiqhTqY2V8pU4=",
@@ -357,7 +357,7 @@
       "url": "_framework\/netstandard.xwjkegify0.wasm.br"
     },
     {
-      "hash": "sha256-I1IlUlQX92BvD5ROqmddM5Cb3sPIaLw93OeEaZKd89w=",
+      "hash": "sha256-OVdd3PpMznuWCRsm073NkDNne0opNWFEdQ0WdkVAF+Q=",
       "url": "appsettings.json"
     },
     {
@@ -373,7 +373,7 @@
       "url": "css\/bootstrap\/bootstrap.min.css.map"
     },
     {
-      "hash": "sha256-hILTytdKOogDEBSWgUSZGj1y8Y4jNyBMZAuIoYqFNPo=",
+      "hash": "sha256-+SO6ke4ElAD3Ma3NnQeZUYxbpDbJjAT0AAWAhQ+hOIU=",
       "url": "data\/cards.min.json.gz"
     },
     {
@@ -401,5 +401,5 @@
       "url": "brotliloader.min.js"
     }
   ],
-  "version": "acQYYKYX"
+  "version": "Cysx3nqB"
 };
